@@ -489,6 +489,29 @@ type CertificateTheme = 'gold' | 'violet' | 'onyx' | 'emerald';
     @media (max-width: 1024px) {
       .studio-grid { grid-template-columns: 1fr; }
     }
+
+    @media (max-width: 768px) {
+      .header-main-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .header-actions { width: 100%; flex-direction: column; }
+      .header-actions .btn { width: 100%; justify-content: center; }
+      
+      .diploma-canvas { padding: 0.75rem; }
+      .inner-border { padding: 1.25rem 0.5rem; }
+      
+      .org-monogram-circle { width: 44px; height: 44px; font-size: 0.9rem; }
+      .cert-main-heading { font-size: 1.35rem; line-height: 1.2; text-align: center; margin-top: 0.75rem; }
+      .cert-subheading { font-size: 0.65rem; }
+      
+      .recipient-name-display { font-size: 1.5rem; word-break: break-word; text-align: center; margin: 1rem 0; }
+      .cert-body-text { font-size: 0.8rem; padding: 0 0.5rem; }
+      .assessment-title-display { font-size: 1.1rem; line-height: 1.3; text-align: center; padding: 0 0.5rem; }
+      .score-badge-tag { font-size: 0.75rem; margin-bottom: 1.5rem; }
+      
+      .cert-footer-section { flex-direction: column; align-items: center; gap: 1.5rem; padding-top: 1.25rem; margin-top: 1.25rem; }
+      .signature-box { text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; }
+      .qr-verify-box { flex-direction: column; justify-content: center; width: 100%; text-align: center; gap: 0.75rem; }
+      .meta-details { text-align: center; align-items: center; }
+    }
   `]
 })
 export class CertificateGeneratorComponent implements OnInit {
