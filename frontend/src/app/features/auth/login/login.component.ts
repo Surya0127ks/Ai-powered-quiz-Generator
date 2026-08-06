@@ -30,7 +30,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
           <div class="form-field">
-            <label for="tenantIdentifier">Organization ID <span class="optional-tag">optional</span></label>
+            <label for="tenantIdentifier">Name <span class="optional-tag">optional</span></label>
             <input
               id="tenantIdentifier"
               type="text"
