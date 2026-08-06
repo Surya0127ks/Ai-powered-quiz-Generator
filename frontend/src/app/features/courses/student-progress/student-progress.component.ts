@@ -252,12 +252,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         } @else {
           <!-- Instructor View -->
           <div class="content-card">
-            <div class="section-title-row">
-              <div>
-                <h3>Instructor Dashboard</h3>
-                <p class="section-subtitle">Student attempts for the assessments you created</p>
-              </div>
-            </div>
+            <div class="mb-2"></div>
             
             <div class="instructor-accordion-list">
               @for (quiz of summary()?.myQuizzes; track quiz.id) {
