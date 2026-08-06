@@ -11,7 +11,7 @@ import { UserRole } from './core/models/auth.model';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     @if (!hideLayout()) {
-      <header class="qp-navbar">
+      <header class="qp-navbar no-print">
         <div class="nav-container">
           <!-- Brand Logo -->
           <a routerLink="/dashboard" class="brand-logo" (click)="mobileMenuOpen.set(false)">

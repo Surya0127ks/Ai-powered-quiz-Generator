@@ -480,10 +480,15 @@ type CertificateTheme = 'gold' | 'violet' | 'onyx' | 'emerald';
     /* Print Styles */
     @media print {
       .no-print { display: none !important; }
-      body { background: #ffffff !important; }
-      .cert-studio-container { padding: 0 !important; max-width: 100% !important; }
-      .studio-grid { grid-template-columns: 1fr !important; }
-      .diploma-canvas { box-shadow: none !important; padding: 0 !important; }
+      ::ng-deep .qp-navbar, ::ng-deep .qp-footer { display: none !important; }
+      ::ng-deep .app-main-layout { min-height: 0 !important; padding: 0 !important; margin: 0 !important; }
+      ::ng-deep body { background: #ffffff !important; margin: 0; padding: 0; }
+      
+      .cert-studio-container { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+      .studio-grid { display: block !important; }
+      .diploma-canvas { box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; max-width: 100% !important; margin: 0 auto; }
+      
+      @page { size: landscape; margin: 0.5cm; }
     }
 
     @media (max-width: 1024px) {
