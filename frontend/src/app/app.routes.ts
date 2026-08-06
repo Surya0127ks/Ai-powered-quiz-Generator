@@ -5,7 +5,8 @@ import { guestGuard } from './core/guards/guest.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dashboard',
+    loadComponent: () => import('./features/landing/landing.component').then((m) => m.LandingComponent),
+    title: 'QuizPulse - AI Powered Quiz Generator',
     pathMatch: 'full'
   },
   {

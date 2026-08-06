@@ -535,7 +535,7 @@ export class AppComponent {
 
   hideLayout(): boolean {
     const url = this.router.url;
-    return url.startsWith('/auth') || url.startsWith('/q/') || (url.includes('/quiz/') && !url.includes('/edit'));
+    return url === '/' || url.startsWith('/auth') || url.startsWith('/q/') || (url.includes('/quiz/') && !url.includes('/edit'));
   }
 
   getRoleName(role?: number): string {
