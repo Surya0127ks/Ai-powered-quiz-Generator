@@ -102,7 +102,34 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
 
       @if (isLoading()) {
         <div class="loading-state saas-card">
-          <div class="spinner"></div> Loading assessment details...
+          <div class="spinner"></div>
+          <span>Loading assessment details...</span>
+          @if (isSlowLoad()) {
+            <p class="slow-load-hint">⏳ Server is waking up, this may take up to 30 seconds...</p>
+          }
+        </div>
+      } @else if (isError()) {
+        <!-- Error / Retry State -->
+        <div class="error-card saas-card">
+          <div class="error-icon">⚠️</div>
+          <h2 class="error-title">Could not load the quiz</h2>
+          <p class="error-desc">
+            The server may be starting up (this happens after a period of inactivity on free hosting).
+            Please wait a moment and try again.
+          </p>
+          @if (retryCountdown() > 0) {
+            <div class="retry-countdown">
+              <div class="countdown-ring">
+                <span class="countdown-num">{{ retryCountdown() }}</span>
+              </div>
+              <p class="retry-auto-label">Auto-retrying in {{ retryCountdown() }}s...</p>
+            </div>
+          } @else {
+            <button (click)="retryLoad()" class="btn btn-ai retry-btn">
+              🔄 Retry Now
+            </button>
+          }
+          <p class="error-attempts">Attempt {{ retryAttempt() }} of 4</p>
         </div>
       } @else if (result()) {
         <!-- Score Result View (Clean Mode) -->
@@ -250,7 +277,21 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
               <label class="student-id-label">👤 Student Details (Required for Official Certificate & Leaderboard):</label>
               <div class="form-grid-2 margin-top-xs">
                 <input type="text" [(ngModel)]="studentDetails.studentName" placeholder="Full Name *" class="input-control mb-2" />
-                <input type="text" [(ngModel)]="studentDetails.email" placeholder="Email Address *" class="input-control mb-2" />
+                <div class="email-field-wrap">
+                  <input
+                    type="email"
+                    [(ngModel)]="studentDetails.email"
+                    placeholder="Email Address *"
+                    class="input-control"
+                    [class.input-error]="emailAlreadyUsed()"
+                    (input)="onEmailChange()"
+                  />
+                  @if (emailAlreadyUsed()) {
+                    <div class="email-error-msg">
+                      🚫 This email has already been used for this quiz. Please use a different email.
+                    </div>
+                  }
+                </div>
                 <input type="text" [(ngModel)]="studentDetails.rollNumber" placeholder="Roll Number / ID" class="input-control mb-2" />
                 <input type="text" [(ngModel)]="studentDetails.phoneNumber" placeholder="Phone Number" class="input-control mb-2" />
                 <input type="text" [(ngModel)]="studentDetails.className" placeholder="Class / Grade" class="input-control mb-2" />
@@ -269,7 +310,12 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
                 ✏️ Edit Assessment / View Answers
               </button>
             } @else {
-              <button (click)="startQuiz()" class="btn btn-ai btn-lg width-full start-btn">
+              <button
+                (click)="startQuiz()"
+                class="btn btn-ai btn-lg width-full start-btn"
+                [disabled]="emailAlreadyUsed()"
+                [class.btn-disabled]="emailAlreadyUsed()"
+              >
                 🚀 Start Assessment Now
               </button>
             }
@@ -611,7 +657,34 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     .margin-top { margin-top: 1.75rem; }
     .margin-top-xs { margin-top: 0.5rem; }
     .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .loading-state { padding: 4rem; text-align: center; color: var(--text-muted) !important; font-weight: 600; }
+    .loading-state { padding: 4rem 2rem; text-align: center; color: var(--text-muted) !important; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+    .slow-load-hint { font-size: 0.825rem; color: var(--text-muted) !important; font-weight: 500; margin: 0; animation: fadein 0.5s ease; }
+
+    /* Error / Retry Card */
+    .error-card { padding: 3.5rem 2rem; text-align: center; }
+    .error-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .error-title { font-size: 1.6rem; font-weight: 800; color: var(--text-primary) !important; margin: 0 0 0.75rem; }
+    .error-desc { font-size: 0.9rem; color: var(--text-secondary) !important; line-height: 1.6; max-width: 460px; margin: 0 auto 2rem; }
+    .retry-btn { min-width: 160px; padding: 0.85rem 2rem !important; font-size: 1rem !important; }
+    .error-attempts { font-size: 0.78rem; color: var(--text-muted) !important; margin-top: 1.25rem; font-weight: 600; }
+    .retry-countdown { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .countdown-ring {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: conic-gradient(var(--color-primary-600) 0%, var(--color-primary-50) 0%);
+      display: flex; align-items: center; justify-content: center;
+      border: 3px solid var(--color-primary-200);
+      animation: ringPulse 1s ease-in-out infinite alternate;
+    }
+    .countdown-num { font-size: 1.6rem; font-weight: 800; color: var(--color-primary-600); }
+    .retry-auto-label { font-size: 0.85rem; color: var(--text-secondary) !important; font-weight: 600; margin: 0; }
+    @keyframes ringPulse { from { box-shadow: 0 0 0 0 rgba(79,70,229,0.15); } to { box-shadow: 0 0 0 10px rgba(79,70,229,0); } }
+    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Email duplicate error */
+    .email-field-wrap { display: flex; flex-direction: column; gap: 0.35rem; }
+    .input-error { border-color: var(--color-danger) !important; background: var(--color-danger-bg) !important; }
+    .email-error-msg { font-size: 0.8rem; font-weight: 600; color: var(--color-danger); display: flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.6rem; background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: 0.4rem; animation: fadein 0.2s ease; }
+    .btn-disabled { opacity: 0.5; cursor: not-allowed !important; pointer-events: none; }
     .width-full { width: 100%; }
 
     @media (max-width: 768px) {
@@ -688,11 +761,20 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   readonly result = signal<QuizAttemptResult | null>(null);
   readonly currentQuestionIndex = signal(0);
   readonly isLoading = signal(true);
+  readonly isError = signal(false);
+  readonly isSlowLoad = signal(false);
+  readonly retryCountdown = signal(0);
+  readonly retryAttempt = signal(0);
+  readonly emailAlreadyUsed = signal(false);
   readonly showToast = signal(false);
   readonly showQrModal = signal(false);
   readonly isStarted = signal(false);
   readonly remainingSeconds = signal<number>(15 * 60);
   readonly showMissingDetailsModal = signal(false);
+
+  private slowLoadTimer: any = null;
+  private retryTimer: any = null;
+  private countdownInterval: any = null;
   
   studentDetails = {
     studentName: '',
@@ -788,13 +870,22 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.slowLoadTimer) clearTimeout(this.slowLoadTimer);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
   }
 
   loadQuiz(id: string): void {
     this.isLoading.set(true);
+    this.isError.set(false);
+    this.isSlowLoad.set(false);
+
+    // Show "waking up" hint after 5 seconds
+    if (this.slowLoadTimer) clearTimeout(this.slowLoadTimer);
+    this.slowLoadTimer = setTimeout(() => {
+      if (this.isLoading()) this.isSlowLoad.set(true);
+    }, 5000);
     
     const requestObservable = this.isPublicMode 
       ? this.quizService.getPublicQuizById(id)
@@ -802,9 +893,15 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
 
     requestObservable.subscribe({
       next: (quizData) => {
+        if (this.slowLoadTimer) clearTimeout(this.slowLoadTimer);
+        this.isSlowLoad.set(false);
         this.quiz.set(quizData);
         this.isLoading.set(false);
+        this.isError.set(false);
+        this.retryAttempt.set(0);
         this.quizId = quizData.id;
+        // After quiz loads, re-check if current email (if pre-filled) is already used
+        this.onEmailChange();
 
         // Shuffle questions if configured
         if (quizData.shuffleQuestions && quizData.questions) {
@@ -844,9 +941,68 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
+        if (this.slowLoadTimer) clearTimeout(this.slowLoadTimer);
+        this.isSlowLoad.set(false);
         this.isLoading.set(false);
+        this.retryAttempt.update(n => n + 1);
+
+        // Auto-retry up to 3 times with a countdown
+        if (this.retryAttempt() < 4) {
+          this.isError.set(true);
+          this.startRetryCountdown();
+        } else {
+          // Max retries reached — show error with manual retry button
+          this.isError.set(true);
+          this.retryCountdown.set(0);
+        }
       }
     });
+  }
+
+  startRetryCountdown(): void {
+    const delay = 10; // seconds before auto-retry
+    this.retryCountdown.set(delay);
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
+    this.countdownInterval = setInterval(() => {
+      const next = this.retryCountdown() - 1;
+      this.retryCountdown.set(next);
+      if (next <= 0) {
+        clearInterval(this.countdownInterval);
+        this.loadQuiz(this.quizId);
+      }
+    }, 1000);
+  }
+
+  retryLoad(): void {
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
+    this.retryAttempt.set(0);
+    this.loadQuiz(this.quizId);
+  }
+
+  /** Called every time the email field changes — checks localStorage for duplicate */
+  onEmailChange(): void {
+    const email = (this.studentDetails.email || '').trim().toLowerCase();
+    if (!email || !this.quizId) {
+      this.emailAlreadyUsed.set(false);
+      return;
+    }
+    const key = `quiz_attempted_emails_${this.quizId}`;
+    const raw = localStorage.getItem(key);
+    const used: string[] = raw ? JSON.parse(raw) : [];
+    this.emailAlreadyUsed.set(used.includes(email));
+  }
+
+  /** Records an email as used for this quiz in localStorage (called after successful submit) */
+  private recordEmailUsed(): void {
+    const email = (this.studentDetails.email || '').trim().toLowerCase();
+    if (!email || !this.quizId) return;
+    const key = `quiz_attempted_emails_${this.quizId}`;
+    const raw = localStorage.getItem(key);
+    const used: string[] = raw ? JSON.parse(raw) : [];
+    if (!used.includes(email)) {
+      used.push(email);
+      localStorage.setItem(key, JSON.stringify(used));
+    }
   }
 
   startQuiz(): void {
@@ -1016,6 +1172,7 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
     submitObs.subscribe({
       next: (res) => {
         localStorage.removeItem('qp_active_ongoing_attempt');
+        this.recordEmailUsed(); // Mark this email as used for this quiz
         this.result.set(res);
       }
     });
