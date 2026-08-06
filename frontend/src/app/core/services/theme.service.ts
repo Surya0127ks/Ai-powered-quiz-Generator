@@ -17,9 +17,9 @@ export class ThemeService {
       this.isDarkMode.set(isDark);
       this.applyTheme(isDark);
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      this.isDarkMode.set(prefersDark);
-      this.applyTheme(prefersDark);
+      // Default to light theme as requested
+      this.isDarkMode.set(false);
+      this.applyTheme(false);
     }
   }
 

@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-landing',
@@ -20,7 +21,10 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
             <span class="brand-title">QuizPulse</span>
           </a>
-          <div class="nav-actions">
+          <div class="nav-actions" style="display: flex; align-items: center; gap: 1rem;">
+            <button (click)="themeService.toggleTheme()" class="theme-toggle-btn" style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--l-text); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%;" [title]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+              {{ themeService.isDarkMode() ? '☀️' : '🌙' }}
+            </button>
             @if (authService.isAuthenticated()) {
               <a routerLink="/dashboard" class="btn-primary-outline">Go to Dashboard</a>
             } @else {
@@ -138,14 +142,14 @@ import { AuthService } from '../../core/services/auth.service';
   styles: [`
     /* Core Variables for Landing */
     :host {
-      --l-bg: #030712;
-      --l-surface: #111827;
-      --l-text: #f9fafb;
-      --l-text-muted: #9ca3af;
-      --l-primary: #7c3aed;
-      --l-primary-hover: #6d28d9;
-      --l-gradient-1: #c026d3;
-      --l-gradient-2: #3b82f6;
+      --l-bg: var(--bg-app);
+      --l-surface: var(--bg-surface);
+      --l-text: var(--text-heading);
+      --l-text-muted: var(--text-secondary);
+      --l-primary: var(--color-primary-600);
+      --l-primary-hover: var(--color-primary-700);
+      --l-gradient-1: var(--color-ai-start);
+      --l-gradient-2: var(--color-ai-end);
     }
 
     .landing-page {
@@ -566,7 +570,8 @@ import { AuthService } from '../../core/services/auth.service';
   `]
 })
 export class LandingComponent implements OnInit {
-  readonly authService = inject(AuthService);
+  authService = inject(AuthService);
+  themeService = inject(ThemeService);
   currentYear = new Date().getFullYear();
 
   ngOnInit(): void {
