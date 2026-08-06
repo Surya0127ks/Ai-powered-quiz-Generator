@@ -727,14 +727,14 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
   `,
   styles: [`
     .dashboard-layout {
-      max-width: 1180px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 1.75rem 1.25rem 4.0rem 1.25rem;
+      padding: 2rem 1.5rem 5rem 1.5rem;
     }
-    .mb-1 { margin-bottom: 0.35rem; }
-    .mb-2 { margin-bottom: 0.6rem; }
-    .mb-3 { margin-bottom: 1.0rem; }
-    .mb-4 { margin-bottom: 1.5rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .mb-2 { margin-bottom: 1.0rem; }
+    .mb-3 { margin-bottom: 1.5rem; }
+    .mb-4 { margin-bottom: 2.0rem; }
     .font-sm { font-size: 0.85rem; }
     .d-block { display: block; }
     .font-weight-bold { font-weight: 800; }
@@ -826,7 +826,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Suggestion Command Toolbar */
     .suggestion-toolbar {
-      padding: 1.35rem 1.6rem;
+      padding: 1.5rem 2rem;
       border-left: 5px solid var(--color-ai-purple) !important;
       border-radius: var(--radius-lg);
       display: flex;
@@ -895,10 +895,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
+      gap: 1.5rem;
     }
     .stat-card {
-      padding: 1.35rem 1.5rem;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
       border-radius: var(--radius-lg);
@@ -1245,10 +1245,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .running-quizzes-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.25rem;
+      gap: 1.5rem;
     }
     .running-quiz-item-card {
-      padding: 1.35rem;
+      padding: 1.5rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       display: flex;
@@ -1398,14 +1398,14 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Content Cards */
     .content-card {
-      padding: 1.75rem;
+      padding: 2rem;
       border-radius: var(--radius-lg);
     }
     .section-title-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
       h3 { font-size: 1.15rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; }
       .section-subtitle { font-size: 0.85rem; color: var(--text-muted) !important; margin-top: 0.2rem; font-weight: 400; }
     }
@@ -1629,7 +1629,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
 
     @media (max-width: 1024px) {
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 0.875rem; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
     }
 
     @media (max-width: 900px) {
