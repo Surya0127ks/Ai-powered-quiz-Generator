@@ -1661,12 +1661,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       .hero-content h1 { font-size: 1.5rem; line-height: 1.3; }
       .hero-desc { font-size: 0.9rem !important; }
       
-      /* Stack stats on very small screens for a cleaner look */
-      .metrics-grid { grid-template-columns: 1fr; gap: 0.85rem; }
-      .stat-card { padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-direction: row; }
-      .stat-card-top { margin-bottom: 0; }
-      .stat-value { font-size: 1.85rem; text-align: right; }
-      .stat-subtext { text-align: right; margin-top: 0; }
+      /* Create square box layout for stats on small screens instead of wide thin lines */
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+      .stat-card { padding: 1.15rem; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; }
+      .stat-card-top { margin-bottom: 0.5rem; }
+      .stat-value { font-size: 1.6rem; text-align: left; }
+      .stat-subtext { text-align: left; margin-top: 0.35rem; font-size: 0.7rem; }
       
       .topic-pills-row {
         display: flex;
@@ -1693,7 +1693,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       .action-btns-row { flex-direction: column; gap: 0.5rem; width: 100%; }
       .action-btns-row .btn, .action-btns-row a { width: 100%; justify-content: center; text-align: center; }
       
-      .suggestion-toolbar { padding: 1.15rem 1rem; }
+      .suggestion-toolbar { display: none !important; }
       .modal-content { padding: 1.5rem 1.25rem !important; max-width: 95% !important; }
     }
   `]
