@@ -1,0 +1,58 @@
+services:
+  # --- PostgreSQL Database ---
+  postgres:
+    image: postgres:16-alpine
+    container_name: lms-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lms_db}
+      POSTGRES_USER: ${POSTGRES_USER:-PLACEHOLDER_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-PLACEHOLDER_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-PLACEHOLDER_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Seq (Structured Logging) ---
+  seq:
+    image: datalust/seq:latest
+    container_name: lms-seq
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_REQUIRE_AUTHENTICATION: "false"
+    ports:
+      - "5341:80"
+
+  # --- LMS API ---
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/LMS.Api/Dockerfile
+    container_name: lms-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-lms_db};Username=${POSTGRES_USER:-PLACEHOLDER_USER};Password=${POSTGRES_PASSWORD:-PLACEHOLDER_PASSWORD}"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5000:8080"
+
+  # --- LMS Web (Angular) ---
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lms-web
+    depends_on:
+      - api
+    ports:
+      - "4200:80"
+
+volumes:
+  postgres-data:

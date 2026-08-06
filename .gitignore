@@ -1,0 +1,87 @@
+# ===========================
+# .NET / Backend
+# ===========================
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+.nuget/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.rsuser
+
+## Rider
+.idea/
+
+## Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+## Secrets
+appsettings.*.Secrets.json
+secrets.json
+*.pfx
+*.pem
+
+# ===========================
+# Node / Frontend
+# ===========================
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm/
+dist/
+out-tsc/
+.angular/
+.cache/
+
+# ===========================
+# IDE / Editor
+# ===========================
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===========================
+# Docker
+# ===========================
+docker-data/
+
+# ===========================
+# Environment
+# ===========================
+.env
+.env.*
+!.env.example
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/

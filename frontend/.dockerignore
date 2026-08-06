@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log
+.npm/
+
+# Build output
+dist/
+out-tsc/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Misc
+.git/
+.gitignore
+*.md

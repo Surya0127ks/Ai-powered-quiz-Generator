@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LMS.Api/LMS.Api.csproj" />
+    <Project Path="src/LMS.Application/LMS.Application.csproj" />
+    <Project Path="src/LMS.Domain/LMS.Domain.csproj" />
+    <Project Path="src/LMS.Infrastructure/LMS.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LMS.Application.Tests/LMS.Application.Tests.csproj" />
+    <Project Path="tests/LMS.Domain.Tests/LMS.Domain.Tests.csproj" />
+    <Project Path="tests/LMS.Infrastructure.Tests/LMS.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

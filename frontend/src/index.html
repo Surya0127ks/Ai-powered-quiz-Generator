@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>QuizPulse - AI Assessment & Certificate Platform</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Google Fonts: Plus Jakarta Sans, Inter, & Cinzel for Formal Certificates -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <script>
+    // Expose simple runtime env for dev overrides (populated from environment.development.ts at build time)
+    // During development we set __env__.devHostOverride to allow share links to use LAN IP.
+    window.__env__ = window.__env__ || {};
+    window.__env__.devHostOverride = "http://10.69.194.165:4200";
+  </script>
+  <app-root></app-root>
+</body>
+
+</html>

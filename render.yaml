@@ -1,0 +1,26 @@
+services:
+  - type: web_service
+    name: lms-backend
+    env: docker
+    plan: free
+    repo: https://github.com/<your-org-or-username>/<your-repo-name>
+    branch: main
+    dockerfile_path: backend/src/LMS.Api/Dockerfile
+    build_command: null
+    start_command: null
+    env_vars:
+      - key: PORT
+        value: 8080
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:8080
+      - key: ConnectionStrings__DefaultConnection
+        value: "Host=YOUR_NEON_HOST;Port=5432;Database=YOUR_DB;Username=YOUR_USER;Password=YOUR_PASS;Ssl Mode=Require;Trust Server Certificate=True"
+      - key: JwtSettings__SecretKey
+        value: "YOUR_PRODUCTION_SECRET_KEY_AT_LEAST_32_CHARS"
+      - key: Cors__AllowedOrigins__0
+        value: "https://<your-vercel-domain>"
+      - key: Cors__AllowedOrigins__1
+        value: "http://localhost:4200"
+      - key: Cors__AllowedOrigins__2
+        value: "https://<your-local-testing-domain>"
+    auto_deploy: true

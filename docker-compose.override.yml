@@ -1,0 +1,12 @@
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Serilog__MinimumLevel__Default: Debug
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+
+  web:
+    ports:
+      - "4200:80"
