@@ -13,12 +13,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://ai-powered-quiz-generator-j4s2.onrender.com/api/$1"
-    }
-  ],
-  "routes": [
+    },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
