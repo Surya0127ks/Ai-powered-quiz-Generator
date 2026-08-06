@@ -1656,35 +1656,45 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
 
     @media (max-width: 640px) {
-      .dashboard-layout { padding: 1rem 0.875rem 3rem 0.875rem; }
-      .dashboard-hero { padding: 1.25rem 1.25rem; }
-      .hero-content h1 { font-size: 1.5rem; }
-      .hero-desc { font-size: 0.85rem !important; }
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-      .stat-card { padding: 1rem 1.1rem; }
-      .stat-value { font-size: 1.75rem; }
+      .dashboard-layout { padding: 1rem 0.75rem 3rem 0.75rem; }
+      .dashboard-hero { padding: 1.5rem 1.25rem; gap: 1rem; border-radius: var(--radius-md); }
+      .hero-content h1 { font-size: 1.5rem; line-height: 1.3; }
+      .hero-desc { font-size: 0.9rem !important; }
+      
+      /* Stack stats on very small screens for a cleaner look */
+      .metrics-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+      .stat-card { padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-direction: row; }
+      .stat-card-top { margin-bottom: 0; }
+      .stat-value { font-size: 1.85rem; text-align: right; }
+      .stat-subtext { text-align: right; margin-top: 0; }
+      
       .topic-pills-row {
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding-bottom: 0.5rem;
+        padding-bottom: 0.75rem;
         gap: 0.5rem;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
       }
       .topic-pills-row::-webkit-scrollbar { display: none; }
-      .topic-pill { flex-shrink: 0; }
-      .running-quizzes-grid { grid-template-columns: 1fr; }
-      .quiz-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .qp-table { min-width: 580px; }
-      .content-card { padding: 1rem 0.875rem; }
-      .running-quiz-item-card { padding: 1rem 1rem !important; }
-      .rq-actions-row { flex-direction: column; gap: 0.5rem; }
-      .rq-actions-row .btn { width: 100%; justify-content: center; }
-      .action-btns-row { flex-direction: column; gap: 0.5rem; }
-      .action-btns-row .btn { width: 100%; justify-content: center; }
-      .suggestion-toolbar { padding: 1rem 1rem; }
-      .modal-content { padding: 1.25rem 1rem !important; }
+      .topic-pill { flex-shrink: 0; padding: 0.4rem 0.85rem; }
+      
+      .running-quizzes-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .quiz-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md); border: 1px solid var(--border-hairline); }
+      .qp-table { min-width: 650px; } /* Ensure table has enough space to not cramp text */
+      
+      .content-card { padding: 1.25rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; }
+      .running-quiz-item-card { padding: 1.25rem !important; }
+      
+      .rq-actions-row { flex-direction: column; gap: 0.5rem; width: 100%; }
+      .rq-actions-row .btn, .rq-actions-row a { width: 100%; justify-content: center; text-align: center; }
+      
+      .action-btns-row { flex-direction: column; gap: 0.5rem; width: 100%; }
+      .action-btns-row .btn, .action-btns-row a { width: 100%; justify-content: center; text-align: center; }
+      
+      .suggestion-toolbar { padding: 1.15rem 1rem; }
+      .modal-content { padding: 1.5rem 1.25rem !important; max-width: 95% !important; }
     }
   `]
 })
