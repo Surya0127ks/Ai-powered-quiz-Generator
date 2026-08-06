@@ -410,12 +410,12 @@ input:focus, select:focus, textarea:focus, .input-control:focus, .form-control:f
     color: var(--text-muted) !important;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    padding: 0.85rem 1.0rem;
+    padding: 0.5rem 0.75rem;
     border-bottom: 2px solid var(--border-hairline);
     background: var(--bg-subtle);
   }
   td {
-    padding: 1.0rem 1.0rem;
+    padding: 0.6rem 0.75rem;
     border-bottom: 1px solid var(--border-hairline);
     font-size: var(--fs-sm);
     vertical-align: middle;

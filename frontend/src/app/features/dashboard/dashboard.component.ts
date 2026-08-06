@@ -1439,6 +1439,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .modal-header-title {
       h3 { font-size: 1.35rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; }
     }
+    .leaderboard-modal-body {
+      max-height: 65vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 0.5rem;
+    }
     .leaderboard-meta-banner {
       display: flex;
       justify-content: space-around;
