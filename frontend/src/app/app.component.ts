@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, Event } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService } from './core/services/theme.service';
 import { UserRole } from './core/models/auth.model';
@@ -10,6 +10,17 @@ import { UserRole } from './core/models/auth.model';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
+    @if (isNavigating()) {
+      <div class="global-page-loader">
+        <div class="spinner-brand">
+          <div class="spinner-circle"></div>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+      </div>
+    }
+
     @if (!hideLayout()) {
       <header class="qp-navbar no-print">
         <div class="nav-container">
@@ -227,6 +238,39 @@ import { UserRole } from './core/models/auth.model';
     }
   `,
   styles: [`
+    /* Global Page Loader */
+    .global-page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg-app);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .spinner-brand {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-primary-600);
+    }
+    .spinner-circle {
+      position: absolute;
+      inset: 0;
+      border: 3px solid var(--color-primary-100);
+      border-top-color: var(--color-primary-600);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .qp-navbar {
       position: sticky;
       top: 0;
@@ -525,13 +569,31 @@ import { UserRole } from './core/models/auth.model';
     }
   `]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly themeService = inject(ThemeService);
   readonly UserRole = UserRole;
   private readonly router = inject(Router);
 
   readonly mobileMenuOpen = signal(false);
+  readonly isNavigating = signal(false);
+
+  ngOnInit(): void {
+    this.router.events.subscribe((event: Event) => {
+      if (event instanceof NavigationStart) {
+        this.isNavigating.set(true);
+      } else if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        // Small delay to make it smooth and not flicker on very fast loads
+        setTimeout(() => {
+          this.isNavigating.set(false);
+        }, 300);
+      }
+    });
+  }
 
   hideLayout(): boolean {
     const url = this.router.url;
