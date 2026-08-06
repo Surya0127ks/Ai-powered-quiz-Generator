@@ -407,6 +407,35 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
           </div>
         </div>
 
+        <!-- Quick Publish Action Bar (Top) — appears once questions are loaded -->
+        @if (questionsArray.length > 0) {
+          <div class="quick-publish-bar margin-top">
+            <div class="qpb-left">
+              <span class="qpb-icon">⚡</span>
+              <div>
+                <span class="qpb-title">Ready to publish?</span>
+                <span class="qpb-desc">{{ questionsArray.length }} questions loaded — publish now or review below first.</span>
+              </div>
+            </div>
+            <div class="qpb-actions">
+              <button type="button" (click)="onSubmit(false)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-outline btn-sm">
+                @if (isSavingDraft()) {
+                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Saving...</span></span>
+                } @else {
+                  <span>Save Draft</span>
+                }
+              </button>
+              <button type="button" (click)="onSubmit(true)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-ai btn-sm">
+                @if (isPublishing()) {
+                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Publishing...</span></span>
+                } @else {
+                  <span>🚀 Publish & Generate Link</span>
+                }
+              </button>
+            </div>
+          </div>
+        }
+
         <!-- Section 2: Questions Editor -->
         <div class="saas-card form-section margin-top">
           <div class="section-header-row">
@@ -587,9 +616,55 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     }
     .margin-top-sm { margin-top: 0.85rem; }
     .margin-top-xs { margin-top: 0.5rem; }
+    .margin-top { margin-top: 1.5rem; }
+    .margin-bottom { margin-bottom: 1.5rem; }
     .optional-text { font-weight: 400; color: var(--text-muted) !important; font-size: 0.75rem; }
     .width-full { width: 100%; }
     .mb-2 { margin-bottom: 0.5rem; }
+
+    /* Quick Publish Action Bar */
+    .quick-publish-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.35rem;
+      background: linear-gradient(135deg, var(--color-ai-bg), var(--color-primary-50));
+      border: 1.5px solid var(--color-ai-border);
+      border-left: 4px solid var(--color-ai-purple);
+      border-radius: 0.5rem;
+      animation: fadein 0.3s ease;
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .qpb-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .qpb-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .qpb-title {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--color-ai-purple) !important;
+    }
+    .qpb-desc {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted) !important;
+      margin-top: 0.1rem;
+    }
+    .qpb-actions {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      flex-shrink: 0;
+    }
 
     .key-toggle-row { text-align: right; }
     .toggle-key-link {
@@ -737,13 +812,36 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       .alert-content { display: flex; align-items: center; gap: 0.5rem; svg { stroke: var(--color-danger); flex-shrink: 0; } }
     }
     
+    @media (max-width: 768px) {
+      .quick-publish-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .qpb-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+      .qpb-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    
     @media (max-width: 600px) {
       .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+      .qpb-actions {
+        grid-template-columns: 1fr;
+      }
       .creator-container { padding: 1.25rem 1rem; }
       .q-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      .q-header .btn-remove { width: 100%; text-align: center; justify-content: center; }
       .options-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-      .form-actions-bar { flex-direction: column; align-items: stretch; }
-      .form-actions-bar button { width: 100%; text-align: center; justify-content: center; }
+      .options-header .link-btn { align-self: flex-start; }
+      .form-actions-bar { flex-direction: column-reverse; gap: 0.75rem; }
+      .form-actions-bar .btn { width: 100%; justify-content: center; margin: 0; }
       .header-title-row h1 { font-size: 1.6rem; }
       .option-row { flex-direction: row; flex-wrap: wrap; }
       .btn-opt-delete { width: 100%; text-align: center; }
