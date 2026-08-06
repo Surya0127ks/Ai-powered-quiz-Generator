@@ -507,17 +507,23 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 }
 
                 <div class="rq-actions-row">
-                  @if (q.totalAttemptsCount > 0) {
-                    <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm flex-grow" title="View Student Leaderboard">
-                      🏆 Leaderboard
+                  @if (authService.userRole() === 3) {
+                    <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm width-full" title="Start Assessment" style="text-align: center; justify-content: center;">
+                      ▶️ Start Quiz
+                    </a>
+                  } @else {
+                    @if (q.totalAttemptsCount > 0) {
+                      <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm flex-grow" title="View Student Leaderboard">
+                        🏆 Leaderboard
+                      </button>
+                    }
+                    <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm flex-grow" title="Copy Direct Quiz Share Link">
+                      📋 Share Link
+                    </button>
+                    <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Assessment">
+                      🗑️
                     </button>
                   }
-                  <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm flex-grow" title="Copy Direct Quiz Share Link">
-                    📋 Share Link
-                  </button>
-                  <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Assessment">
-                    🗑️
-                  </button>
                 </div>
               </div>
             }
@@ -692,6 +698,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     </td>
                     <td>
                       <div class="action-btns-row">
+                        <a [routerLink]="['/quiz', a.quizId]" class="btn btn-primary btn-sm">
+                          🔄 Retake Quiz
+                        </a>
                         <button (click)="selectedReportAttempt.set(a)" class="btn btn-outline btn-sm">
                           📊 View Report
                         </button>

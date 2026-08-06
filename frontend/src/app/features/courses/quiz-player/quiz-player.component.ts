@@ -184,10 +184,36 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
             }
           }
 
+          <!-- Detailed Post-Quiz Results -->
+          @if (quiz()?.showResultsAfterSubmission && result()?.reviews?.length) {
+            <div class="detailed-results margin-top" style="text-align: left; background: var(--bg-app); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-hairline);">
+              <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-primary);">Detailed Review</h3>
+              
+              @for (review of result()!.reviews; track review.questionId; let i = $index) {
+                <div class="review-item" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-hairline);">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary);">{{ i + 1 }}. {{ review.questionText }}</h4>
+                    <span class="badge" [ngClass]="review.isCorrect ? 'badge-emerald' : 'badge-danger'" style="margin-left: 1rem; white-space: nowrap;">
+                      {{ review.pointsEarned }} / {{ review.maxPoints }} pts
+                    </span>
+                  </div>
+                  
+                  <div style="margin-top: 0.75rem;">
+                    @if (review.isCorrect) {
+                      <p style="color: var(--color-success); font-weight: 600; margin: 0; font-size: 0.95rem;">✅ You answered correctly</p>
+                    } @else {
+                      <p style="color: var(--color-danger); font-weight: 600; margin: 0 0 0.25rem 0; font-size: 0.95rem;">❌ Incorrect answer</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
           <div class="result-actions margin-top">
             @if (!isPublicMode) {
               <button (click)="retakeQuiz()" class="btn btn-outline">Retake Quiz</button>
-              <a routerLink="/student/progress" class="btn btn-outline">View History</a>
+              <a routerLink="/student/progress" class="btn btn-outline">View Full History</a>
               <a routerLink="/dashboard" class="btn btn-primary">Return to Dashboard →</a>
             } @else {
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 1rem;">Your response has been recorded. You may now close this window.</p>
