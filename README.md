@@ -2,9 +2,9 @@
 
 
 ## What this app does (Working & Use)
-- Provides course and lesson management, quizzes, question bank, enrollments, and progress tracking.
+- Provides  quizzes, question bank,  and progress tracking.
 - Students can take quizzes, resume attempts, view scores, and receive certificates.
-- Instructors can create courses, sections, lessons and quizzes, review attempts and manage course content.
+- Instructors can create quizzes, review attempts and manage quizes.
 - Quizzes support shareable links (work over LAN/phone when the frontend `devHostOverride` is configured) for quick sharing of specific quiz attempts or previews.
 
 Users can run the project locally with Docker Compose or separately run the backend and frontend. The backend exposes a REST API used by the Angular frontend; authentication is JWT-based (set via env vars). EF Core handles migrations and schema updates.
