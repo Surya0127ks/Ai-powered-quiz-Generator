@@ -86,13 +86,14 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             _context.Tenants.Add(tenant);
         }
 
-        // 2. Check if user email already exists within tenant
+        // 2. Check if user email already exists globally
         var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Email == normalizedEmail, cancellationToken);
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
 
         if (existingUser != null)
         {
-            return Result.Failure<AuthResponseDto>("User with this email already exists under this tenant.");
+            return Result.Failure<AuthResponseDto>("User with this email already exists.");
         }
 
         // 3. Create user

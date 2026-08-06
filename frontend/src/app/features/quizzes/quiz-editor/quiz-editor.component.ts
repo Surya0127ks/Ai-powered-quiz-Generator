@@ -283,18 +283,20 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
 
         <!-- Submission Bar -->
         <div class="form-actions-bar margin-top">
-          <button type="button" routerLink="/dashboard" [disabled]="quizForm.invalid || isLoading()" class="btn btn-outline">
-            @if (isSavingDraft()) {
-              <span class="ai-spinner-row">
-                <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
-                </svg>
-                <span>Saving Draft...</span>
-              </span>
-            } @else {
-              <span>Save as Draft</span>
-            }
-          </button>
+          @if (authService.userRole() !== 3) {
+            <button type="button" (click)="onSubmit(false)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-outline">
+              @if (isSavingDraft()) {
+                <span class="ai-spinner-row">
+                  <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
+                  </svg>
+                  <span>Saving Draft...</span>
+                </span>
+              } @else {
+                <span>Save as Draft</span>
+              }
+            </button>
+          }
           <button type="button" (click)="onSubmit(true)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-primary">
             @if (isPublishing()) {
               <span class="ai-spinner-row">
@@ -304,7 +306,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                 <span>Publishing...</span>
               </span>
             } @else {
-              <span>🚀 {{ authService.userRole() === 3 ? 'Save & Ready to Take' : 'Publish & Generate Share Link' }}</span>
+              <span>🚀 {{ authService.userRole() === 3 ? 'Save & Take Assessment' : 'Publish & Generate Share Link' }}</span>
             }
           </button>
         </div>
@@ -841,10 +843,14 @@ export class QuizEditorComponent implements OnInit {
         this.isLoading.set(false);
         this.isPublishing.set(false);
         this.isSavingDraft.set(false);
-        this.router.navigate(['/dashboard']);
-        this.showSuccessToast.set(true);
-        this.successToastMessage.set('Quiz updated successfully!');
-        setTimeout(() => this.showSuccessToast.set(false), 3000);
+        if (this.authService.userRole() === 3) {
+          this.router.navigate(['/quiz', this.quizId]);
+        } else {
+          this.router.navigate(['/dashboard']);
+          this.showSuccessToast.set(true);
+          this.successToastMessage.set('Quiz updated successfully!');
+          setTimeout(() => this.showSuccessToast.set(false), 3000);
+        }
       },
       error: (err) => {
         this.isLoading.set(false);
