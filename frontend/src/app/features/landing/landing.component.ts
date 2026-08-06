@@ -158,6 +158,14 @@ import { AuthService } from '../../core/services/auth.service';
       flex-direction: column;
     }
 
+    /* Override global !important heading colors for the landing page */
+    .landing-page h1, 
+    .landing-page h2, 
+    .landing-page h3, 
+    .landing-page h4 {
+      color: var(--l-text) !important;
+    }
+
     .nav-container {
       max-width: 1200px;
       margin: 0 auto;
