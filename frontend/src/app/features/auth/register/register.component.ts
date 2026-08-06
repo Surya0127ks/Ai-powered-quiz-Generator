@@ -34,68 +34,27 @@ export enum RegistrationType {
         }
 
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form-layout">
-          <!-- Step 1: Account Category (Individual vs Organization) -->
-          <div class="form-field">
-            <label>1. Who are you?</label>
-            <div class="account-type-grid">
-              <label
-                class="type-card"
-                [class.selected]="accountType() === RegistrationType.Individual"
-                (click)="setAccountType(RegistrationType.Individual)"
-              >
-                <span class="type-icon">👤</span>
-                <div class="type-meta">
-                  <span class="type-title">Individual / Teacher</span>
-                  <span class="type-desc">Create quizzes & assessments for my students</span>
-                </div>
-              </label>
+          <!-- Simplified Role Selection -->
 
+          <div class="form-field">
+            <label>I am a:</label>
+            <div class="role-selector-pills">
               <label
-                class="type-card"
-                [class.selected]="accountType() === RegistrationType.Organization"
-                (click)="setAccountType(RegistrationType.Organization)"
+                class="pill-option"
+                [class.active]="registerForm.get('role')?.value === UserRole.Instructor"
               >
-                <span class="type-icon">🏢</span>
-                <div class="type-meta">
-                  <span class="type-title">Organization / School</span>
-                  <span class="type-desc">Setup multi-user institutional portal</span>
-                </div>
+                <input type="radio" formControlName="role" [value]="UserRole.Instructor" class="hidden-radio" />
+                <span>👨‍🏫 Teacher / Educator</span>
+              </label>
+              <label
+                class="pill-option"
+                [class.active]="registerForm.get('role')?.value === UserRole.Student"
+              >
+                <input type="radio" formControlName="role" [value]="UserRole.Student" class="hidden-radio" />
+                <span>🎓 Student / Learner</span>
               </label>
             </div>
           </div>
-
-          <!-- Step 2: Role Selection -->
-          @if (accountType() === RegistrationType.Individual) {
-            <div class="form-field">
-              <label>2. What is your primary goal?</label>
-              <div class="role-selector-pills">
-                <label
-                  class="pill-option"
-                  [class.active]="registerForm.get('role')?.value === UserRole.Instructor"
-                >
-                  <input type="radio" formControlName="role" [value]="UserRole.Instructor" class="hidden-radio" />
-                  <span>👨‍🏫 Educator / Creator (Create AI Quizzes)</span>
-                </label>
-                <label
-                  class="pill-option"
-                  [class.active]="registerForm.get('role')?.value === UserRole.Student"
-                >
-                  <input type="radio" formControlName="role" [value]="UserRole.Student" class="hidden-radio" />
-                  <span>🎓 Student / Learner (Take Assessments & Learn)</span>
-                </label>
-              </div>
-            </div>
-          } @else {
-            <div class="form-field">
-              <label>2. Organization Role</label>
-              <div class="role-selector-pills">
-                <label class="pill-option active">
-                  <input type="radio" formControlName="role" [value]="UserRole.TenantAdmin" class="hidden-radio" />
-                  <span>🔑 Tenant Administrator (Full Portal Management)</span>
-                </label>
-              </div>
-            </div>
-          }
 
           <!-- Step 3: Personal Details -->
           <div class="form-row">
@@ -116,31 +75,7 @@ export enum RegistrationType {
             </div>
           </div>
 
-          <!-- Organization Fields (Only shown for Organization mode) -->
-          @if (accountType() === RegistrationType.Organization) {
-            <div class="form-field">
-              <label for="tenantName">Organization / Institution Name</label>
-              <input id="tenantName" type="text" formControlName="tenantName" class="input-control" placeholder="Acme Academy" />
-              @if (registerForm.get('tenantName')?.touched && registerForm.get('tenantName')?.invalid) {
-                <span class="field-error">Organization name is required.</span>
-              }
-            </div>
 
-            <div class="form-field">
-              <label for="tenantIdentifier">Organization Identifier (URL Slug)</label>
-              <input
-                id="tenantIdentifier"
-                type="text"
-                formControlName="tenantIdentifier"
-                class="input-control"
-                placeholder="acme123"
-              />
-              <span class="field-hint">Only lowercase letters, numbers, and hyphens allowed (e.g. <strong>acme123</strong>).</span>
-              @if (registerForm.get('tenantIdentifier')?.touched && registerForm.get('tenantIdentifier')?.invalid) {
-                <span class="field-error">Identifier must contain only lowercase letters, numbers, and hyphens.</span>
-              }
-            </div>
-          }
 
           <div class="form-field">
             <label for="email">Work / Personal Email</label>
