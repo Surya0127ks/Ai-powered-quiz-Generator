@@ -38,12 +38,12 @@ try
 
     // --- Middleware Pipeline ---
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwaggerConfiguration();
-    }
-
+// Enable Swagger in Development and optionally in Production
+if (app.Environment.IsDevelopment() ||
+    builder.Configuration.GetValue<bool>("EnableSwagger"))
+{
+    app.UseSwaggerConfiguration();
+}
     app.UseHttpsRedirection();
     app.UseCors("DefaultCorsPolicy");
     app.UseRateLimiter();
