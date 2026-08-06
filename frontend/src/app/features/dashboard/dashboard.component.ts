@@ -1662,11 +1662,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       .hero-desc { font-size: 0.9rem !important; }
       
       /* Create square box layout for stats on small screens instead of wide thin lines */
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-      .stat-card { padding: 1.15rem; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; }
-      .stat-card-top { margin-bottom: 0.5rem; }
-      .stat-value { font-size: 1.6rem; text-align: left; }
-      .stat-subtext { text-align: left; margin-top: 0.35rem; font-size: 0.7rem; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
+      .stat-card { padding: 1.15rem !important; display: flex !important; align-items: flex-start !important; justify-content: center !important; flex-direction: column !important; }
+      .stat-card-top { margin-bottom: 0.5rem !important; }
+      .stat-value { font-size: 1.5rem !important; text-align: left !important; line-height: 1.1 !important; margin-bottom: 0.25rem !important; }
+      .stat-subtext { text-align: left !important; margin-top: 0 !important; font-size: 0.7rem !important; line-height: 1.2 !important; }
       
       .topic-pills-row {
         display: flex;
