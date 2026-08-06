@@ -407,7 +407,12 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     </div>
   `,
   styles: [`
-    .quiz-container { padding: 2.25rem 1.5rem; max-width: 860px; margin: 0 auto; text-align: left; }
+    .quiz-container {
+      padding: 1.75rem 1.25rem;
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: left;
+    }
     .quiz-header { margin-bottom: 1.25rem; }
     .back-link { color: var(--color-primary-600) !important; text-decoration: none; font-size: 0.875rem; font-weight: 700; display: inline-block; &:hover { text-decoration: underline; } }
     .badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -688,25 +693,36 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     .width-full { width: 100%; }
 
     @media (max-width: 768px) {
-      .specs-grid { grid-template-columns: 1fr; }
+      .specs-grid { grid-template-columns: 1fr 1fr; }
       .share-banner { flex-direction: column; align-items: flex-start; }
       .cert-award-banner { flex-direction: column; align-items: flex-start; }
       .header-right-meta { flex-direction: column; align-items: flex-end; gap: 0.35rem; }
     }
     
     @media (max-width: 600px) {
+      .quiz-container { padding: 1rem 0.875rem 2rem 0.875rem; }
+      .overview-card { padding: 1.25rem 1.1rem; }
+      .quiz-card { padding: 1.25rem 1.1rem; }
+      .result-card { padding: 1.25rem 1.1rem; }
+      .overview-title { font-size: 1.6rem !important; }
+      .specs-grid { grid-template-columns: 1fr; }
+      .form-grid-2 { grid-template-columns: 1fr; gap: 0.6rem; }
       .share-btns { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
       .share-btns .btn { width: 100%; text-align: center; justify-content: center; }
-      .share-info { width: 100%; }
+      .share-info { width: 100%; flex-direction: column; align-items: flex-start; }
+      .share-url-box { width: 100%; }
       .result-actions { flex-direction: column; align-items: stretch; }
       .result-actions .btn { width: 100%; margin: 0; text-align: center; justify-content: center; }
-      .quiz-container { padding: 1.25rem 1rem; }
-      .quiz-footer { flex-direction: column; gap: 1rem; }
+      .quiz-footer { flex-direction: column; gap: 0.75rem; }
       .quiz-footer button { width: 100%; text-align: center; justify-content: center; }
-      .overview-card { padding: 1.25rem 1rem; }
-      .result-card { padding: 1.25rem 1rem; }
       .cert-award-banner { padding: 1rem; }
       .cert-award-banner .btn { width: 100%; justify-content: center; text-align: center; }
+      .student-id-box { padding: 1rem !important; }
+      .email-field-wrap { grid-column: 1 / -1; }
+      .start-btn { font-size: 0.95rem !important; padding: 0.875rem 1rem !important; }
+      .modal-content { padding: 1.25rem 1rem !important; max-width: 96vw !important; }
+      .badge-row { gap: 0.35rem; }
+      .overview-card { padding: 1.1rem 1rem; }
     }
 
     /* Disqualified Overlay */
