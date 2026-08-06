@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { QuizService } from '../../../core/services/quiz.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { QuestionBankService, DomainTopicItem, SubTopicItem } from '../../../core/services/question-bank.service';
 import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.model';
 
@@ -300,10 +301,10 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                 <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
                 </svg>
-                <span>Publishing & Generating Share Link...</span>
+                <span>Publishing...</span>
               </span>
             } @else {
-              <span>🚀 Publish & Generate Share Link</span>
+              <span>🚀 {{ authService.userRole() === 3 ? 'Save & Ready to Take' : 'Publish & Generate Share Link' }}</span>
             }
           </button>
         </div>
@@ -523,6 +524,7 @@ export class QuizEditorComponent implements OnInit {
   private readonly questionBankService = inject(QuestionBankService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  public readonly authService = inject(AuthService);
 
   readonly QuestionType = QuestionType;
   readonly creationMode = signal<'smart' | 'manual'>('smart');

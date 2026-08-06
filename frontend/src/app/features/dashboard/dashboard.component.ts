@@ -395,7 +395,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       </div>
 
       <!-- 🔥 Live Running Assessments & Ongoing Active Attempt -->
-      <div class="content-card mb-4 running-quizzes-card print-hide">
+      @if (authService.userRole() !== 3) {
+        <div class="content-card mb-4 running-quizzes-card print-hide">
         <div class="section-title-row">
           <div class="title-with-live-dot">
             <span class="live-status-pill"><span class="pulsing-dot"></span> LIVE ASSESSMENTS</span>
@@ -523,13 +524,19 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </div>
         }
       </div>
+      }
 
-      <!-- Created Quizzes Data Table (Admin Overview) -->
+      <!-- Created Quizzes Data Table -->
       <div class="content-card mb-4">
         <div class="section-title-row">
           <div>
-            <h3>Instructor Dashboard - Assessment History</h3>
-            <p class="section-subtitle">Manage attempted assessments, view student scores, and leaderboard</p>
+            @if (authService.userRole() !== 3) {
+              <h3>Instructor Dashboard - Assessment History</h3>
+              <p class="section-subtitle">Manage attempted assessments, view student scores, and leaderboard</p>
+            } @else {
+              <h3>My Custom Quizzes</h3>
+              <p class="section-subtitle">Quizzes you have generated using AI</p>
+            }
           </div>
           <a routerLink="/quizzes/new" class="link-action">+ Create New Quiz</a>
         </div>
@@ -559,10 +566,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <th>Quiz Title</th>
                   <th>Category</th>
                   <th>Questions</th>
-                  <th>Submissions</th>
-                  <th>Avg. Score</th>
-                  <th>Status</th>
-                  <th>Admin Controls</th>
+                  @if (authService.userRole() !== 3) {
+                    <th>Submissions</th>
+                    <th>Avg. Score</th>
+                    <th>Status</th>
+                  }
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -579,27 +588,34 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     </td>
                     <td>{{ q.category }}</td>
                     <td>{{ q.questionCount }} Items</td>
-                    <td>
-                      <strong class="text-dark">{{ q.totalAttemptsCount }} Submissions</strong>
-                    </td>
-                    <td>
-                      <strong class="text-dark">{{ q.avgScorePercentage }}%</strong>
-                    </td>
-                    <td>
-                      @if (q.isPublished) {
-                        <span class="badge badge-emerald">Published</span>
-                      } @else {
-                        <span class="badge badge-slate">Draft</span>
-                      }
-                    </td>
+                    @if (authService.userRole() !== 3) {
+                      <td>
+                        <strong class="text-dark">{{ q.totalAttemptsCount }} Submissions</strong>
+                      </td>
+                      <td>
+                        <strong class="text-dark">{{ q.avgScorePercentage }}%</strong>
+                      </td>
+                      <td>
+                        @if (q.isPublished) {
+                          <span class="badge badge-emerald">Published</span>
+                        } @else {
+                          <span class="badge badge-slate">Draft</span>
+                        }
+                      </td>
+                    }
                     <td>
                       <div class="action-btns-row">
-                        <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm" title="View Student Submissions & Leaderboard">
-                          🏆 Leaderboard
-                        </button>
-                        <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
-                          📋 Link
-                        </button>
+                        <a [routerLink]="['/quiz', q.id]" class="btn btn-ai btn-sm" title="Open Quiz">
+                          ▶️ Open
+                        </a>
+                        @if (authService.userRole() !== 3) {
+                          <button (click)="openLeaderboardModal(q)" class="btn btn-outline btn-sm" title="View Student Submissions & Leaderboard">
+                            🏆 Leaderboard
+                          </button>
+                          <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
+                            📋 Link
+                          </button>
+                        }
                         <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
                           Edit
                         </a>
