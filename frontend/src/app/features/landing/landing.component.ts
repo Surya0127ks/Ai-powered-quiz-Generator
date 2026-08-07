@@ -352,7 +352,7 @@ import { ThemeService } from '../../core/services/theme.service';
     }
 
     .hero-title {
-      font-size: clamp(3rem, 6vw, 5rem);
+      font-size: clamp(2.5rem, 8vw, 5rem);
       font-weight: 800;
       line-height: 1.1;
       letter-spacing: -0.04em;
@@ -566,10 +566,23 @@ import { ThemeService } from '../../core/services/theme.service';
 
     /* Mobile */
     @media (max-width: 768px) {
-      .hero-title { font-size: 2.5rem; }
-      .hero-section { padding-top: 8rem; }
+      .hero-title { font-size: 2.75rem; }
+      .hero-section { padding: 7rem 1.25rem 4rem 1.25rem; }
       .btn-ghost { display: none; }
       .footer-flex { flex-direction: column; gap: 1rem; text-align: center; }
+      .btn-primary-outline { padding: 0.5rem 0.85rem; font-size: 0.85rem; }
+      .nav-actions { gap: 0.5rem; }
+      .theme-toggle-btn { width: 32px !important; height: 32px !important; font-size: 1rem !important; }
+      .btn-hero-primary { padding: 0.85rem 1.5rem; font-size: 1rem; width: 100%; justify-content: center; }
+      .badge-pill { padding: 0.25rem 0.75rem; font-size: 0.7rem; }
+    }
+    
+    @media (max-width: 480px) {
+      .hero-title { font-size: 2.25rem; }
+      .hero-subtitle { font-size: 1rem; }
+      .mockup-body { padding: 1.25rem; }
+      .mockup-title { font-size: 0.95rem; }
+      .section-title { font-size: 2rem; }
     }
   `]
 })
