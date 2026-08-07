@@ -110,21 +110,21 @@ export enum RegistrationType {
   `,
   styles: [`
     .auth-page-wrapper {
-      min-height: 100vh;
+      min-height: calc(100vh - 64px);
       display: flex;
       align-items: center;
       justify-content: center;
       background-color: var(--bg-app);
-      padding: 2.5rem 1.5rem;
+      padding: 2rem 1.5rem;
     }
     .auth-card-clean {
-      background: var(--bg-card);
+      background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: 0.75rem;
-      padding: 2.5rem 2.25rem;
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
       width: 100%;
       max-width: 520px;
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
     .auth-brand-header {
       text-align: center;
@@ -237,6 +237,13 @@ export enum RegistrationType {
       padding-top: 1.25rem;
       border-top: 1px solid var(--border-hairline);
       p { color: var(--text-secondary) !important; font-size: 0.875rem; font-weight: 500; a { color: var(--color-primary) !important; text-decoration: none; font-weight: 700; &:hover { text-decoration: underline; } } }
+    }
+    
+    @media (max-width: 640px) {
+      .auth-page-wrapper { padding: 1rem; }
+      .auth-card-clean { padding: 1.5rem; border-radius: 1rem; }
+      .form-row { grid-template-columns: 1fr; gap: 1.1rem; }
+      .type-selector { flex-direction: column; }
     }
   `]
 })

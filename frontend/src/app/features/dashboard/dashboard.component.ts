@@ -1447,8 +1447,45 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       text-decoration: none !important;
       &:hover {
         text-decoration: none !important;
-        color: var(--color-primary-700) !important;
       }
+    }
+
+    .empty-state-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--bg-hover);
+      border: 2px dashed var(--border-hairline);
+      border-radius: var(--radius-lg);
+      margin-top: 1rem;
+    }
+    .empty-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--color-primary-50);
+      color: var(--color-primary-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      svg { width: 32px; height: 32px; stroke-width: 1.5; }
+    }
+    .empty-state-box h4 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary) !important;
+      margin: 0 0 0.5rem 0;
+    }
+    .empty-state-box p {
+      font-size: 0.95rem;
+      color: var(--text-muted) !important;
+      max-width: 400px;
+      margin: 0;
+      line-height: 1.5;
     }
 
     /* Table */
