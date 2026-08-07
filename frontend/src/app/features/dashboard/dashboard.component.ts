@@ -974,13 +974,33 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     @media (max-width: 1024px) {
       .metrics-grid { grid-template-columns: repeat(2, 1fr); }
       .dashboard-hero { flex-direction: column; align-items: flex-start; text-align: left; padding: 2rem; gap: 1.5rem; }
+      .hero-actions { width: 100%; }
       .hero-actions .hero-btn { width: 100%; justify-content: center; }
     }
     
     @media (max-width: 640px) {
-      .metrics-grid { grid-template-columns: 1fr; }
-      .dashboard-layout { padding: 1.5rem 1rem 4rem 1rem; }
-      .hero-content h1 { font-size: 2rem; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      .stat-card { padding: 1.25rem; border-radius: 1rem; }
+      .stat-value { font-size: 1.75rem; }
+      .stat-title { font-size: 0.75rem; }
+      .stat-icon-box { width: 32px; height: 32px; }
+      .stat-icon-box .stat-svg { width: 16px; height: 16px; }
+      
+      .dashboard-layout { padding: 1rem 1rem 4rem 1rem; }
+      .dashboard-hero { padding: 1.5rem; border-radius: 1rem; gap: 1.25rem; }
+      .hero-content h1 { font-size: 1.5rem; line-height: 1.25; }
+      .hero-content .hero-desc { font-size: 0.85rem; }
+      .hero-actions .hero-btn { padding: 0.85rem 1.25rem; font-size: 0.95rem; }
+      
+      .section-title-row { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      .section-title-row h3 { font-size: 1.05rem; line-height: 1.3; }
+      .section-title-row .link-action { align-self: flex-start; font-size: 0.85rem; padding: 0.4rem 0.85rem; background: var(--bg-hover); border-radius: var(--radius-md); border: 1px solid var(--border-hairline); }
+      .content-card { padding: 1.25rem; }
+      
+      .empty-state-box { padding: 2rem 1.25rem; }
+      .empty-state-box h4 { font-size: 1.05rem; }
+      .empty-state-box p { font-size: 0.85rem; }
+      .empty-icon-wrapper { width: 48px; height: 48px; margin-bottom: 1rem; svg { width: 24px; height: 24px; } }
     }
 
     /* Running Live Quizzes Grid Section */
@@ -1445,8 +1465,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       font-weight: 700;
       color: var(--color-primary-600) !important;
       text-decoration: none !important;
+      transition: color 0.15s ease;
       &:hover {
         text-decoration: none !important;
+        color: var(--color-primary-700) !important;
       }
     }
 
