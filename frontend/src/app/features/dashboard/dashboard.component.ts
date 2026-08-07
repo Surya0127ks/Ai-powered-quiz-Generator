@@ -172,12 +172,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <a
                     [routerLink]="['/certificate/generator']"
                     [queryParams]="{ student: (authService.currentUser()?.firstName || 'Student') + ' ' + (authService.currentUser()?.lastName || ''), title: selectedReportAttempt()?.quizTitle, score: selectedReportAttempt()?.scorePercentage }"
-                    class="btn btn-ai width-full mb-2"
+                    class="btn btn-ai width-full mb-2 print-hide"
                   >
                     📜 Generate & Issue Official Certificate
                   </a>
                 }
-                <button (click)="selectedReportAttempt.set(null)" class="btn btn-outline width-full">Close Report</button>
+                <button onclick="window.print()" class="btn btn-outline width-full mb-2 print-hide">
+                  📥 Save Result PDF
+                </button>
+                <button (click)="selectedReportAttempt.set(null)" class="btn btn-secondary width-full print-hide">Close Report</button>
               </div>
             </div>
           </div>
@@ -621,10 +624,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                           <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
                             📋 Link
                           </button>
+                          <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
+                            Edit
+                          </a>
                         }
-                        <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
-                          Edit
-                        </a>
                         <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Assessment">
                           🗑️
                         </button>

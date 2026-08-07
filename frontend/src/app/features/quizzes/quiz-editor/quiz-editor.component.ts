@@ -25,7 +25,8 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
 
       <form [formGroup]="quizForm" (ngSubmit)="onSubmit(true)" class="creator-form-layout">
         <!-- Section 1: Quiz Details -->
-        <div class="saas-card form-section">
+        @if (authService.userRole() !== 3) {
+          <div class="saas-card form-section">
           <h3>📌 Quiz Details & Settings</h3>
           <p class="section-desc">Configure title, passing score, and time limit for your quiz.</p>
 
@@ -186,6 +187,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             </div>
           </div>
         </div>
+        }
 
         <!-- Section 2: Questions Editor -->
         <div class="saas-card form-section margin-top">
@@ -303,10 +305,10 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                 <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
                 </svg>
-                <span>Publishing...</span>
+                <span>{{ authService.userRole() === 3 ? 'Starting...' : 'Publishing...' }}</span>
               </span>
             } @else {
-              <span>🚀 {{ authService.userRole() === 3 ? 'Save & Take Assessment' : 'Publish & Generate Share Link' }}</span>
+              <span>🚀 {{ authService.userRole() === 3 ? 'Start Assessment' : 'Publish & Generate Share Link' }}</span>
             }
           </button>
         </div>

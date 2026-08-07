@@ -210,10 +210,10 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
             </div>
           }
 
-          <div class="result-actions margin-top">
+          <div class="result-actions margin-top print-hide">
+            <button onclick="window.print()" class="btn btn-ai">🖨️ Download / Print Scorecard</button>
             @if (!isPublicMode) {
               <button (click)="retakeQuiz()" class="btn btn-outline">Retake Quiz</button>
-              <a routerLink="/student/progress" class="btn btn-outline">View Full History</a>
               <a routerLink="/dashboard" class="btn btn-primary">Return to Dashboard →</a>
             } @else {
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 1rem;">Your response has been recorded. You may now close this window.</p>
@@ -790,6 +790,13 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     .warning-toast {
       background: var(--color-warning) !important;
       color: #000 !important;
+    }
+
+    @media print {
+      body { background: white !important; }
+      .print-hide { display: none !important; }
+      .quiz-container { max-width: 100% !important; padding: 0 !important; }
+      .detailed-results { border: none !important; box-shadow: none !important; }
     }
   `]
 })

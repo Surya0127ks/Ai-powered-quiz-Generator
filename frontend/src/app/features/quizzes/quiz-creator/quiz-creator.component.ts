@@ -555,10 +555,10 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                 <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
                 </svg>
-                <span>Publishing...</span>
+                <span>{{ authService.userRole() === 3 ? 'Starting...' : 'Publishing...' }}</span>
               </span>
             } @else {
-              <span>🚀 {{ authService.userRole() === 3 ? 'Save & Take Assessment' : 'Publish' }}</span>
+              <span>🚀 {{ authService.userRole() === 3 ? 'Start Generated Assessment' : 'Publish' }}</span>
             }
           </button>
         </div>
