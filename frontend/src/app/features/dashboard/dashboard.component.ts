@@ -746,34 +746,42 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Adaptive Hero Banner */
     .dashboard-hero {
-      padding: 2rem 2rem;
-      background: var(--hero-bg);
-      border: 1px solid var(--hero-border);
-      border-radius: var(--radius-lg);
+      padding: 2.5rem 3rem;
+      background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-ai-purple) 100%);
+      border-radius: 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 1.5rem;
-      box-shadow: var(--shadow-sm);
+      gap: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
       position: relative;
       overflow: hidden;
+      color: #ffffff !important;
+      border: none;
+    }
+    .dashboard-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.15), transparent 60%);
+      pointer-events: none;
     }
     .hero-content {
       flex: 1;
       min-width: 0;
       z-index: 1;
       h1 {
-        font-size: clamp(1.5rem, 4vw, 2.25rem);
+        font-size: clamp(1.8rem, 4vw, 2.75rem);
         font-weight: 800;
-        color: var(--hero-text) !important;
+        color: #ffffff !important;
         letter-spacing: -0.025em;
-        margin: 0 0 0.4rem 0;
+        margin: 0 0 0.5rem 0;
         line-height: 1.2;
       }
       .hero-desc {
-        font-size: 0.9rem;
-        color: var(--hero-desc) !important;
-        line-height: 1.55;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.9) !important;
+        line-height: 1.6;
         margin: 0;
       }
     }
@@ -783,11 +791,13 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       gap: 6px;
       font-size: 0.75rem;
       font-weight: 800;
-      padding: 0.35rem 0.85rem;
-      border-radius: var(--radius-sm);
-      background: var(--hero-badge-bg);
-      color: var(--hero-badge-color) !important;
-      border: 1px solid var(--hero-badge-border);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     .hero-actions {
       flex-shrink: 0;
@@ -796,18 +806,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.95rem 1.75rem;
-        background: var(--gradient-ai);
-        color: #ffffff !important;
+        padding: 1.1rem 2rem;
+        background: #ffffff;
+        color: var(--color-primary-600) !important;
         font-weight: 800;
-        font-size: 0.95rem;
-        border-radius: var(--radius-md);
+        font-size: 1.05rem;
+        border-radius: var(--radius-lg, 0.75rem);
         text-decoration: none !important;
-        box-shadow: var(--shadow-ai);
-        transition: all 0.15s ease;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         &:hover {
-          transform: translateY(-2px);
-          filter: brightness(1.1);
+          transform: translateY(-4px) scale(1.02);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
           text-decoration: none !important;
         }
       }
@@ -877,22 +887,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .topic-pill {
       font-size: 0.825rem;
       font-weight: 700;
-      padding: 0.5rem 1.0rem;
-      border-radius: var(--radius-md);
+      padding: 0.6rem 1.25rem;
+      border-radius: 9999px;
       text-decoration: none !important;
       border: 1px solid var(--border-hairline);
-      transition: all 0.15s ease;
+      background: var(--bg-surface);
+      color: var(--text-primary) !important;
+      transition: all 0.2s ease;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-        text-decoration: none !important;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        border-color: var(--color-primary-400);
+        color: var(--color-primary-600) !important;
       }
     }
-    .pill-ai      { background: var(--color-ai-bg); color: var(--color-ai-purple) !important; border-color: var(--color-ai-border); }
-    .pill-indigo  { background: var(--color-primary-50); color: var(--color-primary-600) !important; border-color: var(--color-primary-200); }
-    .pill-emerald { background: var(--color-success-bg); color: var(--color-success-text) !important; border-color: var(--color-success-border); }
-    .pill-slate   { background: var(--bg-hover); color: var(--text-body) !important; border-color: var(--border-hairline); }
 
     /* Stats Grid */
     .metrics-grid {
@@ -901,20 +911,23 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       gap: 1.5rem;
     }
     .stat-card {
-      padding: 1.5rem;
+      padding: 1.75rem;
       display: flex;
       flex-direction: column;
-      border-radius: var(--radius-lg);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border-radius: 1.25rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       &:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
       }
     }
-    .card-indigo { border-top: 4px solid var(--color-primary-600) !important; }
-    .card-purple { border-top: 4px solid var(--color-ai-purple) !important; }
-    .card-emerald{ border-top: 4px solid var(--color-success-text) !important; }
-    .card-amber  { border-top: 4px solid #b45309 !important; }
+    .card-indigo { border-left: 5px solid var(--color-primary-600) !important; }
+    .card-purple { border-left: 5px solid var(--color-ai-purple) !important; }
+    .card-emerald{ border-left: 5px solid var(--color-success-text) !important; }
+    .card-amber  { border-left: 5px solid #b45309 !important; }
 
     .stat-card-top {
       display: flex;
@@ -938,21 +951,36 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .icon-amber  { background: var(--color-warning-bg); color: var(--color-warning-text); }
 
     .stat-title {
-      font-size: 0.825rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-secondary) !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .stat-value {
-      font-size: 2.15rem;
-      font-weight: 800;
+      font-size: 2.5rem;
+      font-weight: 900;
       color: var(--text-primary) !important;
       line-height: 1.1;
+      letter-spacing: -1px;
     }
     .stat-subtext {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--text-muted) !important;
-      margin-top: 0.35rem;
+      margin-top: 0.5rem;
       font-weight: 500;
+    }
+
+    @media (max-width: 1024px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-hero { flex-direction: column; align-items: flex-start; text-align: left; padding: 2rem; gap: 1.5rem; }
+      .hero-actions .hero-btn { width: 100%; justify-content: center; }
+    }
+    
+    @media (max-width: 640px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+      .dashboard-layout { padding: 1.5rem 1rem 4rem 1rem; }
+      .hero-content h1 { font-size: 2rem; }
     }
 
     /* Running Live Quizzes Grid Section */

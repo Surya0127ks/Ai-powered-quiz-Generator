@@ -278,15 +278,15 @@ import { ThemeService } from '../../core/services/theme.service';
       text-decoration: none;
       font-size: 1.1rem;
       font-weight: 700;
-      padding: 0.85rem 2rem;
+      padding: 0.95rem 2.25rem;
       border-radius: var(--radius-md);
-      box-shadow: var(--shadow-md);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .btn-hero-primary:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px) scale(1.02);
       background: var(--color-primary-700);
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
     }
     .mt-4 { margin-top: 1.5rem; }
 
@@ -308,9 +308,10 @@ import { ThemeService } from '../../core/services/theme.service';
       transform: translateX(-50%);
       width: 60vw;
       height: 500px;
-      background: radial-gradient(ellipse at top, var(--color-primary-50) 0%, transparent 70%);
+      background: radial-gradient(ellipse at top, var(--color-primary-100) 0%, transparent 70%);
       z-index: 0;
       pointer-events: none;
+      opacity: 0.6;
     }
     .hero-content {
       position: relative;
@@ -443,7 +444,7 @@ import { ThemeService } from '../../core/services/theme.service';
       letter-spacing: -0.02em;
     }
     .text-highlight {
-      color: #93c5fd;
+      color: var(--color-primary-600);
     }
 
     .features-grid {
@@ -454,15 +455,15 @@ import { ThemeService } from '../../core/services/theme.service';
     .feature-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-md);
-      padding: 2rem;
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow-sm);
+      border-radius: 1.25rem;
+      padding: 2.25rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
     }
     .feature-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--color-primary-200);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+      border-color: var(--color-primary-300);
     }
     .feature-icon {
       width: 48px;
