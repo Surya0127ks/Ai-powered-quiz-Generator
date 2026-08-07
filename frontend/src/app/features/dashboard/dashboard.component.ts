@@ -811,7 +811,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         color: var(--color-primary-600) !important;
         font-weight: 800;
         font-size: 1.05rem;
-        border-radius: var(--radius-lg, 0.75rem);
+        border-radius: 9999px;
         text-decoration: none !important;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -841,7 +841,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .suggestion-toolbar {
       padding: 1.5rem 2rem;
       border-left: 5px solid var(--color-ai-purple) !important;
-      border-radius: var(--radius-lg);
+      border-radius: 1.25rem;
       display: flex;
       flex-direction: column;
     }
@@ -1289,6 +1289,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       padding: 1.5rem;
       background: var(--color-success-bg);
       border: 1px solid var(--color-success-border);
+      border-radius: 1rem;
       gap: 1.0rem;
       h4 { font-size: 1.0rem; font-weight: 800; color: var(--color-success-text) !important; margin-bottom: 0.2rem; }
       p { font-size: 0.85rem; color: var(--text-body); margin: 0; }
@@ -1302,6 +1303,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       padding: 1.5rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
+      border-radius: 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
@@ -1408,7 +1410,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       padding: 0.75rem 1rem;
       background: #fff8ed;
       border: 1px solid #f59e0b;
-      border-radius: 0.5rem;
+      border-radius: 1rem;
       animation: pulse-warn 2s infinite;
     }
     @keyframes pulse-warn {
@@ -1450,7 +1452,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     /* Content Cards */
     .content-card {
       padding: 2rem;
-      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 1.25rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
     }
     .section-title-row {
       display: flex;
@@ -1481,7 +1486,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       padding: 4rem 2rem;
       background: var(--bg-hover);
       border: 2px dashed var(--border-hairline);
-      border-radius: var(--radius-lg);
+      border-radius: 1.25rem;
       margin-top: 1rem;
     }
     .empty-icon-wrapper {
