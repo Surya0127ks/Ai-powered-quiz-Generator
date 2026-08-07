@@ -444,8 +444,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .modal-content {
       width: 100%;
       max-width: 480px;
-      background: #ffffff;
-      border-radius: 0.75rem;
+      background: var(--bg-surface);
+      border-radius: var(--radius-xl);
       padding: 1.75rem;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
@@ -469,7 +469,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .report-stat-box {
       background: var(--bg-app);
       border: 1px solid var(--border-hairline);
-      border-radius: 0.5rem;
+      border-radius: var(--radius-lg);
       padding: 0.85rem;
       text-align: center;
       display: flex;
@@ -513,9 +513,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     /* Premium Accordion Styling */
     .instructor-accordion-list { display: flex; flex-direction: column; gap: 1.25rem; }
     .accordion-card {
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: 0.85rem;
+      border-radius: var(--radius-xl);
       overflow: hidden;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: var(--shadow-sm);
@@ -537,7 +537,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      background: #ffffff;
+      background: var(--bg-surface);
       transition: background 0.2s ease;
     }
     .accordion-card.expanded .accordion-header {
@@ -571,10 +571,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .accordion-stats-col { display: flex; align-items: center; gap: 1.25rem; }
     .accordion-badge {
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1px solid var(--border-strong);
       padding: 0.35rem 0.85rem;
-      border-radius: 2rem;
+      border-radius: var(--radius-full);
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-body);

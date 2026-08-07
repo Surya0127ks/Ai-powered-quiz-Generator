@@ -597,7 +597,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     }
 
     .questions-navigation { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.75rem; border-bottom: 1px solid var(--border-hairline); padding-bottom: 1rem; }
-    .q-nav-tab { width: 38px; height: 38px; border-radius: 0.5rem; background: var(--bg-app); border: 1px solid var(--border-hairline); color: var(--text-secondary); font-weight: 800; cursor: pointer; transition: all 0.15s ease; }
+    .q-nav-tab { width: 38px; height: 38px; border-radius: var(--radius-md); background: var(--bg-app); border: 1px solid var(--border-hairline); color: var(--text-secondary); font-weight: 800; cursor: pointer; transition: all 0.15s ease; }
     .toast-notification { position: fixed; top: 1.5rem; right: 1.5rem; background: var(--bg-card); color: var(--text-primary); padding: 1rem 1.5rem; border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-weight: 500; border-left: 4px solid var(--accent-primary); z-index: 1000; animation: slideIn 0.3s ease-out; }
     .warning-toast { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; backdrop-filter: blur(8px); }
     .q-nav-tab.active { background: var(--color-primary-600) !important; color: #ffffff !important; border-color: var(--color-primary-600) !important; }
@@ -615,8 +615,8 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
       justify-content: flex-start;
       gap: 1.0rem;
       padding: 1.1rem 1.35rem;
-      border-radius: 0.75rem;
-      background: #ffffff;
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
       border: 1.5px solid var(--border-hairline);
       cursor: pointer;
       text-align: left;
@@ -654,7 +654,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
 
     /* Results Card */
     .result-card { text-align: center; padding: 2.25rem; }
-    .result-badge { padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); }
+    .result-badge { padding: 2rem; border-radius: var(--radius-xl); margin-bottom: 2rem; background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); }
     .result-badge.passed { background: var(--color-success-bg); border-color: var(--color-success-border); }
     .badge-icon { font-size: 3rem; }
     .score-display { margin: 1rem 0; }
@@ -665,7 +665,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     .cert-award-banner {
       background: var(--color-ai-bg);
       border: 1px solid var(--color-ai-border);
-      border-radius: 0.75rem;
+      border-radius: var(--radius-lg);
       padding: 1.25rem 1.5rem;
       display: flex;
       justify-content: space-between;
@@ -677,12 +677,12 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     }
 
     .reviews-list { text-align: left; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; h3 { font-size: 1.15rem; font-weight: 800; color: var(--text-primary) !important; margin-bottom: 0.5rem; } }
-    .review-item { padding: 1rem 1.25rem; border-radius: 0.75rem; background: #ffffff; border: 1px solid var(--border-hairline); border-left: 5px solid var(--text-muted); }
+    .review-item { padding: 1rem 1.25rem; border-radius: var(--radius-lg); background: var(--bg-surface); border: 1px solid var(--border-hairline); border-left: 5px solid var(--text-muted); }
     .review-item.correct { border-left-color: var(--color-success); background: var(--color-success-bg); }
     .review-item.incorrect { border-left-color: var(--color-danger); background: var(--color-danger-bg); }
     .review-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; color: var(--text-muted) !important; margin-bottom: 0.35rem; }
     .q-text { color: var(--text-primary) !important; font-weight: 700; }
-    .explanation-box { margin-top: 0.5rem; padding: 0.65rem 0.85rem; background: #ffffff; border: 1px solid var(--border-hairline); border-radius: 0.375rem; font-size: 0.85rem; color: var(--text-secondary) !important; }
+    .explanation-box { margin-top: 0.5rem; padding: 0.65rem 0.85rem; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-secondary) !important; }
 
     .result-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
     .margin-top { margin-top: 1.75rem; }
@@ -714,7 +714,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
     /* Email duplicate error */
     .email-field-wrap { display: flex; flex-direction: column; gap: 0.35rem; }
     .input-error { border-color: var(--color-danger) !important; background: var(--color-danger-bg) !important; }
-    .email-error-msg { font-size: 0.8rem; font-weight: 600; color: var(--color-danger); display: flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.6rem; background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: 0.4rem; animation: fadein 0.2s ease; }
+    .email-error-msg { font-size: 0.8rem; font-weight: 600; color: var(--color-danger); display: flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.6rem; background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); animation: fadein 0.2s ease; }
     .btn-disabled { opacity: 0.5; cursor: not-allowed !important; pointer-events: none; }
     .width-full { width: 100%; }
 

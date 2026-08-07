@@ -370,7 +370,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             </div>
           </div>
 
-          <div class="form-grid-2 margin-top-sm" style="align-items: center; gap: 1.5rem; background: var(--bg-hover); padding: 1rem; border-radius: 0.5rem;">
+          <div class="form-grid-2 margin-top-sm" style="align-items: center; gap: 1.5rem; background: var(--bg-hover); padding: 1.25rem; border-radius: var(--radius-lg);">
             <div>
               <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
                 <input type="checkbox" formControlName="shuffleQuestions" class="check-control" />
@@ -702,9 +702,9 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     }
 
     .ai-generating-loader {
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1.5px solid var(--color-ai-border);
-      border-radius: 0.75rem;
+      border-radius: var(--radius-xl);
       padding: 1.5rem;
       box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
       animation: pulseGlow 2s ease-in-out infinite alternate;
@@ -725,7 +725,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .ai-pulsing-icon {
       width: 44px;
       height: 44px;
-      border-radius: 0.65rem;
+      border-radius: var(--radius-lg);
       background: var(--color-ai-bg);
       display: flex;
       align-items: center;
@@ -746,7 +746,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .shimmer-item {
       background: var(--bg-app);
       border: 1px solid var(--border-hairline);
-      border-radius: 0.5rem;
+      border-radius: var(--radius-lg);
       padding: 1.0rem;
       display: flex;
       flex-direction: column;
@@ -777,7 +777,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .section-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
 
     .questions-list { display: flex; flex-direction: column; gap: 1.25rem; }
-    .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.35rem; border-radius: 0.75rem; }
+    .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
     .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
     .q-badge { font-size: 0.75rem; font-weight: 700; background: var(--color-primary-50); color: var(--color-primary) !important; padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid var(--color-primary-200); }
     .btn-remove { background: none; border: none; color: var(--color-danger) !important; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
@@ -800,7 +800,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       background: var(--text-primary);
       color: #ffffff;
       padding: 0.75rem 1.25rem;
-      border-radius: 0.5rem;
+      border-radius: var(--radius-md);
       font-size: 0.875rem;
       font-weight: 600;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
@@ -811,7 +811,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       border: 1px solid var(--color-danger-border);
       color: var(--color-danger) !important;
       padding: 1.0rem;
-      border-radius: 0.5rem;
+      border-radius: var(--radius-md);
       font-weight: 600;
       font-size: 0.875rem;
       .alert-content { display: flex; align-items: center; gap: 0.5rem; svg { stroke: var(--color-danger); flex-shrink: 0; } }
