@@ -144,7 +144,7 @@ import { UserRole } from './core/models/auth.model';
                   <span class="user-role">{{ getRoleName(authService.currentUser()?.role) }}</span>
                 </div>
               </div>
-              <button (click)="onLogout(); mobileMenuOpen.set(false)" class="btn btn-danger btn-sm width-full margin-top-xs">
+              <button (click)="onLogout(); mobileMenuOpen.set(false)" class="btn btn-outline btn-sm width-full margin-top-xs">
                 Sign Out
               </button>
             } @else {
@@ -432,39 +432,44 @@ import { UserRole } from './core/models/auth.model';
       right: 0;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-hairline);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      padding: 1.0rem 1.5rem 1.5rem 1.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 1.0rem 0;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: 0.25rem;
       z-index: 1000;
+      border-radius: 0 0 1.25rem 1.25rem;
     }
     .mobile-nav-item {
       display: flex;
       align-items: center;
-      padding: 0.75rem 1.0rem;
-      border-radius: var(--radius-md);
+      padding: 0.85rem 1.5rem;
       text-decoration: none;
       color: var(--text-primary) !important;
       font-weight: 600;
       font-size: 0.95rem;
-      background: var(--bg-hover);
-      &:hover { background: var(--color-primary-50); color: var(--color-primary-600) !important; }
+      background: transparent;
+      border-left: 3px solid transparent;
+      transition: all 0.15s ease;
+      &:hover { background: var(--bg-hover); border-left-color: var(--color-primary-600); color: var(--color-primary-600) !important; }
     }
     .mobile-nav-item.highlight-ai {
-      background: var(--color-ai-bg);
       color: var(--color-ai-purple) !important;
-      border: 1px solid var(--color-ai-border);
+      background: rgba(139, 92, 246, 0.05);
+      border-left-color: var(--color-ai-purple);
+      font-weight: 700;
     }
     .mobile-user-profile {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.75rem;
       font-weight: 700;
       font-size: 0.9rem;
+      padding: 1.25rem 1.5rem 0.5rem 1.5rem;
       margin-top: 0.5rem;
+      border-top: 1px solid var(--border-hairline);
     }
-    .width-full { width: 100%; }
+    .width-full { width: calc(100% - 3rem); margin-left: 1.5rem; margin-right: 1.5rem; }
     .margin-top-xs { margin-top: 0.5rem; }
 
     .app-main-layout {
