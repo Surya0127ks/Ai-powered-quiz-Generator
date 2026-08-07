@@ -279,8 +279,8 @@ import { ThemeService } from '../../core/services/theme.service';
       font-size: 1.1rem;
       font-weight: 700;
       padding: 0.95rem 2.25rem;
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      border-radius: 9999px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .btn-hero-primary:hover {
@@ -308,10 +308,10 @@ import { ThemeService } from '../../core/services/theme.service';
       transform: translateX(-50%);
       width: 60vw;
       height: 500px;
-      background: radial-gradient(ellipse at top, var(--color-primary-100) 0%, transparent 70%);
+      background: radial-gradient(circle at top, var(--color-primary-200) 0%, transparent 60%);
       z-index: 0;
       pointer-events: none;
-      opacity: 0.6;
+      opacity: 0.3;
     }
     .hero-content {
       position: relative;
@@ -328,10 +328,10 @@ import { ThemeService } from '../../core/services/theme.service';
       gap: 0.5rem;
       padding: 0.35rem 1rem;
       background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
-      border-radius: var(--radius-md);
-      color: var(--color-primary-700);
-      font-size: 0.85rem;
+      border: 1px solid var(--border-hairline);
+      border-radius: 9999px;
+      color: var(--color-primary-600);
+      font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -352,20 +352,24 @@ import { ThemeService } from '../../core/services/theme.service';
     }
 
     .hero-title {
-      font-size: clamp(3rem, 6vw, 4.5rem);
-      font-weight: 900;
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 800;
       line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin: 0 0 1.5rem 0;
+      letter-spacing: -0.04em;
+      margin: 0 0 1.25rem 0;
     }
     .text-gradient {
-      color: var(--color-primary-600);
+      background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-ai-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: var(--color-primary-600); /* Fallback */
     }
     .hero-subtitle {
-      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-size: clamp(1.1rem, 2vw, 1.25rem);
       color: var(--l-text-muted);
       line-height: 1.6;
-      max-width: 650px;
+      max-width: 600px;
       margin: 0 0 2.5rem 0;
     }
 
