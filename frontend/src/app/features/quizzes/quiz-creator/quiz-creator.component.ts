@@ -1097,12 +1097,6 @@ export class QuizCreatorComponent implements OnInit {
       return;
     }
 
-  onSubmit(isPublished: boolean): void {
-    if (this.quizForm.invalid) {
-      this.errorMessage.set('Please fill out all required fields and options before submitting.');
-      return;
-    }
-
     // Force students to only save as drafts (never published/shareable)
     const finalIsPublished = this.authService.userRole() === 3 ? false : isPublished;
 
