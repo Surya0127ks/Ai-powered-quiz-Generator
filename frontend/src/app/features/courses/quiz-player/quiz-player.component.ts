@@ -328,7 +328,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
 
           <!-- Start Action Button -->
           <div class="start-action-row margin-top">
-            @if (!isPublicMode && quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId) {
+            @if (!isPublicMode && quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId && authService.userRole() !== 3) {
               <div class="creator-preview-alert mb-3" style="text-align: center; color: var(--text-secondary); font-weight: 500;">
                 <p>You are the creator of this assessment.</p>
               </div>
