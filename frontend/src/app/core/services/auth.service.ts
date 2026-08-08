@@ -56,6 +56,7 @@ export class AuthService {
   loadCurrentUser(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/me`).pipe(
       tap(user => {
+        this.normalizeUserRole(user);
         this.currentUser.set(user);
         localStorage.setItem('user_profile', JSON.stringify(user));
       })
@@ -72,6 +73,7 @@ export class AuthService {
   }
 
   private handleAuthSuccess(response: AuthResponse): void {
+    this.normalizeUserRole(response.user);
     this.token.set(response.accessToken);
     this.refreshToken.set(response.refreshToken);
     this.currentUser.set(response.user);
@@ -85,9 +87,21 @@ export class AuthService {
     const stored = localStorage.getItem('user_profile');
     if (!stored) return null;
     try {
-      return JSON.parse(stored) as User;
+      const user = JSON.parse(stored) as User;
+      this.normalizeUserRole(user);
+      return user;
     } catch {
       return null;
+    }
+  }
+
+  private normalizeUserRole(user: User): void {
+    if (typeof user.role === 'string') {
+      const roleStr = user.role as string;
+      if (roleStr.toLowerCase() === 'student') user.role = 3;
+      else if (roleStr.toLowerCase() === 'instructor') user.role = 2;
+      else if (roleStr.toLowerCase() === 'tenantadmin') user.role = 1;
+      else if (roleStr.toLowerCase() === 'systemadmin') user.role = 0;
     }
   }
 }
