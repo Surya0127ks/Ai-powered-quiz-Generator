@@ -60,6 +60,9 @@ public static class DependencyInjection
         // AI Services
         services.AddHttpClient<IGroqService, GroqService>();
 
+        // Background Services
+        services.AddHostedService<QuizHistoryCleanupService>();
+
         return services;
     }
 }
