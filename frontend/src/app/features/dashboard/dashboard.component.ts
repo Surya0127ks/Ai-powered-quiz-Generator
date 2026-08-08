@@ -17,7 +17,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           <div class="hero-badge-row mb-2">
             <span class="hero-badge">⚡ QUIZPULSE ASSESSMENT PLATFORM</span>
           </div>
-          <h1>Welcome back, {{ authService.currentUser()?.firstName || 'User' }}</h1>
+          <h1>
+            Welcome back, {{ authService.currentUser()?.firstName || 'User' }}
+            @if (authService.userRole() === 2) {
+              <span class="badge" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); font-size: 0.45em; vertical-align: middle; margin-left: 0.5rem;">Teacher</span>
+            }
+          </h1>
           <p class="hero-desc">
             Generate AI assessments in seconds with Groq LLM, track student performance, view live admin leaderboards, and issue verified digital certificates.
           </p>

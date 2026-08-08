@@ -1136,7 +1136,11 @@ export class QuizCreatorComponent implements OnInit {
         if (this.authService.userRole() === 3) {
           this.router.navigate(['/quiz', quiz.id]);
         } else {
-          this.router.navigate(['/dashboard']);
+          if (isPublished) {
+            this.router.navigate(['/quiz', quiz.id, 'success']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         }
       },
       error: (err) => {

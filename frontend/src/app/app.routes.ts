@@ -68,6 +68,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'quiz/:id/success',
+    loadComponent: () => import('./features/quizzes/quiz-publish-success/quiz-publish-success.component').then(c => c.QuizPublishSuccessComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'quiz/:id',
     loadComponent: () =>
       import('./features/courses/quiz-player/quiz-player.component').then((m) => m.QuizPlayerComponent),
