@@ -185,7 +185,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
           }
 
           <!-- Detailed Post-Quiz Results -->
-          @if (quiz()?.showResultsAfterSubmission && result()?.reviews?.length) {
+          @if (quiz()?.showResultsAfterSubmission && result()?.reviews?.length && authService.currentUser()?.id === quiz()?.createdByUserId) {
             <div class="detailed-results margin-top" style="text-align: left; background: var(--bg-app); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-hairline);">
               <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-primary);">Detailed Review</h3>
               
@@ -235,7 +235,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
           </div>
 
           <!-- Share & QR Quick Actions Bar -->
-          @if (quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId) {
+          @if (quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId && authService.userRole() !== 3) {
             <div class="share-banner margin-top">
               <div class="share-info">
                 <span class="share-label">🔗 Share Assessment Link:</span>
