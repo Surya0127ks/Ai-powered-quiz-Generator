@@ -1097,8 +1097,17 @@ export class QuizCreatorComponent implements OnInit {
       return;
     }
 
+  onSubmit(isPublished: boolean): void {
+    if (this.quizForm.invalid) {
+      this.errorMessage.set('Please fill out all required fields and options before submitting.');
+      return;
+    }
+
+    // Force students to only save as drafts (never published/shareable)
+    const finalIsPublished = this.authService.userRole() === 3 ? false : isPublished;
+
     this.isLoading.set(true);
-    if (isPublished) {
+    if (finalIsPublished) {
       this.isPublishing.set(true);
     } else {
       this.isSavingDraft.set(true);
@@ -1112,7 +1121,7 @@ export class QuizCreatorComponent implements OnInit {
       description: values.description || undefined,
       category: values.category || 'General',
       difficulty: values.difficulty || 'Intermediate',
-      isPublished: isPublished,
+      isPublished: finalIsPublished,
       passingScorePercentage: values.passingScorePercentage!,
       timeLimitMinutes: values.timeLimitMinutes || undefined,
       negativeMarkingPoints: values.negativeMarkingPoints || undefined,
@@ -1134,9 +1143,10 @@ export class QuizCreatorComponent implements OnInit {
         this.isPublishing.set(false);
         this.isSavingDraft.set(false);
         if (this.authService.userRole() === 3) {
+          // Students go straight to playing the quiz
           this.router.navigate(['/quiz', quiz.id]);
         } else {
-          if (isPublished) {
+          if (finalIsPublished) {
             this.router.navigate(['/quiz', quiz.id, 'success']);
           } else {
             this.router.navigate(['/dashboard']);

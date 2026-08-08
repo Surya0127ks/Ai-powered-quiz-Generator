@@ -806,8 +806,11 @@ export class QuizEditorComponent implements OnInit {
       return;
     }
 
+    // Force students to only save as drafts (never published/shareable)
+    const finalIsPublished = this.authService.userRole() === 3 ? false : isPublished;
+
     this.isLoading.set(true);
-    if (isPublished) {
+    if (finalIsPublished) {
       this.isPublishing.set(true);
     } else {
       this.isSavingDraft.set(true);
@@ -821,7 +824,7 @@ export class QuizEditorComponent implements OnInit {
       description: values.description || undefined,
       category: values.category || 'General',
       difficulty: values.difficulty || 'Intermediate',
-      isPublished: isPublished,
+      isPublished: finalIsPublished,
       passingScorePercentage: values.passingScorePercentage!,
       timeLimitMinutes: values.timeLimitMinutes || undefined,
       negativeMarkingPoints: values.negativeMarkingPoints || undefined,
