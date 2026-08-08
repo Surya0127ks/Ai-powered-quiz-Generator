@@ -37,10 +37,7 @@ import { Quiz } from '../../../core/models/quiz.model';
             <div class="qr-section margin-top">
               <h4>Or share via QR Code</h4>
               <div class="qr-placeholder" title="QR Code for Quiz">
-                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z"></path>
-                  <path d="M9 3v6M15 3v6M3 9h6M15 9h6M3 15v6M9 15v6M3 21h6"></path>
-                </svg>
+                <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeUrl(quizUrl())" alt="Quiz QR Code" style="width: 150px; height: 150px; margin-bottom: 0.5rem;" />
                 <p>Scan to Start</p>
               </div>
             </div>
@@ -225,5 +222,9 @@ export class QuizPublishSuccessComponent implements OnInit {
     document.execCommand('copy');
     this.linkCopied.set(true);
     setTimeout(() => this.linkCopied.set(false), 3000);
+  }
+
+  encodeUrl(url: string): string {
+    return encodeURIComponent(url);
   }
 }
