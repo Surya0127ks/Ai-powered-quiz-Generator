@@ -92,8 +92,12 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
                 <input type="text" [(ngModel)]="studentDetails.className" placeholder="Class / Grade" class="input-control mb-2" />
                 <input type="text" [(ngModel)]="studentDetails.department" placeholder="Department / Subject" class="input-control mb-2" />
               </div>
-              <button (click)="submitQuizWithDetails()" class="btn btn-ai width-full mt-3" style="margin-top: 1.5rem;">
-                Submit Assessment
+              <button (click)="submitQuizWithDetails()" class="btn btn-ai width-full mt-3" style="margin-top: 1.5rem;" [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Submitting...</span></span>
+                } @else {
+                  <span>Submit Assessment</span>
+                }
               </button>
             </div>
           </div>
@@ -423,7 +427,13 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
                 @if (currentQuestionIndex() < (quiz()?.questions?.length || 1) - 1) {
                   <button (click)="nextQuestion()" class="btn btn-primary">Next Question →</button>
                 } @else {
-                  <button (click)="submitQuiz()" class="btn btn-primary">Submit Quiz Assessment</button>
+                  <button (click)="submitQuiz()" class="btn btn-primary" [disabled]="isSubmitting()">
+                    @if (isSubmitting()) {
+                      <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Submitting...</span></span>
+                    } @else {
+                      <span>Submit Quiz Assessment</span>
+                    }
+                  </button>
                 }
               </div>
             </div>
@@ -1179,7 +1189,11 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
     return !!list && list.length > 0;
   }
 
+  isSubmitting = signal(false);
+
   submitQuiz(): void {
+    if (this.isSubmitting()) return;
+    
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
     }
@@ -1195,8 +1209,13 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isSubmitting.set(true);
+
     const q = this.quiz();
-    if (!q) return;
+    if (!q) {
+      this.isSubmitting.set(false);
+      return;
+    }
 
     const answersList: StudentAnswerItem[] = [];
     q.questions.forEach(ques => {
@@ -1220,9 +1239,17 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
 
     submitObs.subscribe({
       next: (res) => {
+        // Exit fullscreen if active
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
         localStorage.removeItem('qp_active_ongoing_attempt');
         this.recordEmailUsed(); // Mark this email as used for this quiz
         this.result.set(res);
+        this.isSubmitting.set(false);
+      },
+      error: () => {
+        this.isSubmitting.set(false);
       }
     });
   }
