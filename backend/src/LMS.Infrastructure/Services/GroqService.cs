@@ -98,7 +98,7 @@ STRICT REQUIREMENTS:
 
         var requestBody = new
         {
-            model = "llama-3.1-8b-instant",
+            model = "openai/gpt-oss-20b",
             messages = new[]
             {
                 new { role = "system", content = systemPrompt },
