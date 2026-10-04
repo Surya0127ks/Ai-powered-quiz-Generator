@@ -98,7 +98,7 @@ STRICT REQUIREMENTS:
 
         var requestBody = new
         {
-            model = "llama-3.1-8b-instant",
+            model = "meta-llama/llama-4-scout-17b-16e-instruct",
             messages = new[]
             {
                 new { role = "system", content = systemPrompt },
