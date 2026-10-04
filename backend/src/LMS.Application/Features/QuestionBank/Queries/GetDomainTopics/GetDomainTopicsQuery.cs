@@ -108,6 +108,81 @@ public class GetDomainTopicsQueryHandler : IRequestHandler<GetDomainTopicsQuery,
                 "Aptitude & Reasoning",
                 "Quantitative Aptitude, Logical Reasoning, Verbal Ability",
                 new List<SubTopicDto>()
+            ),
+            new DomainTopicDto(
+                Guid.Parse("88888888-8888-8888-8888-888888888888"),
+                "General Science",
+                "Physics, Chemistry, Biology, Earth Science",
+                new List<SubTopicDto>
+                {
+                    new SubTopicDto(Guid.Parse("88888888-8888-8888-8888-888888888881"), "Physics"),
+                    new SubTopicDto(Guid.Parse("88888888-8888-8888-8888-888888888882"), "Chemistry"),
+                    new SubTopicDto(Guid.Parse("88888888-8888-8888-8888-888888888883"), "Biology")
+                }
+            ),
+            new DomainTopicDto(
+                Guid.Parse("99999999-9999-9999-9999-999999999999"),
+                "Mathematics",
+                "Algebra, Calculus, Statistics, Geometry, Number Theory",
+                new List<SubTopicDto>
+                {
+                    new SubTopicDto(Guid.Parse("99999999-9999-9999-9999-999999999991"), "Algebra & Calculus"),
+                    new SubTopicDto(Guid.Parse("99999999-9999-9999-9999-999999999992"), "Statistics & Probability"),
+                    new SubTopicDto(Guid.Parse("99999999-9999-9999-9999-999999999993"), "Geometry")
+                }
+            ),
+            new DomainTopicDto(
+                Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                "World History & Geography",
+                "Ancient Civilizations, World Wars, Political Geography, Current Affairs",
+                new List<SubTopicDto>
+                {
+                    new SubTopicDto(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab"), "Ancient History"),
+                    new SubTopicDto(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaac"), "Modern History & World Wars"),
+                    new SubTopicDto(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaad"), "Geography")
+                }
+            ),
+            new DomainTopicDto(
+                Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                "English Language & Literature",
+                "Grammar, Comprehension, Vocabulary, Poetry, Prose",
+                new List<SubTopicDto>
+                {
+                    new SubTopicDto(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbc"), "Grammar & Vocabulary"),
+                    new SubTopicDto(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbe"), "Reading Comprehension")
+                }
+            ),
+            new DomainTopicDto(
+                Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                "Business & Economics",
+                "Microeconomics, Macroeconomics, Management, Finance, Marketing",
+                new List<SubTopicDto>
+                {
+                    new SubTopicDto(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccd"), "Economics"),
+                    new SubTopicDto(Guid.Parse("cccccccc-cccc-cccc-cccc-ccccccccccce"), "Business Management")
+                }
+            ),
+            new DomainTopicDto(
+                Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+                "Artificial Intelligence & ML",
+                "Machine Learning, Neural Networks, NLP, Computer Vision, AI Ethics",
+                new List<SubTopicDto>
+                {
+                    new SubTopicDto(Guid.Parse("dddddddd-dddd-dddd-dddd-ddddddddddde"), "Machine Learning Basics"),
+                    new SubTopicDto(Guid.Parse("dddddddd-dddd-dddd-dddd-ddddddddddef"), "Deep Learning & Neural Nets")
+                }
+            ),
+            new DomainTopicDto(
+                Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+                "Cybersecurity",
+                "Network Security, Cryptography, Ethical Hacking, OWASP, Penetration Testing",
+                new List<SubTopicDto>()
+            ),
+            new DomainTopicDto(
+                Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+                "General Knowledge",
+                "Sports, Culture, Science & Technology, Current Events",
+                new List<SubTopicDto>()
             )
         };
     }
@@ -142,10 +217,41 @@ public class GetDomainTopicsQueryHandler : IRequestHandler<GetDomainTopicsQuery,
         var os = new DomainTopic { Id = Guid.Parse("66666666-6666-6666-6666-666666666666"), Name = "Operating Systems", Description = "Process Management, Threads, Memory, Deadlocks" };
         var aptitude = new DomainTopic { Id = Guid.Parse("77777777-7777-7777-7777-777777777777"), Name = "Aptitude & Reasoning", Description = "Quantitative Aptitude, Logical Reasoning, Verbal Ability" };
 
-        _context.DomainTopics.AddRange(webDev, dsa, python, networking, dbms, os, aptitude);
+        // New educational domains
+        var science = new DomainTopic { Id = Guid.Parse("88888888-8888-8888-8888-888888888888"), Name = "General Science", Description = "Physics, Chemistry, Biology, Earth Science" };
+        science.SubTopics.Add(new SubTopic { Id = Guid.Parse("88888888-8888-8888-8888-888888888881"), Name = "Physics", DomainTopicId = science.Id });
+        science.SubTopics.Add(new SubTopic { Id = Guid.Parse("88888888-8888-8888-8888-888888888882"), Name = "Chemistry", DomainTopicId = science.Id });
+        science.SubTopics.Add(new SubTopic { Id = Guid.Parse("88888888-8888-8888-8888-888888888883"), Name = "Biology", DomainTopicId = science.Id });
+
+        var maths = new DomainTopic { Id = Guid.Parse("99999999-9999-9999-9999-999999999999"), Name = "Mathematics", Description = "Algebra, Calculus, Statistics, Geometry, Number Theory" };
+        maths.SubTopics.Add(new SubTopic { Id = Guid.Parse("99999999-9999-9999-9999-999999999991"), Name = "Algebra & Calculus", DomainTopicId = maths.Id });
+        maths.SubTopics.Add(new SubTopic { Id = Guid.Parse("99999999-9999-9999-9999-999999999992"), Name = "Statistics & Probability", DomainTopicId = maths.Id });
+        maths.SubTopics.Add(new SubTopic { Id = Guid.Parse("99999999-9999-9999-9999-999999999993"), Name = "Geometry", DomainTopicId = maths.Id });
+
+        var history = new DomainTopic { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Name = "World History & Geography", Description = "Ancient Civilizations, World Wars, Political Geography, Current Affairs" };
+        history.SubTopics.Add(new SubTopic { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab"), Name = "Ancient History", DomainTopicId = history.Id });
+        history.SubTopics.Add(new SubTopic { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaac"), Name = "Modern History & World Wars", DomainTopicId = history.Id });
+        history.SubTopics.Add(new SubTopic { Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaad"), Name = "Geography", DomainTopicId = history.Id });
+
+        var english = new DomainTopic { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), Name = "English Language & Literature", Description = "Grammar, Comprehension, Vocabulary, Poetry, Prose" };
+        english.SubTopics.Add(new SubTopic { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbc"), Name = "Grammar & Vocabulary", DomainTopicId = english.Id });
+        english.SubTopics.Add(new SubTopic { Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbe"), Name = "Reading Comprehension", DomainTopicId = english.Id });
+
+        var business = new DomainTopic { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), Name = "Business & Economics", Description = "Microeconomics, Macroeconomics, Management, Finance, Marketing" };
+        business.SubTopics.Add(new SubTopic { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccd"), Name = "Economics", DomainTopicId = business.Id });
+        business.SubTopics.Add(new SubTopic { Id = Guid.Parse("cccccccc-cccc-cccc-cccc-ccccccccccce"), Name = "Business Management", DomainTopicId = business.Id });
+
+        var aiml = new DomainTopic { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"), Name = "Artificial Intelligence & ML", Description = "Machine Learning, Neural Networks, NLP, Computer Vision, AI Ethics" };
+        aiml.SubTopics.Add(new SubTopic { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-ddddddddddde"), Name = "Machine Learning Basics", DomainTopicId = aiml.Id });
+        aiml.SubTopics.Add(new SubTopic { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-ddddddddddef"), Name = "Deep Learning & Neural Nets", DomainTopicId = aiml.Id });
+
+        var cybersec = new DomainTopic { Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), Name = "Cybersecurity", Description = "Network Security, Cryptography, Ethical Hacking, OWASP, Penetration Testing" };
+        var gk = new DomainTopic { Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), Name = "General Knowledge", Description = "Sports, Culture, Science & Technology, Current Events" };
+
+        _context.DomainTopics.AddRange(webDev, dsa, python, networking, dbms, os, aptitude, science, maths, history, english, business, aiml, cybersec, gk);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Seed Questions
+        // Seed sample Questions
         var q1 = new QuestionBankItem
         {
             Id = Guid.NewGuid(),

@@ -576,7 +576,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .tab-switch-bar {
       display: flex;
       gap: 0.5rem;
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       padding: 0.35rem;
       border-radius: 0.5rem;
@@ -613,7 +613,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     /* Generator Panel */
     .generator-panel {
       padding: 1.75rem;
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1px solid var(--color-ai-border);
       border-top: 4px solid var(--color-ai-purple);
       border-radius: 0.75rem;
@@ -755,7 +755,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .shimmer-line {
       height: 12px;
       border-radius: 4px;
-      background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+      background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-hairline) 50%, var(--bg-hover) 75%);
       background-size: 200% 100%;
       animation: shimmerMove 1.5s infinite;
     }

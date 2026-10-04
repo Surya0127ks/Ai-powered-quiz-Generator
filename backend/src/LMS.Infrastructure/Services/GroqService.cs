@@ -41,27 +41,39 @@ public class GroqService : IGroqService
         string diff = string.IsNullOrWhiteSpace(difficulty) ? "Mixed" : difficulty;
         int targetCount = count > 0 ? count : 5;
 
-        var systemPrompt = @"You are an expert AI quiz generator. Output ONLY a valid JSON object matching this schema, with NO markdown formatting, NO extra text:
+        var systemPrompt = @"You are an expert educational quiz generator for an AI assessment platform. Output ONLY a valid JSON object matching this schema exactly, with NO markdown, NO code blocks, NO extra text before or after:
 {
   ""questions"": [
     {
       ""questionText"": ""string"",
       ""type"": ""SingleChoice"" or ""TrueFalse"",
       ""points"": 1,
-      ""explanation"": ""string explaining correct answer"",
+      ""explanation"": ""string explaining correct answer clearly"",
       ""options"": [
         { ""optionText"": ""string"", ""isCorrect"": boolean }
       ]
     }
   ]
 }
-Requirements:
-- Generate high quality, accurate technical questions.
-- For SingleChoice: provide 4 options with exactly 1 option having isCorrect = true.
-- For TrueFalse: provide 2 options (""True"" and ""False"") with exactly 1 having isCorrect = true.
-- Return ONLY raw JSON.";
+STRICT REQUIREMENTS:
+- Generate ACCURATE, educationally sound questions. Never include trick questions.
+- For SingleChoice: provide EXACTLY 4 options with EXACTLY 1 option having isCorrect = true. All wrong options must be plausible but clearly incorrect.
+- For TrueFalse: provide EXACTLY 2 options (""True"" and ""False"") with exactly 1 having isCorrect = true.
+- Write questions in clear, professional English suitable for students and educators.
+- PRIVACY: Never generate questions containing personal data, real identifiable individuals (unless historical public figures), or sensitive information.
+- Return ONLY raw JSON — no other text whatsoever.";
 
-        var userPrompt = $"Generate exactly {targetCount} quiz questions for the topic: '{topicFull}' with difficulty level: '{diff}'. Ensure the output is strictly valid JSON.";
+        // Build a precise difficulty-aware user prompt
+        string difficultyInstruction = diff switch
+        {
+            "Easy" => "DIFFICULTY: EASY — Questions must test basic recall and fundamental concepts. Use simple vocabulary. Questions should be answerable by beginners with minimal study.",
+            "Hard" => "DIFFICULTY: HARD — Questions must require deep analysis, synthesis, or expert-level knowledge. Include nuanced scenarios, edge cases, and advanced concepts. Questions should challenge even experienced practitioners.",
+            "Mixed" => "DIFFICULTY: MIXED — Generate a balanced mix: roughly 30% Easy (basic recall), 40% Medium (understanding/application), 30% Hard (analysis/expert knowledge).",
+            _ => "DIFFICULTY: MEDIUM — Questions should test understanding and ability to apply concepts, not just recall definitions. Require the student to think, not just remember."
+        };
+
+        var userPrompt = $"Generate exactly {targetCount} quiz questions for the topic: '{topicFull}'.\n{difficultyInstruction}\nEnsure all questions are factually accurate and the explanation clearly justifies why the correct answer is right.";
+
 
         var requestBody = new
         {
