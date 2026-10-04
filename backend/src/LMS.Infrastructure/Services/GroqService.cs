@@ -98,13 +98,14 @@ STRICT REQUIREMENTS:
 
         var requestBody = new
         {
-            model = "qwen/qwen3.8-27b",
+            model = "openai/gpt-oss-20b",
             messages = new[]
             {
                 new { role = "system", content = systemPrompt },
                 new { role = "user", content = userPrompt }
             },
             temperature = 0.7,
+            max_tokens = 2048,
             response_format = new { type = "json_object" }
         };
 
