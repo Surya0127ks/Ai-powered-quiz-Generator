@@ -72,12 +72,33 @@ STRICT REQUIREMENTS:
             _ => "DIFFICULTY: MEDIUM — Questions should test understanding and ability to apply concepts, not just recall definitions. Require the student to think, not just remember."
         };
 
-        var userPrompt = $"Generate exactly {targetCount} quiz questions for the topic: '{topicFull}'.\n{difficultyInstruction}\nEnsure all questions are factually accurate and the explanation clearly justifies why the correct answer is right.";
+        string examInstruction = "";
+        if (topicFull.Contains("UPSC", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("SSC", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("Banking", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("IBPS", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("SBI", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("Railways", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("RRB", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("Defence", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("NDA", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("CDS", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("CTET", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("Govt", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("Government", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("Civil Services", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("NEET", StringComparison.OrdinalIgnoreCase) ||
+            topicFull.Contains("JEE", StringComparison.OrdinalIgnoreCase))
+        {
+            examInstruction = "\nCOMPETITIVE / GOVT EXAM FOCUS: Structure questions according to real examination standards (e.g. Previous Year Question depth, assertion-reasoning, statement evaluations like 'Which of the following is/are correct?', standard official terminology, and detailed pedagogical explanations).";
+        }
+
+        var userPrompt = $"Generate exactly {targetCount} quiz questions for the topic: '{topicFull}'.\n{difficultyInstruction}{examInstruction}\nEnsure all questions are factually accurate and the explanation clearly justifies why the correct answer is right.";
 
 
         var requestBody = new
         {
-            model = "llama-3.3-70b-versatile",
+            model = "llama3-70b-8192",
             messages = new[]
             {
                 new { role = "system", content = systemPrompt },
