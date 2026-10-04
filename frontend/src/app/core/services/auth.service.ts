@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, throwError, of } from 'rxjs';
+import { Observable, tap, catchError, throwError, of, shareReplay } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/auth.model';
 
 @Injectable({
@@ -9,6 +9,9 @@ import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/aut
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/v1/auth';
+
+  // In-flight refresh token observable to prevent concurrent duplicate refresh requests
+  private refreshInProgress$: Observable<AuthResponse> | null = null;
 
   // State Signals
   readonly currentUser = signal<User | null>(this.getStoredUser());
@@ -41,16 +44,41 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    return this.http.post<AuthResponse>(`${this.baseUrl}/refresh-token`, {
+    if (this.refreshInProgress$) {
+      return this.refreshInProgress$;
+    }
+
+    this.refreshInProgress$ = this.http.post<AuthResponse>(`${this.baseUrl}/refresh-token`, {
       accessToken: currentAccessToken,
       refreshToken: currentRefreshToken
     }).pipe(
-      tap(response => this.handleAuthSuccess(response)),
+      tap(response => {
+        this.handleAuthSuccess(response);
+        this.refreshInProgress$ = null;
+      }),
       catchError(err => {
+        this.refreshInProgress$ = null;
         this.logout();
         return throwError(() => err);
-      })
+      }),
+      shareReplay(1)
     );
+
+    return this.refreshInProgress$;
+  }
+
+  isTokenExpired(tokenStr?: string | null): boolean {
+    const token = tokenStr ?? this.token();
+    if (!token) return true;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      const payload = JSON.parse(atob(parts[1]));
+      if (!payload.exp) return false;
+      return Date.now() >= (payload.exp * 1000 - 10000); // 10s buffer
+    } catch {
+      return false;
+    }
   }
 
   loadCurrentUser(): Observable<User> {

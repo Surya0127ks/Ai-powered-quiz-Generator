@@ -10,14 +10,25 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="auth-page">
+      <div class="auth-top-nav">
+        <a routerLink="/" class="back-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back to Home</span>
+        </a>
+      </div>
       <div class="auth-card saas-card">
         <div class="auth-brand">
-          <div class="brand-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-          </div>
-          <h2>Sign in to QuizPulse</h2>
+          <a routerLink="/" class="brand-link" title="Quizzy AI Home">
+            <div class="brand-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+          </a>
+          <h2>Sign in to Quizzy AI</h2>
           <p class="sub-heading">Enter your credentials to access your quiz dashboard</p>
         </div>
 
@@ -95,10 +106,46 @@ import { AuthService } from '../../../core/services/auth.service';
     .auth-page {
       min-height: calc(100vh - 64px);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 2rem 1.5rem;
       background: var(--bg-app);
+    }
+    .auth-top-nav {
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+      svg { stroke: var(--text-muted); transition: transform 0.2s ease; }
+      &:hover {
+        color: var(--color-primary);
+        border-color: var(--color-primary-200);
+        transform: translateX(-3px);
+        svg { stroke: var(--color-primary); }
+      }
+    }
+    .brand-link {
+      display: inline-block;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+      &:hover { transform: scale(1.05); }
     }
     .auth-card {
       background: var(--bg-surface);

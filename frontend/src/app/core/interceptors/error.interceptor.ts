@@ -10,7 +10,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/refresh-token')) {
+      if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/refresh-token') && !req.url.includes('/auth/register')) {
         return authService.refreshSession().pipe(
           switchMap(() => {
             const token = authService.token();
@@ -21,7 +21,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(refreshError => {
             authService.logout();
-            router.navigate(['/auth/login']);
+            router.navigate(['/']);
             return throwError(() => refreshError);
           })
         );

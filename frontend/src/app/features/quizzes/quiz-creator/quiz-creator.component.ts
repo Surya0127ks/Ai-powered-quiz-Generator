@@ -7,6 +7,22 @@ import { AuthService } from '../../../core/services/auth.service';
 import { QuestionBankService, DomainTopicItem, SubTopicItem } from '../../../core/services/question-bank.service';
 import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.model';
 
+export interface GovtExamTopic {
+  title: string;
+  recommendedQuestions: number;
+  recommendedTimeMinutes: number;
+  defaultNegativeMarking: number;
+  difficulty: string;
+}
+
+export interface GovtExamCategory {
+  id: string;
+  name: string;
+  icon: string;
+  tagline: string;
+  topics: GovtExamTopic[];
+}
+
 @Component({
   selector: 'app-quiz-creator',
   standalone: true,
@@ -34,7 +50,16 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
           <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
           </svg>
-          <span>✨ Generate with AI (Recommended)</span>
+          <span>✨ Academic & General AI</span>
+        </button>
+
+        <button
+          type="button"
+          [class.active]="creationMode() === 'govt'"
+          (click)="setMode('govt')"
+          class="tab-btn tab-btn-govt"
+        >
+          <span>🏛️ Govt & Competitive Exams Hub</span>
         </button>
 
         <button
@@ -139,18 +164,51 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
 
           <div class="form-grid-2 margin-top-sm">
             <div class="form-group">
-              <label>Number of Questions</label>
-              <select
-                [(ngModel)]="requestedQuestionCount"
-                [ngModelOptions]="{standalone: true}"
-                class="input-control"
-                [disabled]="isGenerating()"
-              >
-                <option [value]="5">5 Questions</option>
-                <option [value]="10">10 Questions</option>
-                <option [value]="15">15 Questions</option>
-                <option [value]="20">20 Questions</option>
-              </select>
+              <div class="label-with-count">
+                <label>Number of Questions *</label>
+                <span class="count-badge">{{ requestedQuestionCount }} Questions</span>
+              </div>
+              <div class="question-chips-row">
+                @for (cnt of questionPresets; track cnt) {
+                  <button
+                    type="button"
+                    class="chip-btn"
+                    [class.active]="requestedQuestionCount === cnt"
+                    (click)="setQuestionCount(cnt)"
+                    [disabled]="isGenerating()"
+                  >
+                    {{ cnt }}
+                  </button>
+                }
+              </div>
+              <div class="stepper-input-row margin-top-xs">
+                <button
+                  type="button"
+                  class="stepper-btn"
+                  (click)="adjustQuestionCount(-1)"
+                  [disabled]="requestedQuestionCount <= 1 || isGenerating()"
+                  title="Decrease questions"
+                >−</button>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  [(ngModel)]="requestedQuestionCount"
+                  [ngModelOptions]="{standalone: true}"
+                  (input)="onManualQuestionCountChange($event)"
+                  class="input-control stepper-input"
+                  placeholder="Custom count (1-50)"
+                  [disabled]="isGenerating()"
+                />
+                <button
+                  type="button"
+                  class="stepper-btn"
+                  (click)="adjustQuestionCount(1)"
+                  [disabled]="requestedQuestionCount >= 50 || isGenerating()"
+                  title="Increase questions"
+                >+</button>
+                <span class="stepper-hint">Or type any number (1-50)</span>
+              </div>
             </div>
 
             <div class="form-group">
@@ -223,6 +281,247 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
               <div>
                 <h4>Groq AI is crafting your quiz questions...</h4>
                 <p>Generating {{ requestedQuestionCount }} technical questions with answer choices and explanations live.</p>
+              </div>
+            </div>
+
+            <div class="shimmer-card-list">
+              <div class="shimmer-item">
+                <div class="shimmer-line line-title"></div>
+                <div class="shimmer-line line-option"></div>
+                <div class="shimmer-line line-option short"></div>
+              </div>
+              <div class="shimmer-item">
+                <div class="shimmer-line line-title"></div>
+                <div class="shimmer-line line-option"></div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Government & Competitive Exams Preparation Hub -->
+      @if (creationMode() === 'govt') {
+        <div class="saas-card govt-panel margin-bottom">
+          <div class="panel-header">
+            <div class="badge badge-govt mb-2">🏛️ EXAM PREPARATION ENGINE · UPSC, SSC, BANKING, RAILWAYS & DEFENCE</div>
+            <h3>Government & Competitive Examination Hub</h3>
+            <p class="panel-desc">
+              Generate authentic previous-year pattern mock questions with strict time limits, automated negative marking, and detailed official answer explanations.
+            </p>
+          </div>
+
+          <!-- Exam Stream Cards -->
+          <div class="govt-streams-label">
+            <span>Select Target Examination Stream:</span>
+          </div>
+          <div class="govt-exams-grid">
+            @for (exam of govtExamCategories; track exam.id) {
+              <div
+                class="govt-exam-card"
+                [class.active]="selectedGovtExamId === exam.id"
+                (click)="selectGovtExam(exam)"
+              >
+                <div class="exam-icon">{{ exam.icon }}</div>
+                <div class="exam-meta">
+                  <h4 class="exam-name">{{ exam.name }}</h4>
+                  <p class="exam-sub">{{ exam.tagline }}</p>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Active Exam Syllabus Modules -->
+          @if (currentGovtExam()) {
+            <div class="active-exam-module margin-top">
+              <div class="module-label-row">
+                <span class="module-label-title">Select {{ currentGovtExam()?.name }} Syllabus Topic:</span>
+                <span class="module-tag">PYQ Pattern Ready</span>
+              </div>
+              <div class="topics-chips-cloud">
+                @for (topic of currentGovtExam()?.topics || []; track topic.title) {
+                  <button
+                    type="button"
+                    class="topic-chip"
+                    [class.active]="selectedGovtTopicTitle === topic.title"
+                    (click)="selectGovtTopic(topic)"
+                    [disabled]="isGenerating()"
+                  >
+                    <span class="topic-dot"></span>
+                    <span>{{ topic.title }}</span>
+                  </button>
+                }
+              </div>
+
+              <div class="form-group margin-top-sm">
+                <label>Selected Syllabus Prompt / Custom Topic *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="customTopic"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="e.g. Indian Polity - Articles on Fundamental Rights & Judiciary"
+                  class="input-control"
+                  [disabled]="isGenerating()"
+                />
+              </div>
+
+              <!-- Govt Exam Specific Settings: Question Count with manual input, Negative Marking, Timer -->
+              <div class="form-grid-2 margin-top-sm">
+                <!-- Question Count -->
+                <div class="form-group">
+                  <div class="label-with-count">
+                    <label>Number of Questions *</label>
+                    <span class="count-badge">{{ requestedQuestionCount }} Questions</span>
+                  </div>
+                  <div class="question-chips-row">
+                    @for (cnt of [10, 15, 20, 25, 30, 50]; track cnt) {
+                      <button
+                        type="button"
+                        class="chip-btn"
+                        [class.active]="requestedQuestionCount === cnt"
+                        (click)="setQuestionCount(cnt)"
+                        [disabled]="isGenerating()"
+                      >
+                        {{ cnt }}
+                      </button>
+                    }
+                  </div>
+                  <div class="stepper-input-row margin-top-xs">
+                    <button type="button" class="stepper-btn" (click)="adjustQuestionCount(-1)" [disabled]="requestedQuestionCount <= 1 || isGenerating()">−</button>
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      [(ngModel)]="requestedQuestionCount"
+                      [ngModelOptions]="{standalone: true}"
+                      (input)="onManualQuestionCountChange($event)"
+                      class="input-control stepper-input"
+                      placeholder="Custom count (1-50)"
+                      [disabled]="isGenerating()"
+                    />
+                    <button type="button" class="stepper-btn" (click)="adjustQuestionCount(1)" [disabled]="requestedQuestionCount >= 50 || isGenerating()">+</button>
+                    <span class="stepper-hint">Or type any number (1-50)</span>
+                  </div>
+                </div>
+
+                <!-- Exam Difficulty -->
+                <div class="form-group">
+                  <label>Difficulty Standard</label>
+                  <select
+                    [(ngModel)]="selectedDifficulty"
+                    [ngModelOptions]="{standalone: true}"
+                    class="input-control"
+                    [disabled]="isGenerating()"
+                  >
+                    <option value="Hard">Hard (Strict Official Exam Level)</option>
+                    <option value="Medium">Medium (Moderate Practice Test)</option>
+                    <option value="Mixed">Mixed (Real Exam Balance 30-40-30)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Negative Marking Configuration -->
+              <div class="form-group margin-top-sm">
+                <label>
+                  <span>Negative Marking Scheme</span>
+                  <span class="optional-text">(Standard penalty per wrong attempt)</span>
+                </label>
+                <div class="negative-marking-pills">
+                  <button
+                    type="button"
+                    class="neg-pill"
+                    [class.active]="selectedNegativeMarking === 0"
+                    (click)="setNegativeMarking(0)"
+                  >
+                    No Penalty (0)
+                  </button>
+                  <button
+                    type="button"
+                    class="neg-pill"
+                    [class.active]="selectedNegativeMarking === 0.25"
+                    (click)="setNegativeMarking(0.25)"
+                  >
+                    -0.25 (1/4th · Banking/Railways)
+                  </button>
+                  <button
+                    type="button"
+                    class="neg-pill"
+                    [class.active]="selectedNegativeMarking === 0.33"
+                    (click)="setNegativeMarking(0.33)"
+                  >
+                    -0.33 (1/3rd · UPSC/State PSC)
+                  </button>
+                  <button
+                    type="button"
+                    class="neg-pill"
+                    [class.active]="selectedNegativeMarking === 0.5"
+                    (click)="setNegativeMarking(0.5)"
+                  >
+                    -0.50 (1/2 · SSC CGL)
+                  </button>
+                  <button
+                    type="button"
+                    class="neg-pill"
+                    [class.active]="selectedNegativeMarking === 1"
+                    (click)="setNegativeMarking(1)"
+                  >
+                    -1.0 (Full · NEET/JEE)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hidden API Key Option -->
+              <div class="key-toggle-row margin-top-sm">
+                <button type="button" (click)="showApiKeyInput.set(!showApiKeyInput())" class="toggle-key-link">
+                  ⚙️ {{ showApiKeyInput() ? 'Hide Custom API Key' : 'Use Custom Groq API Key' }}
+                </button>
+              </div>
+
+              @if (showApiKeyInput()) {
+                <div class="form-group margin-top-xs">
+                  <label>Custom Groq API Key <span class="optional-text">(Optional)</span></label>
+                  <input
+                    type="password"
+                    [(ngModel)]="customApiKey"
+                    [ngModelOptions]="{standalone: true}"
+                    placeholder="gsk_..."
+                    class="input-control"
+                    [disabled]="isGenerating()"
+                  />
+                </div>
+              }
+
+              <div class="panel-footer margin-top">
+                <button
+                  type="button"
+                  (click)="generateSmartQuestions(true)"
+                  [disabled]="isGenerating()"
+                  class="btn btn-govt-generate width-full"
+                >
+                  @if (isGenerating()) {
+                    <span class="ai-spinner-row">
+                      <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
+                      </svg>
+                      <span>Generating {{ requestedQuestionCount }} {{ currentGovtExam()?.name }} Questions with Groq AI...</span>
+                    </span>
+                  } @else {
+                    <span>🏛️ Generate {{ currentGovtExam()?.name }} Mock Questions with AI</span>
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (isGenerating()) {
+          <div class="ai-generating-loader margin-bottom">
+            <div class="loader-header">
+              <div class="ai-pulsing-icon govt-pulsing">
+                <span style="font-size: 1.5rem;">🏛️</span>
+              </div>
+              <div>
+                <h4>Groq AI is crafting {{ currentGovtExam()?.name }} questions...</h4>
+                <p>Generating {{ requestedQuestionCount }} exam-standard questions with answer keys and detailed explanations.</p>
               </div>
             </div>
 
@@ -345,8 +644,61 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             </div>
 
             <div class="form-group">
-              <label for="negativeMarkingPoints">Negative Marking Points</label>
-              <input id="negativeMarkingPoints" type="number" formControlName="negativeMarkingPoints" class="input-control" placeholder="Points deducted per wrong answer (0 for none)" />
+              <label for="negativeMarkingPoints">
+                <span>Negative Marking Penalty</span>
+                <span class="optional-text">(Deducted per wrong answer)</span>
+              </label>
+              <div class="negative-marking-pills margin-bottom-xs">
+                <button
+                  type="button"
+                  class="neg-pill"
+                  [class.active]="quizForm.get('negativeMarkingPoints')?.value === 0 || !quizForm.get('negativeMarkingPoints')?.value"
+                  (click)="setNegativeMarking(0)"
+                >
+                  0 (None)
+                </button>
+                <button
+                  type="button"
+                  class="neg-pill"
+                  [class.active]="quizForm.get('negativeMarkingPoints')?.value === 0.25"
+                  (click)="setNegativeMarking(0.25)"
+                >
+                  -0.25
+                </button>
+                <button
+                  type="button"
+                  class="neg-pill"
+                  [class.active]="quizForm.get('negativeMarkingPoints')?.value === 0.33"
+                  (click)="setNegativeMarking(0.33)"
+                >
+                  -0.33
+                </button>
+                <button
+                  type="button"
+                  class="neg-pill"
+                  [class.active]="quizForm.get('negativeMarkingPoints')?.value === 0.5"
+                  (click)="setNegativeMarking(0.5)"
+                >
+                  -0.50
+                </button>
+                <button
+                  type="button"
+                  class="neg-pill"
+                  [class.active]="quizForm.get('negativeMarkingPoints')?.value === 1"
+                  (click)="setNegativeMarking(1)"
+                >
+                  -1.0
+                </button>
+              </div>
+              <input
+                id="negativeMarkingPoints"
+                type="number"
+                step="0.01"
+                min="0"
+                formControlName="negativeMarkingPoints"
+                class="input-control"
+                placeholder="Or custom points (e.g. 0.25, 0.33, 0.5)"
+              />
             </div>
 
             <div class="form-group">
@@ -466,7 +818,10 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
               <h3>❓ Questions ({{ questionsArray.length }})</h3>
               <p class="section-desc">Review, edit, add, or delete individual questions before publishing.</p>
             </div>
-            <button type="button" (click)="addQuestion()" class="btn btn-outline btn-sm">➕ Add Blank Question</button>
+            <div class="q-actions-group">
+              <button type="button" (click)="addQuestion()" class="btn btn-outline btn-sm">➕ Add Question</button>
+              <button type="button" (click)="addMultipleQuestions(5)" class="btn btn-outline btn-sm">➕ Add 5 Questions</button>
+            </div>
           </div>
 
           <div formArrayName="questions" class="questions-list">
@@ -628,9 +983,14 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
         color: var(--color-ai-purple) !important;
         .tab-svg { stroke: var(--color-ai-purple); }
       }
+      &.tab-btn-govt.active {
+        background: rgba(245, 158, 11, 0.15);
+        color: #b45309 !important;
+        border-color: #f59e0b;
+      }
     }
 
-    /* Generator Panel */
+    /* Generator Panel & Govt Exam Hub */
     .generator-panel {
       padding: 1.75rem;
       background: var(--bg-surface);
@@ -638,6 +998,263 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       border-top: 4px solid var(--color-ai-purple);
       border-radius: 0.75rem;
       .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
+    }
+
+    .govt-panel {
+      padding: 1.75rem;
+      background: var(--bg-surface);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-top: 4px solid #b45309;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);
+      .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
+    }
+
+    .badge-govt {
+      background: rgba(245, 158, 11, 0.12);
+      color: #b45309 !important;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      font-weight: 800;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Question count chips & stepper */
+    .label-with-count {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+      label { margin: 0; font-weight: 700; color: var(--text-primary) !important; font-size: 0.85rem; }
+    }
+    .count-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--color-primary-600);
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-primary-200);
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+    }
+
+    .question-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .chip-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-body);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      &:hover {
+        border-color: var(--color-primary-600);
+        color: var(--color-primary-600);
+      }
+      &.active {
+        background: var(--color-primary-600);
+        border-color: var(--color-primary-600);
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+      }
+    }
+
+    .stepper-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .stepper-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-hover);
+      font-size: 1.15rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-heading);
+      transition: all 0.15s ease;
+      &:hover:not(:disabled) {
+        background: var(--color-primary-50);
+        color: var(--color-primary-600);
+        border-color: var(--color-primary-300);
+      }
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    }
+    .stepper-input {
+      width: 120px !important;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .stepper-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted) !important;
+    }
+
+    /* Govt Exam Streams & Topic Cards */
+    .govt-streams-label {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin: 1rem 0 0.5rem 0;
+    }
+    .govt-exams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .govt-exam-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-hairline);
+      background: var(--bg-surface);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      &:hover {
+        border-color: #f59e0b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+      }
+      &.active {
+        border-color: #b45309;
+        background: rgba(245, 158, 11, 0.08);
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.18);
+      }
+    }
+    .exam-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .exam-meta { display: flex; flex-direction: column; }
+    .exam-name { font-size: 0.825rem; font-weight: 800; color: var(--text-heading) !important; margin: 0; }
+    .exam-sub { font-size: 0.7rem; color: var(--text-muted) !important; margin: 0.15rem 0 0 0; line-height: 1.3; }
+
+    .active-exam-module {
+      border-top: 1px dashed var(--border-hairline);
+      padding-top: 1.25rem;
+    }
+    .module-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .module-label-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-heading);
+    }
+    .module-tag {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.15);
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+    .topics-chips-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .topic-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-body);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      &:hover {
+        border-color: #b45309;
+        color: #b45309;
+      }
+      &.active {
+        background: #b45309;
+        border-color: #b45309;
+        color: #ffffff;
+        .topic-dot { background: #ffffff; }
+      }
+    }
+    .topic-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #b45309;
+      flex-shrink: 0;
+    }
+
+    /* Negative Marking Pills */
+    .negative-marking-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
+    .margin-bottom-xs { margin-bottom: 0.4rem; }
+    .neg-pill {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-body);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      &:hover {
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+      }
+      &.active {
+        background: var(--color-danger);
+        border-color: var(--color-danger);
+        color: #ffffff;
+      }
+    }
+
+    .btn-govt-generate {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+      color: #ffffff !important;
+      font-weight: 800;
+      padding: 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);
+      transition: all 0.2s ease;
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(180, 83, 9, 0.45);
+      }
+    }
+    .govt-pulsing {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
     .margin-top-sm { margin-top: 0.85rem; }
     .margin-top-xs { margin-top: 0.5rem; }
@@ -824,7 +1441,8 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
 
     .margin-top { margin-top: 1.5rem; }
     .margin-bottom { margin-bottom: 1.5rem; }
-    .section-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+    .section-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+    .q-actions-group { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
     .questions-list { display: flex; flex-direction: column; gap: 1.25rem; }
     .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
@@ -912,7 +1530,7 @@ export class QuizCreatorComponent implements OnInit {
   public readonly authService = inject(AuthService);
 
   readonly QuestionType = QuestionType;
-  readonly creationMode = signal<'smart' | 'manual'>('smart');
+  readonly creationMode = signal<'smart' | 'govt' | 'manual'>('smart');
   readonly isLoading = signal(false);
   readonly isGenerating = signal(false);
   readonly isPublishing = signal(false);
@@ -931,6 +1549,152 @@ export class QuizCreatorComponent implements OnInit {
   selectedSubTopicId = '';
   requestedQuestionCount = 10;
   selectedDifficulty = 'Mixed';
+
+  // Question presets and stepper controls
+  readonly questionPresets = [5, 10, 15, 20, 25, 30, 50];
+
+  // Government & Competitive Examination Data
+  readonly govtExamCategories: GovtExamCategory[] = [
+    {
+      id: 'upsc',
+      name: 'UPSC Civil Services (IAS/IPS)',
+      icon: '🏛️',
+      tagline: 'Union Public Service Commission · Prelims GS 1 & CSAT',
+      topics: [
+        { title: 'UPSC Indian Polity & Constitution (Articles, Parliament, Judiciary)', recommendedQuestions: 25, recommendedTimeMinutes: 30, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'UPSC Modern Indian History & National Movement (1857-1947)', recommendedQuestions: 20, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'UPSC Indian Economy, Fiscal Policy & Banking System', recommendedQuestions: 20, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'UPSC Physical & Indian Geography, Climate & Rivers', recommendedQuestions: 20, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'UPSC Environment, Ecology, Biodiversity & Climate Treaties', recommendedQuestions: 20, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'UPSC CSAT (Logical Reasoning, Data Sufficiency & Math)', recommendedQuestions: 20, recommendedTimeMinutes: 30, defaultNegativeMarking: 0.33, difficulty: 'Hard' }
+      ]
+    },
+    {
+      id: 'ssc',
+      name: 'SSC CGL & CHSL',
+      icon: '📋',
+      tagline: 'Staff Selection Commission · Tier 1 & Tier 2 CBT',
+      topics: [
+        { title: 'SSC Quantitative Aptitude (Number Systems, Algebra, Geometry, Trigonometry)', recommendedQuestions: 25, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.5, difficulty: 'Hard' },
+        { title: 'SSC General Intelligence & Logical Reasoning (Puzzles, Syllogisms, Analogies)', recommendedQuestions: 25, recommendedTimeMinutes: 20, defaultNegativeMarking: 0.5, difficulty: 'Medium' },
+        { title: 'SSC General Awareness (Static GK, Modern History, Science, Polity)', recommendedQuestions: 25, recommendedTimeMinutes: 15, defaultNegativeMarking: 0.5, difficulty: 'Medium' },
+        { title: 'SSC English Language & Comprehension (Error Spotting, Idioms, Vocab)', recommendedQuestions: 25, recommendedTimeMinutes: 15, defaultNegativeMarking: 0.5, difficulty: 'Medium' }
+      ]
+    },
+    {
+      id: 'banking',
+      name: 'Banking & Insurance (IBPS/SBI)',
+      icon: '🏦',
+      tagline: 'SBI PO, IBPS PO, RBI Grade B · Prelims & Mains',
+      topics: [
+        { title: 'Banking & Financial Awareness (RBI Policies, Capital Markets, Inflation)', recommendedQuestions: 20, recommendedTimeMinutes: 15, defaultNegativeMarking: 0.25, difficulty: 'Hard' },
+        { title: 'Banking Data Interpretation (Pie, Bar, Caselet DI & Arithmetic)', recommendedQuestions: 25, recommendedTimeMinutes: 30, defaultNegativeMarking: 0.25, difficulty: 'Hard' },
+        { title: 'Banking Reasoning Ability (High-Level Puzzles & Seating Arrangements)', recommendedQuestions: 25, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.25, difficulty: 'Hard' },
+        { title: 'Banking English Language (Reading Comprehension, Cloze Test, Para Jumbles)', recommendedQuestions: 20, recommendedTimeMinutes: 20, defaultNegativeMarking: 0.25, difficulty: 'Medium' }
+      ]
+    },
+    {
+      id: 'railways',
+      name: 'Railways (RRB NTPC & Group D)',
+      icon: '🚆',
+      tagline: 'Railway Recruitment Board · Stage 1 & 2 CBT',
+      topics: [
+        { title: 'Railways General Science (Physics, Chemistry & Biology Class 9-10 NCERT)', recommendedQuestions: 30, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.33, difficulty: 'Medium' },
+        { title: 'Railways Mathematics (Arithmetic, Percentages, Time & Work, Speed)', recommendedQuestions: 25, recommendedTimeMinutes: 30, defaultNegativeMarking: 0.33, difficulty: 'Medium' },
+        { title: 'Railways General Knowledge & National Current Affairs', recommendedQuestions: 25, recommendedTimeMinutes: 20, defaultNegativeMarking: 0.33, difficulty: 'Medium' }
+      ]
+    },
+    {
+      id: 'defence',
+      name: 'Defence (NDA, CDS, AFCAT)',
+      icon: '🛡️',
+      tagline: 'Armed Forces & Police Sub-Inspector Examinations',
+      topics: [
+        { title: 'Defence General Ability Test (GAT - History, Geography, General Science)', recommendedQuestions: 30, recommendedTimeMinutes: 35, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'Defence Elementary Mathematics & Trigonometry', recommendedQuestions: 25, recommendedTimeMinutes: 35, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'Defence English Vocabulary, Comprehension & Grammar', recommendedQuestions: 25, recommendedTimeMinutes: 20, defaultNegativeMarking: 0.33, difficulty: 'Medium' }
+      ]
+    },
+    {
+      id: 'teaching',
+      name: 'Teaching & State PSC (CTET/PCS)',
+      icon: '📚',
+      tagline: 'Central Teacher Eligibility Test & State Civil Services',
+      topics: [
+        { title: 'CTET Child Development & Educational Pedagogy (CDP)', recommendedQuestions: 30, recommendedTimeMinutes: 30, defaultNegativeMarking: 0, difficulty: 'Medium' },
+        { title: 'State PSC General Studies & Administrative History', recommendedQuestions: 25, recommendedTimeMinutes: 25, defaultNegativeMarking: 0.33, difficulty: 'Hard' },
+        { title: 'CTET Environmental Studies (EVS) & Content Pedagogy', recommendedQuestions: 25, recommendedTimeMinutes: 25, defaultNegativeMarking: 0, difficulty: 'Medium' }
+      ]
+    },
+    {
+      id: 'entrance',
+      name: 'National Entrance (NEET/JEE/CUET)',
+      icon: '🔬',
+      tagline: 'Pre-Medical & Pre-Engineering Competitive Entrance',
+      topics: [
+        { title: 'NEET Biology (Genetics, Cell Biology, Human Physiology & Ecology)', recommendedQuestions: 30, recommendedTimeMinutes: 30, defaultNegativeMarking: 1.0, difficulty: 'Hard' },
+        { title: 'JEE Physics (Mechanics, Newton Laws, Thermodynamics, Optics)', recommendedQuestions: 25, recommendedTimeMinutes: 40, defaultNegativeMarking: 1.0, difficulty: 'Hard' },
+        { title: 'Chemistry (Organic Reaction Mechanisms, Chemical Bonding, Equilibrium)', recommendedQuestions: 25, recommendedTimeMinutes: 30, defaultNegativeMarking: 1.0, difficulty: 'Hard' }
+      ]
+    }
+  ];
+
+  selectedGovtExamId = 'upsc';
+  selectedGovtTopicTitle = '';
+  selectedNegativeMarking = 0;
+
+  currentGovtExam(): GovtExamCategory | undefined {
+    return this.govtExamCategories.find(e => e.id === this.selectedGovtExamId);
+  }
+
+  selectGovtExam(exam: GovtExamCategory): void {
+    this.selectedGovtExamId = exam.id;
+    if (exam.topics.length > 0) {
+      this.selectGovtTopic(exam.topics[0]);
+    }
+  }
+
+  selectGovtTopic(topic: GovtExamTopic): void {
+    this.selectedGovtTopicTitle = topic.title;
+    this.customTopic = topic.title;
+    this.requestedQuestionCount = topic.recommendedQuestions;
+    this.selectedDifficulty = topic.difficulty;
+    this.selectedNegativeMarking = topic.defaultNegativeMarking;
+
+    const exam = this.currentGovtExam();
+    this.quizForm.patchValue({
+      title: `${exam?.name || 'Competitive Exam'} Mock Test: ${topic.title.split('(')[0].trim()}`,
+      category: 'Government & Competitive Exam',
+      difficulty: topic.difficulty,
+      timeLimitMinutes: topic.recommendedTimeMinutes,
+      negativeMarkingPoints: topic.defaultNegativeMarking,
+      autoSubmit: true,
+      instructions: `Official Exam Pattern: This mock test has ${topic.recommendedQuestions} questions with a strict ${topic.recommendedTimeMinutes}-minute timer. Negative marking of ${topic.defaultNegativeMarking} mark(s) applies for every wrong answer. Review your answers carefully before submitting.`
+    });
+  }
+
+  setQuestionCount(cnt: number): void {
+    this.requestedQuestionCount = Math.min(50, Math.max(1, cnt));
+  }
+
+  adjustQuestionCount(delta: number): void {
+    const next = (this.requestedQuestionCount || 10) + delta;
+    this.requestedQuestionCount = Math.min(50, Math.max(1, next));
+  }
+
+  onManualQuestionCountChange(event: Event): void {
+    const val = Number((event.target as HTMLInputElement).value);
+    if (!isNaN(val) && val > 0) {
+      this.requestedQuestionCount = Math.min(50, Math.max(1, val));
+    } else {
+      this.requestedQuestionCount = 10;
+    }
+  }
+
+  setNegativeMarking(val: number): void {
+    this.selectedNegativeMarking = val;
+    this.quizForm.patchValue({ negativeMarkingPoints: val });
+  }
 
   // Max students preset chips
   readonly studentPresets = [15, 20, 30, 50, 100];
@@ -970,11 +1734,19 @@ export class QuizCreatorComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['mode'] === 'manual') {
         this.creationMode.set('manual');
+      } else if (params['mode'] === 'govt') {
+        this.setMode('govt');
+        if (params['exam']) {
+          const matchExam = this.govtExamCategories.find(e => e.id === params['exam']);
+          if (matchExam) {
+            this.selectGovtExam(matchExam);
+          }
+        }
       }
       if (params['topic']) {
         this.customTopic = params['topic'];
         this.quizForm.patchValue({
-          title: `${params['topic']} Knowledge Assessment`,
+          title: `${params['topic']} Assessment`,
           category: params['topic']
         });
       }
@@ -996,9 +1768,13 @@ export class QuizCreatorComponent implements OnInit {
     });
   }
 
-  setMode(mode: 'manual' | 'smart'): void {
+  setMode(mode: 'manual' | 'smart' | 'govt'): void {
     this.creationMode.set(mode);
     this.errorMessage.set(null);
+    if (mode === 'govt' && !this.selectedGovtTopicTitle) {
+      const defaultExam = this.govtExamCategories[0];
+      this.selectGovtExam(defaultExam);
+    }
   }
 
   onDomainChange(): void {
@@ -1018,13 +1794,22 @@ export class QuizCreatorComponent implements OnInit {
     this.selectedSubTopicId = '';
   }
 
-  generateSmartQuestions(): void {
-    const topicToUse = this.customTopic.trim() || (this.domainTopics().find(d => d.id === this.selectedDomainId)?.name ?? 'General Knowledge');
+  generateSmartQuestions(isGovtMode: boolean = false): void {
+    let topicToUse = this.customTopic.trim();
+    if (!topicToUse) {
+      if (isGovtMode && this.currentGovtExam()) {
+        topicToUse = `${this.currentGovtExam()?.name} - General Knowledge & Aptitude`;
+      } else {
+        topicToUse = (this.domainTopics().find(d => d.id === this.selectedDomainId)?.name ?? 'General Knowledge');
+      }
+    }
 
     if (!topicToUse) {
-      this.errorMessage.set('Please enter a topic prompt or select a domain category.');
+      this.errorMessage.set('Please enter a topic prompt or select an exam topic.');
       return;
     }
+
+    const questionCount = Math.min(50, Math.max(1, Number(this.requestedQuestionCount) || 10));
 
     this.isGenerating.set(true);
     this.errorMessage.set(null);
@@ -1033,7 +1818,7 @@ export class QuizCreatorComponent implements OnInit {
       domainTopicId: this.selectedDomainId || undefined,
       subTopicId: this.selectedSubTopicId || undefined,
       customTopic: topicToUse,
-      questionCount: Number(this.requestedQuestionCount),
+      questionCount: questionCount,
       difficulty: this.selectedDifficulty,
       apiKey: this.customApiKey ? this.customApiKey.trim() : undefined
     }).subscribe({
@@ -1042,8 +1827,8 @@ export class QuizCreatorComponent implements OnInit {
         if (generatedQuestions && generatedQuestions.length > 0) {
           if (!this.quizForm.value.title) {
             this.quizForm.patchValue({
-              title: `${topicToUse} Assessment`,
-              category: topicToUse
+              title: `${topicToUse} Mock Assessment`,
+              category: isGovtMode ? 'Government & Competitive Exam' : topicToUse
             });
           }
           this.populateQuestionsArray(generatedQuestions);
@@ -1114,6 +1899,15 @@ export class QuizCreatorComponent implements OnInit {
 
   addQuestion(): void {
     this.questionsArray.push(this.createQuestionGroup());
+  }
+
+  addMultipleQuestions(count: number): void {
+    const toAdd = Math.min(20, Math.max(1, count));
+    for (let i = 0; i < toAdd; i++) {
+      if (this.questionsArray.length < 50) {
+        this.addQuestion();
+      }
+    }
   }
 
   removeQuestion(qIndex: number): void {

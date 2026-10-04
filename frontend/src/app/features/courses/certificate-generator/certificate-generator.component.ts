@@ -115,7 +115,7 @@ type CertificateTheme = 'gold' | 'violet' | 'onyx' | 'emerald';
             <input
               type="text"
               [(ngModel)]="orgName"
-              placeholder="e.g. QuizPulse Certified Academy"
+              placeholder="e.g. Quizzy AI Certified Academy"
               class="input-control"
             />
           </div>
@@ -147,7 +147,7 @@ type CertificateTheme = 'gold' | 'violet' | 'onyx' | 'emerald';
               <input
                 type="text"
                 [(ngModel)]="orgMonogram"
-                placeholder="e.g. QP"
+                placeholder="e.g. QA"
                 maxLength="4"
                 class="input-control uppercase"
               />
@@ -163,9 +163,9 @@ type CertificateTheme = 'gold' | 'violet' | 'onyx' | 'emerald';
                 <!-- Header -->
                 <div class="cert-header-section">
                   <div class="org-monogram-circle">
-                    {{ orgMonogram || 'QP' }}
+                    {{ orgMonogram || 'QA' }}
                   </div>
-                  <div class="org-name-text">{{ orgName || 'QuizPulse Certified Academy' }}</div>
+                  <div class="org-name-text">{{ orgName || 'Quizzy AI Certified Academy' }}</div>
                   <h2 class="cert-main-heading">Certificate of Achievement</h2>
                   <span class="cert-subheading">PROUDLY PRESENTED TO</span>
                 </div>
@@ -525,10 +525,10 @@ export class CertificateGeneratorComponent implements OnInit {
 
   studentName = '';
   assessmentTitle = 'General Knowledge & Skills Assessment';
-  orgName = 'QuizPulse Certified Academy';
+  orgName = 'Quizzy AI Certified Academy';
   signatoryTitle = 'Director of Assessment';
   scoreNote = 'Score: 90% · Certificate of Distinction';
-  orgMonogram = 'QP';
+  orgMonogram = 'QA';
   certCode = 'CERT-' + Math.floor(100000 + Math.random() * 900000);
   todayDate = new Date();
 

@@ -31,7 +31,7 @@ import { UserRole } from './core/models/auth.model';
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
               </svg>
             </div>
-            <span class="brand-title">QuizPulse</span>
+            <span class="brand-title">Quizzy AI</span>
           </a>
 
           <!-- Desktop Nav Links -->
@@ -178,7 +178,7 @@ import { UserRole } from './core/models/auth.model';
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                   </svg>
                 </div>
-                <span class="brand-title brand-title-footer">QuizPulse</span>
+                <span class="brand-title brand-title-footer">Quizzy AI</span>
               </div>
               <p class="brand-desc">
                 Empowering students, educators, and organizations with Groq AI quiz creation, instant scoring, and verified digital certificates.
@@ -224,7 +224,7 @@ import { UserRole } from './core/models/auth.model';
           </div>
 
           <div class="footer-bottom-bar">
-            <p>© 2026 QuizPulse Inc. All rights reserved.</p>
+            <p>© 2026 Quizzy AI. All rights reserved.</p>
             <div class="footer-bottom-links">
               <a routerLink="/verify-certificate">Certificate Verification</a>
               <span>·</span>
@@ -633,6 +633,6 @@ export class AppComponent implements OnInit {
 
   onLogout(): void {
     this.authService.logout();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/']);
   }
 }

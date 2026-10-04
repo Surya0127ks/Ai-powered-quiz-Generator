@@ -15,7 +15,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       <header class="dashboard-hero saas-card mb-4 print-hide">
         <div class="hero-content">
           <div class="hero-badge-row mb-2">
-            <span class="hero-badge">⚡ QUIZPULSE ASSESSMENT PLATFORM</span>
+            <span class="hero-badge">⚡ QUIZZY AI ASSESSMENT PLATFORM</span>
           </div>
           <h1>
             Welcome back, {{ authService.currentUser()?.firstName || 'User' }}
@@ -30,6 +30,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         <div class="hero-actions">
           <a routerLink="/quizzes/new" class="hero-btn">
             ✨ Create Quiz with AI
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="hero-btn hero-btn-govt">
+            🏛️ Govt Exams Hub
           </a>
         </div>
       </header>
@@ -65,7 +68,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 <!-- Scorecard Header -->
                 <div class="scorecard-header">
                   <div class="scorecard-brand">
-                    <h2 class="print-show-inline">QuizPulse Official Scorecard</h2>
+                    <h2 class="print-show-inline">Quizzy AI Official Scorecard</h2>
                     <h3>{{ selectedAttemptDetails()?.quizTitle }}</h3>
                   </div>
                   
@@ -338,6 +341,48 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </a>
           <a routerLink="/quizzes/new" [queryParams]="{topic: 'General Science & Tech', auto: 'true'}" class="topic-pill pill-indigo">
             💡 General Science
+          </a>
+        </div>
+      </div>
+
+      <!-- Government & Competitive Exam Preparation Hub Launcher -->
+      <div class="govt-dashboard-hub saas-card mb-4 print-hide">
+        <div class="govt-hub-header mb-2">
+          <div class="govt-hub-title-group">
+            <div class="govt-emblem-circle">🏛️</div>
+            <div>
+              <div class="govt-hub-title-row">
+                <span class="govt-hub-title">Government & Competitive Exam Preparation Hub</span>
+                <span class="govt-badge-cbt">REAL CBT EXAM PATTERN</span>
+              </div>
+              <p class="govt-hub-desc">Practice PYQ-standard questions with official negative marking schemes (-0.25, -0.33, -0.50, -1.0) and exam-length timers.</p>
+            </div>
+          </div>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="btn-govt-explore">
+            All 7 Exam Streams →
+          </a>
+        </div>
+        <div class="govt-stream-pills-row">
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'upsc' }" class="stream-pill pill-upsc" title="UPSC Civil Services Prelims GS & CSAT">
+            🏛️ UPSC Civil Services (IAS/IPS)
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'ssc' }" class="stream-pill pill-ssc" title="Staff Selection Commission CGL & CHSL">
+            📋 SSC CGL & CHSL (Tier 1 & 2)
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'banking' }" class="stream-pill pill-banking" title="IBPS & SBI Probationary Officer & Clerk">
+            🏦 Banking (IBPS / SBI PO)
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'railways' }" class="stream-pill pill-railways" title="Railway Recruitment Board NTPC & Group D">
+            🚆 Railways (RRB NTPC)
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'defence' }" class="stream-pill pill-defence" title="National Defence Academy, Combined Defence Services">
+            🛡️ Defence (NDA / CDS / AFCAT)
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'teaching' }" class="stream-pill pill-teaching" title="Central Teacher Eligibility Test & State PSC">
+            📚 Teaching & State PSC (CTET)
+          </a>
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'entrance' }" class="stream-pill pill-entrance" title="Pre-Medical & Pre-Engineering Entrance Exams">
+            🔬 Entrance (NEET UG & JEE)
           </a>
         </div>
       </div>
@@ -826,6 +871,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           text-decoration: none !important;
         }
       }
+      .hero-btn-govt {
+        background: rgba(255, 255, 255, 0.16) !important;
+        color: #ffffff !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        &:hover {
+          background: rgba(255, 255, 255, 0.28) !important;
+          color: #ffffff !important;
+          border-color: #ffffff;
+        }
+      }
     }
 
     .toast-notification {
@@ -908,6 +965,116 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         color: var(--color-primary-600) !important;
       }
     }
+
+    /* Government & Competitive Examination Hub Launcher */
+    .govt-dashboard-hub {
+      padding: 1.5rem 2rem;
+      border-left: 5px solid #D97706 !important;
+      border-radius: 1.25rem;
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%), var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+    }
+    .govt-hub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .govt-hub-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .govt-emblem-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .govt-hub-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .govt-hub-title {
+      font-size: 0.975rem;
+      font-weight: 800;
+      color: var(--text-primary) !important;
+    }
+    .govt-badge-cbt {
+      font-size: 0.675rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: #FEF3C7;
+      color: #92400E !important;
+      border: 1px solid #FDE68A;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+    }
+    .govt-hub-desc {
+      font-size: 0.825rem;
+      color: var(--text-muted) !important;
+      margin: 0.15rem 0 0 0;
+    }
+    .btn-govt-explore {
+      font-size: 0.825rem;
+      font-weight: 700;
+      color: #B45309 !important;
+      text-decoration: none !important;
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      &:hover {
+        background: #FDE68A;
+        color: #78350F !important;
+        transform: translateX(3px);
+      }
+    }
+    .govt-stream-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+    }
+    .stream-pill {
+      font-size: 0.825rem;
+      font-weight: 700;
+      padding: 0.6rem 1.15rem;
+      border-radius: 9999px;
+      text-decoration: none !important;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-primary) !important;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      }
+    }
+    .pill-upsc:hover { border-color: #D97706; color: #B45309 !important; background: #FFFBEB; }
+    .pill-ssc:hover { border-color: #2563EB; color: #1D4ED8 !important; background: #EFF6FF; }
+    .pill-banking:hover { border-color: #059669; color: #047857 !important; background: #ECFDF5; }
+    .pill-railways:hover { border-color: #DC2626; color: #B91C1C !important; background: #FEF2F2; }
+    .pill-defence:hover { border-color: #4F46E5; color: #4338CA !important; background: #EEF2FF; }
+    .pill-teaching:hover { border-color: #7C3AED; color: #6D28D9 !important; background: #F5F3FF; }
+    .pill-entrance:hover { border-color: #0D9488; color: #0F766E !important; background: #F0FDFA; }
 
     /* Stats Grid */
     .metrics-grid {
