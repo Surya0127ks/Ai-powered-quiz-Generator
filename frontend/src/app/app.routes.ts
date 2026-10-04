@@ -13,21 +13,21 @@ export const routes: Routes = [
     path: 'auth/login',
     loadComponent: () =>
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
-    title: 'QuizHub - Sign In',
+    title: 'QuizPulse - Sign In',
     canActivate: [guestGuard],
   },
   {
     path: 'auth/register',
     loadComponent: () =>
       import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
-    title: 'QuizHub - Create Account',
+    title: 'QuizPulse - Create Account',
     canActivate: [guestGuard],
   },
   {
     path: 'auth/forgot-password',
     loadComponent: () =>
       import('./features/auth/forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
-    title: 'QuizHub - Reset Password',
+    title: 'QuizPulse - Reset Password',
     canActivate: [guestGuard],
   },
   {
@@ -39,62 +39,71 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () =>
       import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
-    title: 'QuizHub - Dashboard',
+    title: 'QuizPulse - Dashboard',
     canActivate: [authGuard],
   },
   {
     path: 'student/progress',
     loadComponent: () =>
       import('./features/courses/student-progress/student-progress.component').then((m) => m.StudentProgressComponent),
-    title: 'QuizHub - Attempt History',
+    title: 'QuizPulse - Attempt History',
     canActivate: [authGuard],
   },
   {
     path: 'verify-certificate',
     loadComponent: () =>
       import('./features/courses/certificate-verify/certificate-verify.component').then((m) => m.CertificateVerifyComponent),
-    title: 'QuizHub - Verify Certificate',
+    title: 'QuizPulse - Verify Certificate',
   },
   {
     path: 'certificate/generator',
     loadComponent: () =>
       import('./features/courses/certificate-generator/certificate-generator.component').then((m) => m.CertificateGeneratorComponent),
-    title: 'QuizHub - Certificate Studio',
+    title: 'QuizPulse - Certificate Studio',
     canActivate: [authGuard],
   },
   {
     path: 'quiz/:id/edit',
     loadComponent: () => import('./features/quizzes/quiz-editor/quiz-editor.component').then(c => c.QuizEditorComponent),
+    title: 'QuizPulse - Edit Quiz',
     canActivate: [authGuard]
   },
   {
     path: 'quiz/:id/success',
     loadComponent: () => import('./features/quizzes/quiz-publish-success/quiz-publish-success.component').then(c => c.QuizPublishSuccessComponent),
+    title: 'QuizPulse - Quiz Published',
     canActivate: [authGuard]
   },
   {
     path: 'quiz/:id',
     loadComponent: () =>
       import('./features/courses/quiz-player/quiz-player.component').then((m) => m.QuizPlayerComponent),
-    title: 'QuizHub - Take Assessment Quiz',
+    title: 'QuizPulse - Take Assessment',
   },
   {
     path: 'q/:shortId',
     loadComponent: () =>
       import('./features/courses/quiz-player/quiz-player.component').then((m) => m.QuizPlayerComponent),
-    title: 'QuizHub - Public Quiz',
+    title: 'QuizPulse - Public Quiz',
   },
   {
     path: 'quizzes/new',
     loadComponent: () =>
       import('./features/quizzes/quiz-creator/quiz-creator.component').then((m) => m.QuizCreatorComponent),
-    title: 'QuizHub - Create Assessment Quiz',
+    title: 'QuizPulse - Create Quiz with AI',
     canActivate: [authGuard],
+  },
+  {
+    path: 'unauthorized',
+    loadComponent: () =>
+      import('./shared/components/not-found/not-found.component').then((m) => m.NotFoundComponent),
+    title: 'QuizPulse - Access Denied',
   },
   {
     path: '**',
     loadComponent: () =>
       import('./shared/components/not-found/not-found.component').then((m) => m.NotFoundComponent),
-    title: 'QuizHub - Page Not Found',
+    title: 'QuizPulse - Page Not Found',
   },
 ];
+

@@ -3,24 +3,58 @@
 
 <head>
   <meta charset="utf-8">
-  <title>QuizPulse - AI Assessment & Certificate Platform</title>
+  <title>QuizPulse - AI Powered Quiz Generator & Certificate Platform</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="QuizPulse - Generate AI-powered quizzes instantly with Groq LLM. Track student progress, issue verified digital certificates, and manage assessments at scale.">
+  <meta name="keywords" content="AI quiz generator, online assessment platform, digital certificates, Groq AI, quiz maker, student progress tracking">
+  <meta name="author" content="QuizPulse">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="QuizPulse - AI Powered Quiz Generator">
+  <meta property="og:description" content="Generate complex AI quizzes in seconds, track student progress in real-time, and issue verified digital certificates automatically.">
+  <meta property="og:image" content="/assets/og-banner.png">
+  <meta property="og:url" content="https://quizpulse.vercel.app">
+  <meta property="og:site_name" content="QuizPulse">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QuizPulse - AI Quiz Platform">
+  <meta name="twitter:description" content="Generate AI-powered quizzes instantly with Groq LLM. Issue verified digital certificates.">
+  <meta name="twitter:image" content="/assets/og-banner.png">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://quizpulse.vercel.app">
+
+  <!-- Theme Color for Mobile Browsers -->
+  <meta name="theme-color" content="#4f46e5">
 
   <!-- Google Fonts: Plus Jakarta Sans, Inter, & Cinzel for Formal Certificates -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Theme Pre-load Script: Prevents dark mode FOUC (Flash of Unstyled Content) -->
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
 </head>
 
 <body>
-  <script>
-    // Expose simple runtime env for dev overrides (populated from environment.development.ts at build time)
-    // During development we set __env__.devHostOverride to allow share links to use LAN IP.
-    window.__env__ = window.__env__ || {};
-    window.__env__.devHostOverride = "http://10.69.194.165:4200";
-  </script>
   <app-root></app-root>
 </body>
 

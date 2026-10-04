@@ -29,11 +29,18 @@ public static class ServiceCollectionExtensions
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
-        // JWT Authentication
-        var secretKey = configuration["JwtSettings:SecretKey"]
-            ?? "YOUR_SECRET_KEY_HERE_MUST_BE_AT_LEAST_32_CHARS_LONG_IN_PRODUCTION";
-        var issuer = configuration["JwtSettings:Issuer"] ?? "LMS.Api";
-        var audience = configuration["JwtSettings:Audience"] ?? "LMS.Client";
+        // JWT Authentication — secret key MUST be configured in production
+        var secretKey = configuration["JwtSettings:SecretKey"];
+        if (string.IsNullOrWhiteSpace(secretKey))
+        {
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            if (!isDevelopment)
+                throw new InvalidOperationException("JwtSettings:SecretKey must be configured in production. Set it via environment variables.");
+            // Only for local development fallback
+            secretKey = "DEV_ONLY_LOCAL_SECRET_KEY_32_CHARS_MIN_!!";
+        }
+        var issuer = configuration["JwtSettings:Issuer"] ?? "QuizPulse.Api";
+        var audience = configuration["JwtSettings:Audience"] ?? "QuizPulse.Client";
 
         services.AddAuthentication(options =>
         {
@@ -42,7 +49,8 @@ public static class ServiceCollectionExtensions
         })
         .AddJwtBearer(options =>
         {
-            options.RequireHttpsMetadata = false;
+            // Require HTTPS in production, allow HTTP only in local development
+            options.RequireHttpsMetadata = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development";
             options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {
