@@ -355,18 +355,38 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             </div>
 
             <div class="form-group">
-              <label for="maxStudents">
+              <label>
                 👥 Max Students Allowed
                 <span class="label-hint">Quiz closes after this many attempts. Admin can extend up to 2 times.</span>
               </label>
-              <input
-                id="maxStudents"
-                type="number"
-                formControlName="maxStudents"
-                placeholder="Default: 15"
-                min="1"
-                class="input-control"
-              />
+              <!-- Preset Chips -->
+              <div class="student-preset-row">
+                @for (preset of studentPresets; track preset) {
+                  <button
+                    type="button"
+                    class="preset-chip"
+                    [class.selected]="selectedStudentPreset() === preset"
+                    (click)="selectStudentPreset(preset)"
+                  >{{ preset }}</button>
+                }
+                <button
+                  type="button"
+                  class="preset-chip"
+                  [class.selected]="selectedStudentPreset() === 0"
+                  (click)="selectStudentPreset(0)"
+                >✏️ Custom</button>
+              </div>
+              <!-- Manual input shown only when Custom is selected -->
+              @if (selectedStudentPreset() === 0) {
+                <input
+                  id="maxStudents"
+                  type="number"
+                  formControlName="maxStudents"
+                  placeholder="Enter any number (e.g. 200)"
+                  min="1"
+                  class="input-control margin-top-xs"
+                />
+              }
             </div>
           </div>
 
@@ -671,6 +691,36 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       flex-shrink: 0;
     }
 
+    /* Student Preset Chips */
+    .student-preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .preset-chip {
+      padding: 0.45rem 1.1rem;
+      border-radius: 9999px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-body);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      &:hover {
+        border-color: var(--color-primary-600);
+        color: var(--color-primary-600);
+        background: var(--color-primary-50);
+      }
+      &.selected {
+        background: var(--color-primary-600);
+        border-color: var(--color-primary-600);
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+      }
+    }
+
     .key-toggle-row { text-align: right; }
     .toggle-key-link {
       background: none;
@@ -881,6 +931,17 @@ export class QuizCreatorComponent implements OnInit {
   selectedSubTopicId = '';
   requestedQuestionCount = 10;
   selectedDifficulty = 'Mixed';
+
+  // Max students preset chips
+  readonly studentPresets = [15, 20, 30, 50, 100];
+  readonly selectedStudentPreset = signal<number>(15);
+
+  selectStudentPreset(value: number): void {
+    this.selectedStudentPreset.set(value);
+    if (value > 0) {
+      this.quizForm.patchValue({ maxStudents: value });
+    }
+  }
 
   readonly quizForm = this.fb.group({
     title: ['', [Validators.required]],
