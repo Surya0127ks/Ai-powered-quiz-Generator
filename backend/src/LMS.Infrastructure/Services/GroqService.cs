@@ -105,7 +105,7 @@ STRICT REQUIREMENTS:
                 new { role = "user", content = userPrompt }
             },
             temperature = 0.7,
-            max_tokens = 2048,
+            max_tokens = 4096,
             response_format = new { type = "json_object" }
         };
 
