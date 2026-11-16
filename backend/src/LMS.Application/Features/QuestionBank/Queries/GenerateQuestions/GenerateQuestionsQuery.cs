@@ -28,6 +28,16 @@ public class GenerateQuestionsQueryHandler : IRequestHandler<GenerateQuestionsQu
 
     public async Task<Result<List<GeneratedQuestionDto>>> Handle(GenerateQuestionsQuery request, CancellationToken cancellationToken)
     {
+        if (request.QuestionCount is < 1 or > 200)
+        {
+            return Result.Failure<List<GeneratedQuestionDto>>("Question count must be between 1 and 200.");
+        }
+
+        if (request.ApiKey?.Length > 256)
+        {
+            return Result.Failure<List<GeneratedQuestionDto>>("The supplied API key is invalid.");
+        }
+
         string topicName = !string.IsNullOrWhiteSpace(request.CustomTopic) ? request.CustomTopic.Trim() : "General Knowledge";
         string? subTopicName = null;
 

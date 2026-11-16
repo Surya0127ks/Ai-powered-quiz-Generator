@@ -29,6 +29,43 @@ public class GroqService : IGroqService
         string? customApiKey = null,
         CancellationToken cancellationToken = default)
     {
+        if (count is < 1 or > 200)
+        {
+            return Result.Failure<List<GeneratedQuestionDto>>("Question count must be between 1 and 200.");
+        }
+
+        var questions = new List<GeneratedQuestionDto>(count);
+        var remaining = count;
+        while (remaining > 0)
+        {
+            var batchSize = Math.Min(10, remaining);
+            var batch = await GenerateBatchAsync(topic, subTopic, batchSize, difficulty, customApiKey, cancellationToken);
+            if (!batch.IsSuccess || batch.Value is null)
+            {
+                return Result.Failure<List<GeneratedQuestionDto>>(batch.Error ?? "AI question generation failed.");
+            }
+
+            if (batch.Value.Count != batchSize)
+            {
+                return Result.Failure<List<GeneratedQuestionDto>>(
+                    $"AI returned {batch.Value.Count} questions for a batch of {batchSize}. Retry generation to get the requested total.");
+            }
+
+            questions.AddRange(batch.Value);
+            remaining -= batchSize;
+        }
+
+        return Result.Success(questions);
+    }
+
+    private async Task<Result<List<GeneratedQuestionDto>>> GenerateBatchAsync(
+        string topic,
+        string? subTopic,
+        int count,
+        string? difficulty,
+        string? customApiKey = null,
+        CancellationToken cancellationToken = default)
+    {
         string apiKey = !string.IsNullOrWhiteSpace(customApiKey) ? customApiKey.Trim() : (_defaultApiKey ?? string.Empty);
 
         if (string.IsNullOrWhiteSpace(apiKey))

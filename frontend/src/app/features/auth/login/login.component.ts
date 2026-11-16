@@ -41,17 +41,6 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
           <div class="form-field">
-            <label for="tenantIdentifier">Name <span class="optional-tag">optional</span></label>
-            <input
-              id="tenantIdentifier"
-              type="text"
-              formControlName="tenantIdentifier"
-              placeholder="e.g. acme123"
-              class="input-control"
-            />
-          </div>
-
-          <div class="form-field">
             <label for="email">Email Address</label>
             <input
               id="email"
@@ -279,7 +268,6 @@ export class LoginComponent {
   readonly errorMessage = signal<string | null>(null);
 
   readonly loginForm = this.fb.group({
-    tenantIdentifier: [''],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
@@ -297,8 +285,7 @@ export class LoginComponent {
 
     this.authService.login({
       email: values.email!,
-      password: values.password!,
-      tenantIdentifier: values.tenantIdentifier || undefined
+      password: values.password!
     }).subscribe({
       next: () => {
         this.isLoading.set(false);

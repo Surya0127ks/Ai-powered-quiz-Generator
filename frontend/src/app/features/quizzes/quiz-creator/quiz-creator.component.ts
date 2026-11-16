@@ -192,22 +192,22 @@ export interface GovtExamCategory {
                 <input
                   type="number"
                   min="1"
-                  max="50"
+                  max="200"
                   [(ngModel)]="requestedQuestionCount"
                   [ngModelOptions]="{standalone: true}"
                   (input)="onManualQuestionCountChange($event)"
                   class="input-control stepper-input"
-                  placeholder="Custom count (1-50)"
+                  placeholder="Custom count (1-200)"
                   [disabled]="isGenerating()"
                 />
                 <button
                   type="button"
                   class="stepper-btn"
                   (click)="adjustQuestionCount(1)"
-                  [disabled]="requestedQuestionCount >= 50 || isGenerating()"
+                  [disabled]="requestedQuestionCount >= 200 || isGenerating()"
                   title="Increase questions"
                 >+</button>
-                <span class="stepper-hint">Or type any number (1-50)</span>
+                <span class="stepper-hint">Choose 1–200 questions</span>
               </div>
             </div>
 
@@ -390,16 +390,16 @@ export interface GovtExamCategory {
                     <input
                       type="number"
                       min="1"
-                      max="50"
+                      max="200"
                       [(ngModel)]="requestedQuestionCount"
                       [ngModelOptions]="{standalone: true}"
                       (input)="onManualQuestionCountChange($event)"
                       class="input-control stepper-input"
-                      placeholder="Custom count (1-50)"
+                      placeholder="Custom count (1-200)"
                       [disabled]="isGenerating()"
                     />
-                    <button type="button" class="stepper-btn" (click)="adjustQuestionCount(1)" [disabled]="requestedQuestionCount >= 50 || isGenerating()">+</button>
-                    <span class="stepper-hint">Or type any number (1-50)</span>
+                    <button type="button" class="stepper-btn" (click)="adjustQuestionCount(1)" [disabled]="requestedQuestionCount >= 200 || isGenerating()">+</button>
+                    <span class="stepper-hint">Choose 1–200 questions</span>
                   </div>
                 </div>
 
@@ -1674,18 +1674,18 @@ export class QuizCreatorComponent implements OnInit {
   }
 
   setQuestionCount(cnt: number): void {
-    this.requestedQuestionCount = Math.min(50, Math.max(1, cnt));
+    this.requestedQuestionCount = Math.min(200, Math.max(1, cnt));
   }
 
   adjustQuestionCount(delta: number): void {
     const next = (this.requestedQuestionCount || 10) + delta;
-    this.requestedQuestionCount = Math.min(50, Math.max(1, next));
+    this.requestedQuestionCount = Math.min(200, Math.max(1, next));
   }
 
   onManualQuestionCountChange(event: Event): void {
     const val = Number((event.target as HTMLInputElement).value);
     if (!isNaN(val) && val > 0) {
-      this.requestedQuestionCount = Math.min(50, Math.max(1, val));
+      this.requestedQuestionCount = Math.min(200, Math.max(1, Math.floor(val)));
     } else {
       this.requestedQuestionCount = 10;
     }
@@ -1809,7 +1809,7 @@ export class QuizCreatorComponent implements OnInit {
       return;
     }
 
-    const questionCount = Math.min(50, Math.max(1, Number(this.requestedQuestionCount) || 10));
+    const questionCount = Math.min(200, Math.max(1, Math.floor(Number(this.requestedQuestionCount) || 10)));
 
     this.isGenerating.set(true);
     this.errorMessage.set(null);
@@ -1904,7 +1904,7 @@ export class QuizCreatorComponent implements OnInit {
   addMultipleQuestions(count: number): void {
     const toAdd = Math.min(20, Math.max(1, count));
     for (let i = 0; i < toAdd; i++) {
-      if (this.questionsArray.length < 50) {
+      if (this.questionsArray.length < 200) {
         this.addQuestion();
       }
     }

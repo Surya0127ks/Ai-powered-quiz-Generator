@@ -190,7 +190,7 @@ public class QuizzesController : ApiControllerBase
     /// Gets student submissions and leaderboard for a specific quiz assessment.
     /// </summary>
     [HttpGet("/api/v1/quizzes/{quizId:guid}/leaderboard")]
-    [AllowAnonymous]
+    [Authorize]
     [ProducesResponseType(typeof(List<QuizLeaderboardItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetQuizLeaderboard(Guid quizId, CancellationToken cancellationToken)

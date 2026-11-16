@@ -48,7 +48,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var normalizedEmail = request.Email.ToLowerInvariant();
         var normalizedTenant = request.TenantIdentifier?.ToLowerInvariant();
 
-        // 1. Find user by email across database or within specified tenant
+        // Email-only sign-in is supported. If an email is shared across tenants,
+        // resolve it by password instead of silently selecting an arbitrary account.
         var query = _context.Users.Include(u => u.Tenant).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(normalizedTenant))
@@ -56,27 +57,27 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             query = query.Where(u => u.Tenant.Identifier == normalizedTenant);
         }
 
-        var user = await query.FirstOrDefaultAsync(
-            u => u.Email == normalizedEmail,
-            cancellationToken);
+        var candidates = await query
+            .Where(u => u.Email == normalizedEmail)
+            .ToListAsync(cancellationToken);
 
-        if (user == null)
+        var matchingUsers = candidates
+            .Where(u => _passwordHasher.VerifyPassword(request.Password, u.PasswordHash))
+            .ToList();
+
+        if (matchingUsers.Count != 1)
         {
             return Result.Failure<AuthResponseDto>("Invalid email or password.");
         }
+
+        var user = matchingUsers[0];
 
         if (!user.IsActive)
         {
             return Result.Failure<AuthResponseDto>("Account is disabled. Please contact system administrator.");
         }
 
-        // 2. Verify password
-        if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
-        {
-            return Result.Failure<AuthResponseDto>("Invalid email or password.");
-        }
-
-        // 3. Issue fresh tokens
+        // Issue fresh tokens
         var accessToken = _tokenGenerator.GenerateAccessToken(user, user.Tenant.Identifier);
         var refreshToken = _tokenGenerator.GenerateRefreshToken();
 

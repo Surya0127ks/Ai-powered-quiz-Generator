@@ -2,7 +2,6 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { InstructorService } from '../../../core/services/instructor.service';
-import { CourseService } from '../../../core/services/course.service';
 import { CourseStatus } from '../../../core/models/course.model';
 
 @Component({
@@ -147,8 +146,8 @@ import { CourseStatus } from '../../../core/models/course.model';
   styles: [`
     .dashboard-container { max-width: 1280px; margin: 0 auto; padding: 2.5rem 1.5rem; }
     .white-card {
-      background: #ffffff;
-      border: 1.5px solid #cbd5e1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
       border-radius: 1rem;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
     }
@@ -171,8 +170,8 @@ import { CourseStatus } from '../../../core/models/course.model';
       display: inline-block;
       margin-bottom: 0.65rem;
     }
-    .header-title h1 { font-size: 2rem; font-weight: 800; color: #0f172a !important; margin: 0; }
-    .header-title p { color: #475569 !important; margin-top: 0.35rem; font-size: 0.95rem; font-weight: 500; }
+    .header-title h1 { font-size: 2rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; }
+    .header-title p { color: var(--text-secondary) !important; margin-top: 0.35rem; font-size: 0.95rem; font-weight: 500; }
     .header-actions { display: flex; gap: 0.85rem; }
     
     .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; }
@@ -219,11 +218,21 @@ import { CourseStatus } from '../../../core/models/course.model';
     .empty-courses { padding: 3.5rem; text-align: center; color: #64748b !important; .empty-icon { font-size: 2.25rem; } p { font-weight: 600; font-size: 1rem; margin: 0.5rem 0 1.25rem 0; } }
     .empty-actions { display: flex; gap: 0.85rem; justify-content: center; }
     .loading-state { padding: 4rem; text-align: center; color: #64748b !important; font-weight: 600; }
+    @media (max-width: 760px) {
+      .dashboard-container { padding: 1.25rem 1rem; }
+      .dashboard-header { padding: 1.5rem; align-items: flex-start; flex-direction: column; gap: 1.25rem; }
+      .header-title h1 { font-size: 1.55rem; }
+      .header-actions { width: 100%; flex-wrap: wrap; }
+      .header-actions .btn { flex: 1 1 180px; text-align: center; }
+      .table-card { padding: 1.1rem; }
+      .card-header { align-items: flex-start; flex-direction: column; gap: 0.75rem; }
+      .empty-courses { padding: 2rem 1rem; }
+      .empty-actions { flex-wrap: wrap; }
+    }
   `]
 })
 export class InstructorDashboardComponent implements OnInit {
   private readonly instructorService = inject(InstructorService);
-  private readonly courseService = inject(CourseService);
   private readonly router = inject(Router);
 
   readonly CourseStatus = CourseStatus;
@@ -243,32 +252,6 @@ export class InstructorDashboardComponent implements OnInit {
   }
 
   onCreateQuickQuiz(): void {
-    this.isLoading.set(true);
-    const randId = Math.floor(1000 + Math.random() * 9000);
-    this.courseService.createCourse({
-      title: `Quiz Assessment #${randId}`,
-      categoryId: '00000000-0000-0000-0000-000000000000',
-      shortDescription: 'Interactive quiz test for students',
-      description: 'Test assessment created via Quiz Creator',
-      price: 0,
-      isFree: true,
-      currency: 'USD',
-      level: 4,
-      language: 'English'
-    }).subscribe({
-      next: (res: any) => {
-        this.isLoading.set(false);
-        const courseId = res.id || res.data?.id;
-        if (courseId) {
-          this.router.navigate(['/courses', courseId, 'curriculum']);
-        } else {
-          this.router.navigate(['/courses/new']);
-        }
-      },
-      error: () => {
-        this.isLoading.set(false);
-        this.router.navigate(['/courses/new']);
-      }
-    });
+    this.router.navigate(['/quizzes/new']);
   }
 }
