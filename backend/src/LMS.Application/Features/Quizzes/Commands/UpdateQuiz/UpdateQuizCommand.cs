@@ -3,6 +3,7 @@ using LMS.Application.Common.Interfaces;
 using LMS.Application.Common.Models;
 using LMS.Application.Features.Quizzes.DTOs;
 using LMS.Domain.Entities;
+using LMS.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,6 +67,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
         }
 
         var quiz = await _context.Quizzes
+            .Include(q => q.CreatedByUser)
             .Include(q => q.Questions)
                 .ThenInclude(q => q.Options)
             .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken);
@@ -80,32 +82,43 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
             return Result.Failure<QuizDto>("You can only edit your own quizzes.");
         }
 
+        bool isStudentCreator = quiz.CreatedByUser?.Role == UserRole.Student;
+
         // Update properties
         quiz.Title = request.Title;
         quiz.Description = request.Description;
         quiz.Category = request.Category;
         quiz.Difficulty = request.Difficulty;
-        quiz.IsPublished = request.IsPublished;
+        quiz.IsPublished = isStudentCreator ? false : request.IsPublished;
         quiz.PassingScorePercentage = request.PassingScorePercentage;
         quiz.TimeLimitMinutes = request.TimeLimitMinutes;
-        quiz.MaxAttempts = request.MaxAttempts;
+        quiz.MaxAttempts = isStudentCreator ? null : request.MaxAttempts;
         quiz.NegativeMarkingPoints = request.NegativeMarkingPoints;
         quiz.ShuffleQuestions = request.ShuffleQuestions;
         quiz.ShuffleOptions = request.ShuffleOptions;
         quiz.ExpiryDateUtc = request.ExpiryDateUtc;
         quiz.EnableCertificate = request.EnableCertificate;
-        quiz.CertificateForTopperOnly = request.CertificateForTopperOnly;
+        quiz.CertificateForTopperOnly = isStudentCreator ? false : request.CertificateForTopperOnly;
         quiz.AutoSubmit = request.AutoSubmit;
         quiz.ShowResultsAfterSubmission = request.ShowResultsAfterSubmission;
         quiz.ShowCorrectAnswers = request.ShowCorrectAnswers;
         quiz.WelcomeMessage = request.WelcomeMessage;
         quiz.Instructions = request.Instructions;
-        quiz.MaxStudents = Math.Clamp(request.MaxStudents > 0 ? request.MaxStudents : 15, 1, Quiz.MaxAllowedStudentsPerQuiz);
+        quiz.MaxStudents = isStudentCreator
+            ? 1
+            : Math.Clamp(request.MaxStudents > 0 ? request.MaxStudents : 15, 1, Quiz.MaxAllowedStudentsPerQuiz);
 
-        var participantAttemptCount = await _context.QuizAttempts
-            .CountAsync(a => a.QuizId == quiz.Id &&
-                (!quiz.CreatedByUserId.HasValue || a.UserId != quiz.CreatedByUserId.Value), cancellationToken);
-        quiz.IsCapReached = participantAttemptCount >= quiz.MaxStudents;
+        if (isStudentCreator)
+        {
+            quiz.IsCapReached = false;
+        }
+        else
+        {
+            var participantAttemptCount = await _context.QuizAttempts
+                .CountAsync(a => a.QuizId == quiz.Id &&
+                    (!quiz.CreatedByUserId.HasValue || a.UserId != quiz.CreatedByUserId.Value), cancellationToken);
+            quiz.IsCapReached = participantAttemptCount >= quiz.MaxStudents;
+        }
 
         int totalMarks = 0;
 

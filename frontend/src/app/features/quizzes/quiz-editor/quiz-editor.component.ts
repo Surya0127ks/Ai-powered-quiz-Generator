@@ -25,8 +25,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
 
       <form [formGroup]="quizForm" (ngSubmit)="onSubmit(true)" class="creator-form-layout">
         <!-- Section 1: Quiz Details -->
-        @if (authService.userRole() !== 3) {
-          <div class="saas-card form-section">
+        <div class="saas-card form-section">
           <h3>📌 Quiz Details & Settings</h3>
           <p class="section-desc">Configure title, passing score, and time limit for your quiz.</p>
 
@@ -111,6 +110,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
               />
             </div>
 
+            @if (authService.userRole() !== 3) {
             <div class="form-group">
               <label for="maxStudents">👥 Max Students Allowed <span class="optional-text">(1–50)</span></label>
               <input
@@ -123,6 +123,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                 class="input-control"
               />
             </div>
+            }
 
             <div class="form-group">
               <label for="difficulty">Difficulty Level</label>
@@ -167,7 +168,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                 <input type="checkbox" formControlName="enableCertificate" class="check-control" />
                 Issue Certificate on Pass
               </label>
-              @if (quizForm.get('enableCertificate')?.value) {
+              @if (authService.userRole() !== 3 && quizForm.get('enableCertificate')?.value) {
                 <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-top: 0.5rem; margin-left: 1.5rem; color: var(--text-muted) !important;">
                   <input type="checkbox" formControlName="certificateForTopperOnly" class="check-control" />
                   Only issue to Top Scorer (Topper)
@@ -188,7 +189,6 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             </div>
           </div>
         </div>
-        }
 
         <!-- Section 2: Questions Editor -->
         <div class="saas-card form-section margin-top">
@@ -724,7 +724,7 @@ export class QuizEditorComponent implements OnInit {
       domainTopicId: this.selectedDomainId || undefined,
       subTopicId: this.selectedSubTopicId || undefined,
       customTopic: topicToUse,
-      questionCount: Number(this.requestedQuestionCount),
+      questionCount: Math.min(30, Math.max(1, Math.floor(Number(this.requestedQuestionCount) || 10))),
       difficulty: this.selectedDifficulty,
       apiKey: this.customApiKey ? this.customApiKey.trim() : undefined
     }).subscribe({

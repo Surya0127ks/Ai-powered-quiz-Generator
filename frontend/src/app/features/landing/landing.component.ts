@@ -383,7 +383,9 @@ interface FaqItem {
           <h2>Transform How You Test Knowledge Today</h2>
           <p>Join educators and self-learners building better, faster quizzes with Quizzy AI.</p>
           <div class="cta-buttons">
-            @if (!authService.isAuthenticated() || canManageQuizzes()) {
+            @if (authService.isAuthenticated()) {
+              <a routerLink="/quizzes/new" class="btn-hero-primary">Create Practice Quiz →</a>
+            } @else {
               <a routerLink="/auth/register" class="btn-hero-primary">Create Your First Quiz Free →</a>
             }
             @if (authService.isAuthenticated()) {
@@ -1313,7 +1315,7 @@ export class LandingComponent {
 
   canManageQuizzes(): boolean {
     const role = this.authService.userRole();
-    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
+    return role === UserRole.Student || role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
   }
 
   readonly faqs = signal<FaqItem[]>([

@@ -1,6 +1,7 @@
 using LMS.Application.Common.Interfaces;
 using LMS.Application.Common.Models;
 using LMS.Application.Features.Quizzes.DTOs;
+using LMS.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,9 +33,15 @@ public class GetUserQuizDashboardSummaryQueryHandler : IRequestHandler<GetUserQu
 
         var createdQuizIds = createdQuizzes.Select(q => q.Id).ToList();
 
-        // Attempts on quizzes created by user
+        bool isStudentCreator = await _context.Users
+            .Where(u => u.Id == request.UserId)
+            .Select(u => u.Role == UserRole.Student)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Attempts on quizzes created by user (students track self-attempts; instructors track external student submissions)
         var attemptsOnUserQuizzes = await _context.QuizAttempts
-            .Where(qa => createdQuizIds.Contains(qa.QuizId) && qa.UserId != request.UserId)
+            .Where(qa => createdQuizIds.Contains(qa.QuizId) &&
+                (isStudentCreator ? qa.UserId == request.UserId : qa.UserId != request.UserId))
             .ToListAsync(cancellationToken);
 
         var myQuizzesList = new List<UserQuizItemDto>();

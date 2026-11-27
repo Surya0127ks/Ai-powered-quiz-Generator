@@ -30,9 +30,9 @@ import { UserRole } from '../../../core/models/auth.model';
               <span>{{ isClearing() ? 'Clearing...' : 'Clear All History' }}</span>
             </button>
           }
-          @if (canManageQuizzes()) {
+          @if (canCreateQuizzes()) {
             <a routerLink="/quizzes/new" class="btn btn-ai btn-sm">
-              ✨ Create New Quiz
+              ✨ {{ isStudent() ? 'Create Practice Quiz' : 'Create New Quiz' }}
             </a>
           }
         </div>
@@ -45,7 +45,7 @@ import { UserRole } from '../../../core/models/auth.model';
             👨‍🎓 My Learning Progress
           </button>
           <button class="tab-btn" [class.active]="activeTab() === 'instructor'" (click)="activeTab.set('instructor')">
-            👨‍🏫 Instructor: Student Progress
+            {{ isStudent() ? '📝 Practice Quiz Attempts' : '👨‍🏫 Instructor: Student Progress' }}
           </button>
         </div>
       } @else {
@@ -190,10 +190,10 @@ import { UserRole } from '../../../core/models/auth.model';
                   </svg>
                 </div>
                 <h4>No attempt history found</h4>
-                @if (canManageQuizzes()) {
-                  <p>You haven't completed any quizzes yet. Open a published quiz link to preview the learner experience.</p>
+                @if (isStudent()) {
+                  <p>Create a practice quiz or open a quiz link shared by your teacher to start tracking your progress.</p>
                 } @else {
-                  <p>You haven't completed any quizzes yet. Open a quiz link shared by your teacher to get started.</p>
+                  <p>You haven't completed any quizzes yet. Open a published quiz link to preview the learner experience.</p>
                 }
               </div>
             } @else {
@@ -231,6 +231,9 @@ import { UserRole } from '../../../core/models/auth.model';
                         </td>
                         <td>
                           <div class="action-btns-row">
+                            <a [routerLink]="['/quiz', attempt.quizId]" class="btn btn-primary btn-sm">
+                              🔄 Retest
+                            </a>
                             <button (click)="selectedReportAttempt.set(attempt)" class="btn btn-outline btn-sm">
                               📊 View Report
                             </button>
@@ -297,16 +300,23 @@ import { UserRole } from '../../../core/models/auth.model';
                       } @else if (!leaderboards()[quiz.id] || leaderboards()[quiz.id].length === 0) {
                         <div class="empty-leaderboard">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                          <strong>No student has completed this assessment yet.</strong>
-                          <p style="font-size: 0.85rem; margin: 0;">Share your quiz link with students to see results here.</p>
+                          <strong>{{ isStudent() ? 'No completed attempts on this practice quiz yet.' : 'No student has completed this assessment yet.' }}</strong>
+                          <p style="font-size: 0.85rem; margin: 0;">
+                            {{ isStudent() ? 'Start a practice test from your Dashboard to see your marks across attempts.' : 'Share your quiz link with students to see results here.' }}
+                          </p>
                         </div>
                       } @else {
                         <div class="quiz-table-wrapper">
                           <table class="qp-table">
                             <thead>
                               <tr>
-                                <th>Student Name</th>
-                                <th>Email</th>
+                                @if (isStudent()) {
+                                  <th>Attempt</th>
+                                  <th>Marks</th>
+                                } @else {
+                                  <th>Student Name</th>
+                                  <th>Email</th>
+                                }
                                 <th>Score</th>
                                 <th>Time Taken</th>
                                 <th>Outcome</th>
@@ -316,8 +326,13 @@ import { UserRole } from '../../../core/models/auth.model';
                             <tbody>
                               @for (item of leaderboards()[quiz.id]; track item.attemptId) {
                                 <tr>
-                                  <td><strong class="text-dark">{{ item.studentName }}</strong></td>
-                                  <td>{{ item.studentEmail }}</td>
+                                  @if (isStudent()) {
+                                    <td><strong class="text-dark">Attempt #{{ item.rank }}</strong></td>
+                                    <td>{{ item.totalPointsEarned }} / {{ item.totalPossiblePoints }}</td>
+                                  } @else {
+                                    <td><strong class="text-dark">{{ item.studentName }}</strong></td>
+                                    <td>{{ item.studentEmail }}</td>
+                                  }
                                   <td><strong class="score-num-text">{{ item.scorePercentage }}%</strong></td>
                                   <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
                                   <td>
@@ -686,11 +701,19 @@ export class StudentProgressComponent implements OnInit {
   }
 
   showStudentTab(): boolean {
-    return this.authService.userRole() === 3 || (this.summary()?.myAttempts?.length ?? 0) > 0;
+    return this.isStudent() || (this.summary()?.myAttempts?.length ?? 0) > 0;
   }
 
   showInstructorTab(): boolean {
-    return this.canManageQuizzes();
+    return this.canManageQuizzes() || (this.isStudent() && (this.summary()?.myQuizzes?.length ?? 0) > 0);
+  }
+
+  isStudent(): boolean {
+    return this.authService.userRole() === UserRole.Student;
+  }
+
+  canCreateQuizzes(): boolean {
+    return this.isStudent() || this.canManageQuizzes();
   }
 
   canManageQuizzes(): boolean {

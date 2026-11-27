@@ -331,8 +331,8 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
             }
             <button onclick="window.print()" class="btn btn-outline">🖨️ Download / Print Scorecard</button>
             @if (!isPublicMode) {
-              <button (click)="retakeQuiz()" class="btn btn-outline">Retake Quiz</button>
-              <a routerLink="/dashboard" class="btn btn-primary">Return to Dashboard →</a>
+              <button (click)="retakeQuiz()" class="btn btn-primary">🔄 Retest / Retake Quiz</button>
+              <a routerLink="/dashboard" class="btn btn-outline">Return to Dashboard →</a>
             } @else {
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 1rem;">Your response has been recorded. You may now close this window.</p>
               <a href="/" class="btn btn-primary">Go to Homepage →</a>
@@ -347,7 +347,11 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
               <span class="badge badge-ai">📝 {{ quiz()?.category || 'General Assessment' }}</span>
               <span class="badge badge-slate">⚡ {{ quiz()?.difficulty || 'Intermediate' }}</span>
               <span class="badge badge-primary">⏱️ {{ quiz()?.timeLimitMinutes ? quiz()?.timeLimitMinutes + ' Mins' : '15 Mins' }}</span>
-              <span class="badge badge-slate">👥 Max {{ quiz()?.maxStudents || 15 }} Seats</span>
+              @if (authService.userRole() === 3 && quiz()?.createdByUserId === authService.currentUser()?.id) {
+                <span class="badge badge-slate">🔒 Private Practice · Unlimited Retests</span>
+              } @else {
+                <span class="badge badge-slate">👥 Max {{ quiz()?.maxStudents || 15 }} Seats</span>
+              }
             </div>
             <h1 class="overview-title">{{ quiz()?.title }}</h1>
             <p class="overview-desc">{{ quiz()?.description || 'Test your knowledge with this interactive assessment. Complete all questions to earn your score and verified certificate.' }}</p>
@@ -455,14 +459,22 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
                 ✏️ Edit Assessment / View Answers
               </button>
             } @else {
-              <button
-                (click)="startQuiz()"
-                class="btn btn-ai btn-lg width-full start-btn"
-                [disabled]="emailAlreadyUsed()"
-                [class.btn-disabled]="emailAlreadyUsed()"
-              >
-                🚀 Start Assessment Now
-              </button>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                <button
+                  (click)="startQuiz()"
+                  class="btn btn-ai btn-lg start-btn"
+                  style="flex: 1; min-width: 200px;"
+                  [disabled]="emailAlreadyUsed()"
+                  [class.btn-disabled]="emailAlreadyUsed()"
+                >
+                  🚀 {{ authService.userRole() === 3 && quiz()?.createdByUserId === authService.currentUser()?.id ? 'Start Practice Test' : 'Start Assessment Now' }}
+                </button>
+                @if (!isPublicMode && authService.userRole() === 3 && quiz()?.createdByUserId === authService.currentUser()?.id) {
+                  <a [routerLink]="['/quiz', quiz()?.id, 'edit']" class="btn btn-outline btn-lg">
+                    ✏️ Edit Questions
+                  </a>
+                }
+              </div>
             }
           </div>
         </div>
@@ -1397,10 +1409,27 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.result.set(null);
     this.selectedExplanationIndex.set(null);
+    this.submitErrorMessage.set(null);
+    this.focusLostCount = 0;
     this.quizStartedAtMs = null;
     this.isStarted.set(false);
     this.selectedAnswersMap.clear();
     this.currentQuestionIndex.set(0);
+
+    const currentQuiz = this.quiz();
+    if (currentQuiz && currentQuiz.questions) {
+      const updatedQuestions = currentQuiz.shuffleQuestions
+        ? this.shuffleArray([...currentQuiz.questions])
+        : [...currentQuiz.questions];
+      if (currentQuiz.shuffleOptions) {
+        updatedQuestions.forEach(q => {
+          if (q.options) {
+            q.options = this.shuffleArray([...q.options]);
+          }
+        });
+      }
+      this.quiz.set({ ...currentQuiz, questions: updatedQuestions });
+    }
   }
 
   currentExplanationReview(): AnswerReviewItem | null {

@@ -4,6 +4,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { UserRole } from './core/models/auth.model';
 
+const quizBuilderRoles = [UserRole.Student, UserRole.Instructor, UserRole.TenantAdmin, UserRole.SuperAdmin];
 const quizCreatorRoles = [UserRole.Instructor, UserRole.TenantAdmin, UserRole.SuperAdmin];
 
 export const routes: Routes = [
@@ -70,7 +71,7 @@ export const routes: Routes = [
     path: 'quiz/:id/edit',
     loadComponent: () => import('./features/quizzes/quiz-editor/quiz-editor.component').then(c => c.QuizEditorComponent),
     title: 'Quizzy AI - Edit Quiz',
-    canActivate: [authGuard, roleGuard(quizCreatorRoles)]
+    canActivate: [authGuard, roleGuard(quizBuilderRoles)]
   },
   {
     path: 'quiz/:id/success',
@@ -95,7 +96,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/quizzes/quiz-creator/quiz-creator.component').then((m) => m.QuizCreatorComponent),
     title: 'Quizzy AI - Create Quiz with AI',
-    canActivate: [authGuard, roleGuard(quizCreatorRoles)],
+    canActivate: [authGuard, roleGuard(quizBuilderRoles)],
   },
   {
     path: 'unauthorized',

@@ -33,8 +33,14 @@ export interface GovtExamCategory {
         <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
         <div class="header-title-row">
           <div>
-            <h1>Create Assessment Quiz</h1>
-            <p>Generate high-quality assessment questions using live Groq AI or compose questions manually.</p>
+            <h1>{{ authService.userRole() === 3 ? 'Create Practice Quiz' : 'Create Assessment Quiz' }}</h1>
+            <p>
+              @if (authService.userRole() === 3) {
+                Generate custom AI study quizzes or government exam mock tests for private self-practice and unlimited retests (not shared publicly).
+              } @else {
+                Generate high-quality assessment questions using live Groq AI or compose questions manually.
+              }
+            </p>
           </div>
         </div>
       </header>
@@ -721,6 +727,7 @@ export interface GovtExamCategory {
               <input id="expiryDateUtc" type="datetime-local" formControlName="expiryDateUtc" class="input-control" />
             </div>
 
+            @if (authService.userRole() !== 3) {
             <div class="form-group">
               <label>
                 👥 Max Students Allowed
@@ -757,6 +764,7 @@ export interface GovtExamCategory {
                 />
               }
             </div>
+            }
           </div>
 
           <div class="quiz-preferences-grid margin-top-sm">
@@ -775,7 +783,7 @@ export interface GovtExamCategory {
                 <input type="checkbox" formControlName="enableCertificate" class="check-control" />
                 Issue Certificate on Pass
               </label>
-              @if (quizForm.get('enableCertificate')?.value) {
+              @if (authService.userRole() !== 3 && quizForm.get('enableCertificate')?.value) {
                 <label class="setting-option setting-option-nested">
                   <input type="checkbox" formControlName="certificateForTopperOnly" class="check-control" />
                   Only issue to Top Scorer (Topper)
@@ -805,8 +813,11 @@ export interface GovtExamCategory {
             <div class="qpb-left">
               <span class="qpb-icon">⚡</span>
               <div>
-                <span class="qpb-title">Ready to publish?</span>
-                <span class="qpb-desc">{{ questionsArray.length }} questions loaded — publish now or review below first.</span>
+                <span class="qpb-title">{{ authService.userRole() === 3 ? 'Ready to practice?' : 'Ready to publish?' }}</span>
+                <span class="qpb-desc">
+                  {{ questionsArray.length }} questions loaded —
+                  {{ authService.userRole() === 3 ? 'start your private practice test now or edit below first.' : 'publish now or review below first.' }}
+                </span>
               </div>
             </div>
             <div class="qpb-actions">

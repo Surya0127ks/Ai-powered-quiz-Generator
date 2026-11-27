@@ -32,14 +32,14 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
             @if (canManageQuizzes()) {
               Create assessments, share them with learners, and review results from one place.
             } @else {
-              Open a quiz link from your teacher, complete the assessment, and track your results here.
+              Create private AI study quizzes or government exam mock tests, retest anytime, and track your attempt marks.
             }
           </p>
         </div>
-        @if (canManageQuizzes()) {
+        @if (canCreateQuizzes()) {
           <div class="hero-actions">
             <a routerLink="/quizzes/new" class="hero-btn">
-              ✨ Create Quiz with AI
+              {{ isStudent() ? '✨ Create Practice Quiz' : '✨ Create Quiz with AI' }}
             </a>
             <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="hero-btn hero-btn-govt">
               🏛️ Govt Exams Hub
@@ -217,13 +217,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         </div>
       }
 
-      <!-- ADMIN LEADERBOARD & STUDENT SUBMISSIONS MODAL -->
+      <!-- ADMIN LEADERBOARD / STUDENT QUIZ ATTEMPTS MODAL -->
       @if (selectedLeaderboardQuiz() && !showScorecardModal()) {
         <div class="modal-backdrop" (click)="selectedLeaderboardQuiz.set(null)">
           <div class="modal-content modal-lg saas-card" (click)="$event.stopPropagation()">
             <div class="modal-header">
               <div class="modal-header-title">
-                <span class="badge badge-ai mb-1">🏆 ADMIN ASSESSMENT LEADERBOARD</span>
+                <span class="badge badge-ai mb-1">
+                  {{ isStudent() ? '📈 MY ATTEMPT PROGRESSION' : '🏆 ADMIN ASSESSMENT LEADERBOARD' }}
+                </span>
                 <h3>{{ selectedLeaderboardQuiz()?.title }}</h3>
               </div>
               <button (click)="selectedLeaderboardQuiz.set(null)" class="close-btn">✕</button>
@@ -231,15 +233,19 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
             <div class="leaderboard-modal-body">
               <div class="leaderboard-meta-banner mb-3">
                 <div class="meta-item">
-                  <span class="meta-label">Total Submissions</span>
-                  <strong class="meta-val">{{ leaderboardItems().length }} Students</strong>
+                  <span class="meta-label">{{ isStudent() ? 'Total Attempts' : 'Total Submissions' }}</span>
+                  <strong class="meta-val">{{ leaderboardItems().length }} {{ isStudent() ? (leaderboardItems().length === 1 ? 'Attempt' : 'Attempts') : 'Students' }}</strong>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Passed</span>
-                  <strong class="meta-val text-success">{{ getLeaderboardPassedCount() }} ({{ getLeaderboardPassRate() }}%)</strong>
+                  <span class="meta-label">{{ isStudent() ? 'Best Score' : 'Passed' }}</span>
+                  @if (isStudent()) {
+                    <strong class="meta-val text-success">{{ getStudentBestScore() }}%</strong>
+                  } @else {
+                    <strong class="meta-val text-success">{{ getLeaderboardPassedCount() }} ({{ getLeaderboardPassRate() }}%)</strong>
+                  }
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Overall Avg Score</span>
+                  <span class="meta-label">{{ isStudent() ? 'Average Score' : 'Overall Avg Score' }}</span>
                   <strong class="meta-val text-primary">{{ selectedLeaderboardQuiz()?.avgScorePercentage }}%</strong>
                 </div>
                 <div class="meta-item">
@@ -256,78 +262,122 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 </div>
               } @else if (leaderboardItems().length === 0) {
                 <div class="empty-state-box">
-                  <div class="empty-icon-wrapper">🏆</div>
-                  <h4>No student submissions yet</h4>
-                  <p>Share this quiz link with your students. Once students type their name and complete the quiz, their scores and rank will appear here live.</p>
-                  <button (click)="copyShareLink(selectedLeaderboardQuiz()!.shortId!)" class="btn btn-primary btn-sm">
-                    📋 Copy Share Link for Students
-                  </button>
+                  <div class="empty-icon-wrapper">{{ isStudent() ? '📈' : '🏆' }}</div>
+                  <h4>{{ isStudent() ? 'No attempts recorded yet' : 'No student submissions yet' }}</h4>
+                  @if (isStudent()) {
+                    <p>Take this practice quiz to track your marks, time taken, and answer explanations across every retest.</p>
+                    <a [routerLink]="['/quiz', selectedLeaderboardQuiz()?.id]" (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-primary btn-sm">
+                      ▶️ Start Practice Test
+                    </a>
+                  } @else {
+                    <p>Share this quiz link with your students. Once students type their name and complete the quiz, their scores and rank will appear here live.</p>
+                    <button (click)="copyShareLink(selectedLeaderboardQuiz()!.shortId!)" class="btn btn-primary btn-sm">
+                      📋 Copy Share Link for Students
+                    </button>
+                  }
                 </div>
               } @else {
                 <div class="quiz-table-wrapper">
                   <table class="qp-table">
                     <thead>
                       <tr>
-                        <th>Rank</th>
-                        <th>Student Full Name</th>
-                        <th>Contact / Email</th>
-                        <th>Score</th>
-                        <th>Time Taken</th>
-                        <th>Outcome</th>
-                        <th>Submitted At</th>
-                        <th>Admin Action</th>
+                        @if (isStudent()) {
+                          <th>Attempt</th>
+                          <th>Marks</th>
+                          <th>Score %</th>
+                          <th>Time Taken</th>
+                          <th>Outcome</th>
+                          <th>Attempted On</th>
+                          <th>Action</th>
+                        } @else {
+                          <th>Rank</th>
+                          <th>Student Full Name</th>
+                          <th>Contact / Email</th>
+                          <th>Score</th>
+                          <th>Time Taken</th>
+                          <th>Outcome</th>
+                          <th>Submitted At</th>
+                          <th>Admin Action</th>
+                        }
                       </tr>
                     </thead>
                     <tbody>
                       @for (item of leaderboardItems(); track item.attemptId) {
                         <tr [class.cheat-row]="item.isDisqualified">
-                          <td>
-                            <span class="rank-badge" [class.rank-1]="item.rank === 1" [class.rank-2]="item.rank === 2" [class.rank-3]="item.rank === 3">
-                              {{ item.rank === 1 ? '🥇 1st' : item.rank === 2 ? '🥈 2nd' : item.rank === 3 ? '🥉 3rd' : '#' + item.rank }}
-                            </span>
-                          </td>
-                          <td>
-                            <strong class="text-dark font-weight-bold">{{ item.studentName }}</strong>
-                            @if (item.isDisqualified) {
-                              <span class="cheat-badge">🚫 DISQUALIFIED</span>
-                            }
-                          </td>
-                          <td class="text-muted">{{ item.studentEmail }}</td>
-                          <td>
-                            <strong class="score-num-text">{{ item.scorePercentage }}%</strong>
-                            <small class="text-muted d-block">({{ item.totalPointsEarned }}/{{ item.totalPossiblePoints }} pts)</small>
-                          </td>
-                          <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
-                          <td>
-                            @if (item.isDisqualified) {
-                              <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border);">🚫 Cheating</span>
-                            } @else if (item.isPassed) {
-                              <span class="badge badge-emerald">🏆 Passed</span>
-                            } @else {
-                              <span class="badge badge-slate">Needs Review</span>
-                            }
-                            @if ((item.focusLostCount ?? 0) > 0 && !item.isDisqualified) {
-                              <small class="text-muted d-block" style="color: var(--color-warning) !important;">⚠️ {{ item.focusLostCount }} tab switch(es)</small>
-                            }
-                          </td>
-                          <td>{{ item.submittedAtUtc | date:'short' }}</td>
-                          <td>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                              <button (click)="viewAttemptScorecard(item)" class="btn btn-outline btn-sm" title="View Detailed Scorecard">
+                          @if (isStudent()) {
+                            <td>
+                              <span class="rank-badge">Attempt #{{ item.rank }}</span>
+                            </td>
+                            <td>
+                              <strong class="score-num-text">{{ item.totalPointsEarned }} / {{ item.totalPossiblePoints }}</strong>
+                              <small class="text-muted d-block">pts</small>
+                            </td>
+                            <td>
+                              <strong class="score-num-text">{{ item.scorePercentage }}%</strong>
+                            </td>
+                            <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
+                            <td>
+                              @if (item.isPassed) {
+                                <span class="badge badge-emerald">🏆 Passed</span>
+                              } @else {
+                                <span class="badge badge-slate">Needs Review</span>
+                              }
+                            </td>
+                            <td>{{ item.submittedAtUtc | date:'short' }}</td>
+                            <td>
+                              <button (click)="viewAttemptScorecard(item)" class="btn btn-outline btn-sm" title="View Answers & Explanations">
                                 📊 Scorecard
                               </button>
-                              @if (item.isPassed && !item.isDisqualified) {
-                                <a
-                                  [routerLink]="['/certificate/generator']"
-                                  [queryParams]="{ student: item.studentName, title: selectedLeaderboardQuiz()?.title, score: item.scorePercentage }"
-                                  class="btn btn-ai btn-sm"
-                                  title="Generate Certificate"
-                                >
-                                  📜 Cert
-                                </a>
+                            </td>
+                          } @else {
+                            <td>
+                              <span class="rank-badge" [class.rank-1]="item.rank === 1" [class.rank-2]="item.rank === 2" [class.rank-3]="item.rank === 3">
+                                {{ item.rank === 1 ? '🥇 1st' : item.rank === 2 ? '🥈 2nd' : item.rank === 3 ? '🥉 3rd' : '#' + item.rank }}
+                              </span>
+                            </td>
+                            <td>
+                              <strong class="text-dark font-weight-bold">{{ item.studentName }}</strong>
+                              @if (item.isDisqualified) {
+                                <span class="cheat-badge">🚫 DISQUALIFIED</span>
                               }
-                            </div>
-                          </td>
+                            </td>
+                            <td class="text-muted">{{ item.studentEmail }}</td>
+                            <td>
+                              <strong class="score-num-text">{{ item.scorePercentage }}%</strong>
+                              <small class="text-muted d-block">({{ item.totalPointsEarned }}/{{ item.totalPossiblePoints }} pts)</small>
+                            </td>
+                            <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
+                            <td>
+                              @if (item.isDisqualified) {
+                                <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border);">🚫 Cheating</span>
+                              } @else if (item.isPassed) {
+                                <span class="badge badge-emerald">🏆 Passed</span>
+                              } @else {
+                                <span class="badge badge-slate">Needs Review</span>
+                              }
+                              @if ((item.focusLostCount ?? 0) > 0 && !item.isDisqualified) {
+                                <small class="text-muted d-block" style="color: var(--color-warning) !important;">⚠️ {{ item.focusLostCount }} tab switch(es)</small>
+                              }
+                            </td>
+                            <td>{{ item.submittedAtUtc | date:'short' }}</td>
+                            <td>
+                              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button (click)="viewAttemptScorecard(item)" class="btn btn-outline btn-sm" title="View Detailed Scorecard">
+                                  📊 Scorecard
+                                </button>
+                                @if (item.isPassed && !item.isDisqualified) {
+                                  <a
+                                    [routerLink]="['/certificate/generator']"
+                                    [queryParams]="{ student: item.studentName, title: selectedLeaderboardQuiz()?.title, score: item.scorePercentage }"
+                                    class="btn btn-ai btn-sm"
+                                    title="Generate Certificate"
+                                  >
+                                    📜 Cert
+                                  </a>
+                                }
+                              </div>
+                            </td>
+                          }
                         </tr>
                       }
                     </tbody>
@@ -336,14 +386,21 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               }
 
               <div class="modal-footer-row margin-top">
-                <button (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-secondary">Close Leaderboard</button>
+                @if (isStudent() && selectedLeaderboardQuiz()) {
+                  <a [routerLink]="['/quiz', selectedLeaderboardQuiz()?.id]" (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-primary">
+                    🔄 Retest This Quiz
+                  </a>
+                }
+                <button (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-secondary">
+                  {{ isStudent() ? 'Close' : 'Close Leaderboard' }}
+                </button>
               </div>
             </div>
           </div>
         </div>
       }
 
-      @if (canManageQuizzes()) {
+      @if (canCreateQuizzes()) {
       <!-- Quick topic starters -->
       <div class="suggestion-toolbar saas-card mb-4 print-hide">
         <div class="suggestion-header mb-2">
@@ -427,7 +484,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
       <!-- Key Performance Metrics Cards -->
       <div class="metrics-grid mb-4 print-hide">
-        @if (canManageQuizzes()) {
+        @if (canCreateQuizzes()) {
         <div class="stat-card card-indigo saas-card">
           <div class="stat-card-top">
             <div class="stat-icon-box icon-indigo">
@@ -437,10 +494,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 <line x1="16" y1="13" x2="8" y2="13"></line>
               </svg>
             </div>
-            <span class="stat-title">Quizzes Created</span>
+            <span class="stat-title">{{ isStudent() ? 'Practice Quizzes' : 'Quizzes Created' }}</span>
           </div>
           <div class="stat-value">{{ summary()?.quizzesCreatedCount ?? 0 }}</div>
-          <span class="stat-subtext">{{ summary()?.publishedCount ?? 0 }} Published · {{ summary()?.draftsCount ?? 0 }} Drafts</span>
+          <span class="stat-subtext">
+            {{ isStudent() ? 'Private self-study sets' : (summary()?.publishedCount ?? 0) + ' Published · ' + (summary()?.draftsCount ?? 0) + ' Drafts' }}
+          </span>
         </div>
         }
 
@@ -487,16 +546,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         </div>
       </div>
 
-      <!-- 🔥 Live Running Assessments & Ongoing Active Attempt -->
-      @if (authService.userRole() !== 3) {
+      <!-- 🔥 Live Running Assessments / Student Practice Quizzes & Ongoing Active Attempt -->
+      @if (canCreateQuizzes()) {
         <div class="content-card mb-4 running-quizzes-card print-hide">
         <div class="section-title-row">
           <div class="title-with-live-dot">
-            <span class="live-status-pill"><span class="pulsing-dot"></span> LIVE ASSESSMENTS</span>
-            <h3>🔥 Active Running Quizzes</h3>
-            <p class="section-subtitle">Live assessments (max 50 students per quiz · quiz &amp; attempt data auto-cleans after 24 hours)</p>
+            @if (isStudent()) {
+              <span class="live-status-pill"><span class="pulsing-dot"></span> SELF-STUDY &amp; MOCK TESTS</span>
+              <h3>📝 My Practice Quizzes</h3>
+              <p class="section-subtitle">Private AI &amp; Govt Exam mock tests for your preparation (no public sharing · unlimited retests · auto-cleans after 24 hours)</p>
+            } @else {
+              <span class="live-status-pill"><span class="pulsing-dot"></span> LIVE ASSESSMENTS</span>
+              <h3>🔥 Active Running Quizzes</h3>
+              <p class="section-subtitle">Live assessments (max 50 students per quiz · quiz &amp; attempt data auto-cleans after 24 hours)</p>
+            }
           </div>
-          <a routerLink="/quizzes/new" class="link-action">+ Launch New Assessment</a>
+          <a routerLink="/quizzes/new" class="link-action">{{ isStudent() ? '+ Create Practice Quiz' : '+ Launch New Assessment' }}</a>
         </div>
 
         <!-- ONGOING IN-PROGRESS ATTEMPT BANNER (Persists until user clicks Submit) -->
@@ -535,11 +600,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         } @else if (getLiveQuizzes().length === 0) {
           <div class="running-quiz-empty-banner">
             <div class="empty-banner-content">
-              <h4>🚀 No Live Assessments</h4>
-              <p>Create a quiz using AI, publish it, and it will show up here live for students to take.</p>
+              <h4>{{ isStudent() ? '🚀 No Practice Quizzes Yet' : '🚀 No Live Assessments' }}</h4>
+              <p>
+                {{ isStudent()
+                  ? 'Generate a private AI study quiz or Govt Exam mock test above, take it anytime, and retest to improve your marks.'
+                  : 'Create a quiz using AI, publish it, and it will show up here live for students to take.' }}
+              </p>
             </div>
             <a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development', auto: 'true'}" class="btn btn-primary">
-              ✨ Quick Launch Web Assessment
+              {{ isStudent() ? '✨ Quick Generate Practice Quiz' : '✨ Quick Launch Web Assessment' }}
             </a>
           </div>
         } @else {
@@ -547,17 +616,23 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
             @for (q of getLiveQuizzes(); track q.id) {
               <div class="running-quiz-item-card saas-card">
                 <div class="rq-header">
-                  <span class="badge badge-emerald">🟢 ACTIVE LIVE</span>
+                  @if (isStudent()) {
+                    <span class="badge badge-slate">🔒 PRIVATE PRACTICE</span>
+                  } @else {
+                    <span class="badge badge-emerald">🟢 ACTIVE LIVE</span>
+                  }
                   <span class="rq-category">{{ q.category }}</span>
                 </div>
                 <h4 class="rq-title">{{ q.title }}</h4>
                 <div class="rq-meta-row">
                   <span class="rq-meta-chip">📝 {{ q.questionCount }} Questions</span>
                   <span class="rq-meta-chip">⏱️ {{ q.timeLimitMinutes || 15 }} Mins</span>
-                  <span class="rq-meta-chip">👥 {{ q.totalAttemptsCount }}/{{ q.maxStudents ?? 15 }} Seats</span>
+                  @if (!isStudent()) {
+                    <span class="rq-meta-chip">👥 {{ q.totalAttemptsCount }}/{{ q.maxStudents ?? 15 }} Seats</span>
+                  }
                 </div>
 
-                <!-- Joined Students & Quiz Analytics -->
+                <!-- Joined Students & Quiz Analytics / Self-Attempt Summary -->
                 <div class="rq-join-status" [class.has-joins]="q.totalAttemptsCount > 0">
                   <div class="join-count-row">
                     <svg class="join-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -567,10 +642,16 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                       <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     @if (q.totalAttemptsCount === 0) {
-                      <span class="join-text waiting">Waiting for students...</span>
+                      <span class="join-text waiting">
+                        {{ isStudent() ? 'Ready for practice — start Attempt #1' : 'Waiting for students...' }}
+                      </span>
                     } @else {
                       <span class="join-text joined">
-                        <strong>{{ q.totalAttemptsCount }}</strong> student{{ q.totalAttemptsCount > 1 ? 's' : '' }} attempted
+                        @if (isStudent()) {
+                          <strong>{{ q.totalAttemptsCount }}</strong> attempt{{ q.totalAttemptsCount > 1 ? 's' : '' }} completed
+                        } @else {
+                          <strong>{{ q.totalAttemptsCount }}</strong> student{{ q.totalAttemptsCount > 1 ? 's' : '' }} attempted
+                        }
                       </span>
                       <span class="join-avg">Avg: {{ q.avgScorePercentage }}%</span>
                     }
@@ -583,8 +664,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   }
                 </div>
 
-                <!-- Cap Reached Banner -->
-                @if (q.isCapReached) {
+                <!-- Cap Reached Banner (Educators only) -->
+                @if (!isStudent() && q.isCapReached) {
                   <div class="cap-reached-banner">
                     <div class="cap-banner-text">
                       <span class="cap-icon">🔒</span>
@@ -607,10 +688,21 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 }
 
                 <div class="rq-actions-row">
-                  @if (authService.userRole() === 3) {
-                    <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm width-full" title="Start Assessment" style="text-align: center; justify-content: center;">
-                      ▶️ Start Quiz
+                  @if (isStudent()) {
+                    <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm flex-grow" title="Practice or Retest Quiz" style="text-align: center; justify-content: center;">
+                      {{ q.totalAttemptsCount > 0 ? '🔄 Retest Quiz' : '▶️ Start Practice' }}
                     </a>
+                    @if (q.totalAttemptsCount > 0) {
+                      <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm flex-grow" title="View all your attempt marks for this quiz">
+                        📈 My Attempts ({{ q.totalAttemptsCount }})
+                      </button>
+                    }
+                    <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm" title="Edit Questions">
+                      ✏️
+                    </a>
+                    <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Practice Quiz">
+                      🗑️
+                    </button>
                   } @else {
                     @if (q.totalAttemptsCount > 0) {
                       <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm flex-grow" title="View Student Leaderboard">
@@ -632,20 +724,20 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       </div>
       }
 
-      @if (canManageQuizzes()) {
+      @if (canCreateQuizzes()) {
       <!-- Created Quizzes Data Table -->
       <div class="content-card mb-4">
         <div class="section-title-row">
           <div>
-            @if (authService.userRole() !== 3) {
+            @if (!isStudent()) {
               <h3>Instructor Dashboard - Assessment History</h3>
               <p class="section-subtitle">Manage attempted assessments, view student scores, and leaderboard</p>
             } @else {
-              <h3>My Custom Quizzes</h3>
-              <p class="section-subtitle">Quizzes you have generated using AI</p>
+              <h3>Practice Quiz Performance Summary</h3>
+              <p class="section-subtitle">Compare your attempts, marks, and retest progress per quiz</p>
             }
           </div>
-          <a routerLink="/quizzes/new" class="link-action">+ Create New Quiz</a>
+          <a routerLink="/quizzes/new" class="link-action">{{ isStudent() ? '+ Create Practice Quiz' : '+ Create New Quiz' }}</a>
         </div>
 
         @if (isLoading()) {
@@ -662,8 +754,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 <polyline points="14 2 14 8 20 8"></polyline>
               </svg>
             </div>
-            <h4>No assessment history yet</h4>
-            <p>Quizzes will appear here once students start attempting them.</p>
+            <h4>{{ isStudent() ? 'No attempted practice quizzes yet' : 'No assessment history yet' }}</h4>
+            <p>
+              {{ isStudent()
+                ? 'Attempt any of your practice quizzes above to track marks and retest improvement here.'
+                : 'Quizzes will appear here once students start attempting them.' }}
+            </p>
           </div>
         } @else {
           <div class="quiz-table-wrapper">
@@ -673,11 +769,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <th>Quiz Title</th>
                   <th>Category</th>
                   <th>Questions</th>
-                  @if (authService.userRole() !== 3) {
-                    <th>Submissions</th>
-                    <th>Passed</th>
-                    <th>Avg. Score</th>
-                    <th>Avg. Time</th>
+                  <th>{{ isStudent() ? 'Attempts' : 'Submissions' }}</th>
+                  <th>Passed</th>
+                  <th>Avg. Score</th>
+                  <th>Avg. Time</th>
+                  @if (!isStudent()) {
                     <th>Status</th>
                   }
                   <th>Actions</th>
@@ -697,18 +793,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     </td>
                     <td>{{ q.category }}</td>
                     <td>{{ q.questionCount }} Items</td>
-                    @if (authService.userRole() !== 3) {
-                      <td>
-                        <strong class="text-dark">{{ q.totalAttemptsCount }} Submissions</strong>
-                      </td>
-                      <td>
-                        <strong class="text-dark">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }}</strong>
-                        <small class="text-muted d-block">{{ q.passRatePercentage ?? 0 }}% pass rate</small>
-                      </td>
-                      <td>
-                        <strong class="text-dark">{{ q.avgScorePercentage }}%</strong>
-                      </td>
-                      <td>{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
+                    <td>
+                      <strong class="text-dark">{{ q.totalAttemptsCount }} {{ isStudent() ? (q.totalAttemptsCount === 1 ? 'Attempt' : 'Attempts') : 'Submissions' }}</strong>
+                    </td>
+                    <td>
+                      <strong class="text-dark">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }}</strong>
+                      <small class="text-muted d-block">{{ q.passRatePercentage ?? 0 }}% pass rate</small>
+                    </td>
+                    <td>
+                      <strong class="text-dark">{{ q.avgScorePercentage }}%</strong>
+                    </td>
+                    <td>{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
+                    @if (!isStudent()) {
                       <td>
                         @if (q.isPublished) {
                           <span class="badge badge-emerald">Published</span>
@@ -719,22 +815,20 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     }
                     <td>
                       <div class="action-btns-row">
-                        <a [routerLink]="['/quiz', q.id]" class="btn btn-ai btn-sm" title="Open Quiz">
-                          ▶️ Open
+                        <a [routerLink]="['/quiz', q.id]" class="btn btn-ai btn-sm" [title]="isStudent() ? 'Retest Quiz' : 'Open Quiz'">
+                          {{ isStudent() ? '🔄 Retest' : '▶️ Open' }}
                         </a>
-                        @if (authService.userRole() !== 3) {
-                          <button (click)="openLeaderboardModal(q)" class="btn btn-outline btn-sm" title="View Student Submissions & Leaderboard">
-                            🏆 Leaderboard
+                        <button (click)="openLeaderboardModal(q)" class="btn btn-outline btn-sm" [title]="isStudent() ? 'View All Attempt Marks' : 'View Student Submissions & Leaderboard'">
+                          {{ isStudent() ? '📈 My Attempts' : '🏆 Leaderboard' }}
+                        </button>
+                        @if (!isStudent() && q.isPublished) {
+                          <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
+                            📋 Link
                           </button>
-                          @if (q.isPublished) {
-                            <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
-                              📋 Link
-                            </button>
-                          }
-                          <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
-                            Edit
-                          </a>
                         }
+                        <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
+                          Edit
+                        </a>
                         <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Assessment">
                           🗑️
                         </button>
@@ -776,10 +870,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 </svg>
               </div>
             <h4>No attempt history yet</h4>
-            @if (canManageQuizzes()) {
-              <p>You haven't completed any quizzes yet. Open a published quiz link to preview the student experience.</p>
+            @if (isStudent()) {
+              <p>Create a private practice quiz above or open an assessment link shared by your teacher to get started.</p>
             } @else {
-              <p>You haven't completed a quiz yet. Open the assessment link shared by your teacher to get started.</p>
+              <p>You haven't completed any quizzes yet. Open a published quiz link to preview the student experience.</p>
             }
           </div>
         } @else {
@@ -2164,7 +2258,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getLiveQuizzes(): UserQuizItem[] {
     const list = this.summary()?.myQuizzes ?? [];
-    return list.filter(q => q.isPublished);
+    return this.isStudent() ? list : list.filter(q => q.isPublished);
+  }
+
+  isStudent(): boolean {
+    return this.authService.userRole() === UserRole.Student;
+  }
+
+  canCreateQuizzes(): boolean {
+    const role = this.authService.userRole();
+    return role === UserRole.Student || role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
   }
 
   canManageQuizzes(): boolean {
@@ -2197,6 +2300,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getLeaderboardPassedCount(): number {
     return this.leaderboardItems().filter(item => item.isPassed && !item.isDisqualified).length;
+  }
+
+  getStudentBestScore(): number {
+    const items = this.leaderboardItems();
+    if (items.length === 0) return 0;
+    return Math.max(...items.map(i => i.scorePercentage));
   }
 
   getLeaderboardPassRate(): number {

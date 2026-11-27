@@ -577,7 +577,7 @@ export class AppComponent implements OnInit {
 
   canManageQuizzes(): boolean {
     const role = this.authService.userRole();
-    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
+    return role === UserRole.Student || role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
   }
 
   onLogout(): void {

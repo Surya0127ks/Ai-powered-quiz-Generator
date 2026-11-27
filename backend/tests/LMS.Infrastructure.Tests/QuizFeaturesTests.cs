@@ -7,7 +7,10 @@ using LMS.Application.Features.Quizzes.Commands.ExtendQuizLimit;
 using LMS.Application.Features.Quizzes.Commands.SubmitQuizAttempt;
 using LMS.Application.Features.Quizzes.Commands.UpdateQuiz;
 using LMS.Application.Features.Quizzes.DTOs;
+using LMS.Application.Features.Quizzes.Queries.GetQuizAttemptById;
+using LMS.Application.Features.Quizzes.Queries.GetQuizById;
 using LMS.Application.Features.Quizzes.Queries.GetQuizByPublicId;
+using LMS.Application.Features.Quizzes.Queries.GetQuizLeaderboard;
 using LMS.Application.Features.Quizzes.Queries.GetUserQuizDashboardSummary;
 using LMS.Domain.Entities;
 using LMS.Domain.Enums;
@@ -381,6 +384,137 @@ public class QuizFeaturesTests
         db.QuizAttempts.Should().BeEmpty();
         db.QuizAttemptAnswers.Should().BeEmpty();
         db.Certificates.IgnoreQueryFilters().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task StudentPracticeQuiz_ShouldRemainPrivateAndUnshareable_WhileTrackingSelfRetests()
+    {
+        await using var db = CreateInMemoryDbContext();
+        var tenantId = Guid.NewGuid();
+        var studentId = Guid.NewGuid();
+        var otherStudentId = Guid.NewGuid();
+
+        db.Users.Add(new User
+        {
+            Id = studentId,
+            TenantId = tenantId,
+            Email = "aspirant@example.com",
+            FirstName = "Aarav",
+            LastName = "Sharma",
+            PasswordHash = "hash",
+            Role = UserRole.Student
+        });
+        await db.SaveChangesAsync();
+
+        var studentUser = new Mock<ICurrentUserService>();
+        studentUser.Setup(u => u.UserId).Returns(studentId);
+        var tenant = new Mock<ITenantContext>();
+        tenant.Setup(t => t.TenantId).Returns(tenantId);
+
+        // Even if publish/maxStudents are requested, student quizzes remain private practice sets.
+        var createResult = await new CreateQuizCommandHandler(db, tenant.Object, studentUser.Object)
+            .Handle(new CreateQuizCommand(
+                LessonId: null,
+                Title: "UPSC Polity Mock #1",
+                Description: "Self practice",
+                Category: "Government & Competitive Exam",
+                Difficulty: "Hard",
+                IsPublished: true,
+                PassingScorePercentage: 60,
+                TimeLimitMinutes: 15,
+                MaxAttempts: 1,
+                NegativeMarkingPoints: 0.33,
+                ShuffleQuestions: false,
+                ShuffleOptions: false,
+                ExpiryDateUtc: null,
+                EnableCertificate: false,
+                CertificateForTopperOnly: true,
+                AutoSubmit: true,
+                ShowResultsAfterSubmission: true,
+                ShowCorrectAnswers: true,
+                TotalMarks: 1,
+                WelcomeMessage: null,
+                Instructions: null,
+                Questions: new List<CreateQuizQuestionDto>
+                {
+                    new("Which Article guarantees Right to Equality?", QuestionType.SingleChoice, 1, "Article 14", new List<CreateQuizOptionDto>
+                    {
+                        new("Article 14", true),
+                        new("Article 32", false)
+                    })
+                },
+                MaxStudents: 30
+            ), CancellationToken.None);
+
+        createResult.IsSuccess.Should().BeTrue();
+        var quiz = createResult.Value!;
+        quiz.IsPublished.Should().BeFalse();
+        quiz.MaxStudents.Should().Be(1);
+        quiz.MaxAttempts.Should().BeNull();
+
+        // Public link and other users are blocked from viewing or submitting.
+        var publicRead = await new GetQuizByPublicIdQueryHandler(db)
+            .Handle(new GetQuizByPublicIdQuery(quiz.ShortId), CancellationToken.None);
+        publicRead.IsSuccess.Should().BeFalse();
+
+        var otherUser = new Mock<ICurrentUserService>();
+        otherUser.Setup(u => u.UserId).Returns(otherStudentId);
+        var otherById = await new GetQuizByIdQueryHandler(db, otherUser.Object)
+            .Handle(new GetQuizByIdQuery(quiz.Id), CancellationToken.None);
+        otherById.IsSuccess.Should().BeFalse();
+
+        var q0 = quiz.Questions[0];
+        var correctOptionId = q0.Options.First(o => o.IsCorrect == true).Id;
+        var wrongOptionId = q0.Options.First(o => o.IsCorrect == false).Id;
+
+        var otherSubmit = await new SubmitQuizAttemptCommandHandler(db, tenant.Object, otherUser.Object)
+            .Handle(new SubmitQuizAttemptCommand(quiz.Id, new List<StudentAnswerItemDto> { new(q0.Id, correctOptionId, new List<Guid> { correctOptionId }) }), CancellationToken.None);
+        otherSubmit.IsSuccess.Should().BeFalse();
+
+        // Owner student takes and retakes the quiz multiple times.
+        var submitHandler = new SubmitQuizAttemptCommandHandler(db, tenant.Object, studentUser.Object);
+        var attempt1 = await submitHandler.Handle(new SubmitQuizAttemptCommand(
+            quiz.Id,
+            new List<StudentAnswerItemDto> { new(q0.Id, wrongOptionId, new List<Guid> { wrongOptionId }) },
+            TimeTakenSeconds: 45
+        ), CancellationToken.None);
+        attempt1.IsSuccess.Should().BeTrue();
+        attempt1.Value!.IsPassed.Should().BeFalse();
+
+        var attempt2 = await submitHandler.Handle(new SubmitQuizAttemptCommand(
+            quiz.Id,
+            new List<StudentAnswerItemDto> { new(q0.Id, correctOptionId, new List<Guid> { correctOptionId }) },
+            TimeTakenSeconds: 30
+        ), CancellationToken.None);
+        attempt2.IsSuccess.Should().BeTrue();
+        attempt2.Value!.IsPassed.Should().BeTrue();
+
+        // Student dashboard summary includes their own self-attempts per quiz.
+        var summaryResult = await new GetUserQuizDashboardSummaryQueryHandler(db)
+            .Handle(new GetUserQuizDashboardSummaryQuery(studentId), CancellationToken.None);
+        summaryResult.IsSuccess.Should().BeTrue();
+        var summaryItem = summaryResult.Value!.MyQuizzes.Should().ContainSingle().Subject;
+        summaryItem.TotalAttemptsCount.Should().Be(2);
+        summaryItem.PassedCount.Should().Be(1);
+
+        // Student attempts list returns chronological Attempt #1 and Attempt #2 instead of excluding owner.
+        var attemptsResult = await new GetQuizLeaderboardQueryHandler(db, studentUser.Object)
+            .Handle(new GetQuizLeaderboardQuery(quiz.Id), CancellationToken.None);
+        attemptsResult.IsSuccess.Should().BeTrue();
+        attemptsResult.Value.Should().HaveCount(2);
+        attemptsResult.Value![0].Rank.Should().Be(1);
+        attemptsResult.Value[0].IsPassed.Should().BeFalse();
+        attemptsResult.Value[1].Rank.Should().Be(2);
+        attemptsResult.Value[1].IsPassed.Should().BeTrue();
+
+        // Owner student can open detailed scorecard review; unrelated user cannot.
+        var scorecard = await new GetQuizAttemptByIdQueryHandler(db, studentUser.Object)
+            .Handle(new GetQuizAttemptByIdQuery(attempt2.Value.AttemptId), CancellationToken.None);
+        scorecard.IsSuccess.Should().BeTrue();
+
+        var otherScorecard = await new GetQuizAttemptByIdQueryHandler(db, otherUser.Object)
+            .Handle(new GetQuizAttemptByIdQuery(attempt2.Value.AttemptId), CancellationToken.None);
+        otherScorecard.IsSuccess.Should().BeFalse();
     }
 
     private static ApplicationDbContext CreateInMemoryDbContext()

@@ -33,7 +33,7 @@ public class QuestionBankController : ApiControllerBase
     /// Generates questions live via Groq AI LLM based on specified domain/topic and prompt.
     /// </summary>
     [HttpPost("/api/v1/question-bank/generate")]
-    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
+    [Authorize]
     [EnableRateLimiting("AiRateLimit")]
     [ProducesResponseType(typeof(List<GeneratedQuestionDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

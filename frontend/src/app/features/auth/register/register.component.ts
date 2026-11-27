@@ -62,7 +62,7 @@ import { UserRole } from '../../../core/models/auth.model';
                 <input type="radio" formControlName="role" [value]="UserRole.Student" class="hidden-radio" />
                 <span class="role-option-copy">
                   <strong>🎓 Student / Learner</strong>
-                  <small>Take quizzes shared by teachers and track your results.</small>
+                  <small>Create private AI &amp; exam practice quizzes, retest anytime, and track attempts.</small>
                 </span>
               </label>
             </div>

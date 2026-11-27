@@ -3,6 +3,7 @@ using LMS.Application.Common.Interfaces;
 using LMS.Application.Common.Models;
 using LMS.Application.Features.Quizzes.DTOs;
 using LMS.Domain.Entities;
+using LMS.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -67,7 +68,7 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
     {
         if (_currentUserService.UserId is not { } userId)
         {
-            return Result.Failure<QuizDto>("Sign in with a teacher account to create quizzes.");
+            return Result.Failure<QuizDto>("Sign in to create quizzes.");
         }
 
         var tenantId = _tenantContext.TenantId ?? Guid.Empty;
@@ -76,8 +77,19 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
             return Result.Failure<QuizDto>("Your account is not linked to a workspace.");
         }
 
+        var creatorRole = await _context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => (UserRole?)u.Role)
+            .FirstOrDefaultAsync(cancellationToken);
+        bool isStudentCreator = creatorRole == UserRole.Student;
+
         if (request.LessonId.HasValue)
         {
+            if (isStudentCreator)
+            {
+                return Result.Failure<QuizDto>("Students can only create standalone practice quizzes.");
+            }
+
             var lessonBelongsToWorkspace = await _context.Lessons
                 .AnyAsync(lesson => lesson.Id == request.LessonId.Value && lesson.TenantId == tenantId && !lesson.IsDeleted, cancellationToken);
 
@@ -86,6 +98,14 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
                 return Result.Failure<QuizDto>("The selected lesson was not found in your workspace.");
             }
         }
+
+        // Student-created quizzes are strictly private self-practice sets (non-shareable, unlimited retests).
+        bool isPublished = isStudentCreator ? false : request.IsPublished;
+        int? maxAttempts = isStudentCreator ? null : request.MaxAttempts;
+        bool certificateForTopperOnly = isStudentCreator ? false : request.CertificateForTopperOnly;
+        int maxStudents = isStudentCreator
+            ? 1
+            : Math.Clamp(request.MaxStudents > 0 ? request.MaxStudents : 15, 1, Quiz.MaxAllowedStudentsPerQuiz);
 
         var quiz = new Quiz
         {
@@ -97,23 +117,23 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
             Description = request.Description,
             Category = request.Category ?? "General",
             Difficulty = request.Difficulty ?? "Intermediate",
-            IsPublished = request.IsPublished,
+            IsPublished = isPublished,
             PassingScorePercentage = request.PassingScorePercentage,
             TimeLimitMinutes = request.TimeLimitMinutes,
-            MaxAttempts = request.MaxAttempts,
+            MaxAttempts = maxAttempts,
             NegativeMarkingPoints = request.NegativeMarkingPoints,
             ShuffleQuestions = request.ShuffleQuestions,
             ShuffleOptions = request.ShuffleOptions,
             ExpiryDateUtc = request.ExpiryDateUtc,
             EnableCertificate = request.EnableCertificate,
-            CertificateForTopperOnly = request.CertificateForTopperOnly,
+            CertificateForTopperOnly = certificateForTopperOnly,
             AutoSubmit = request.AutoSubmit,
             ShowResultsAfterSubmission = request.ShowResultsAfterSubmission,
             ShowCorrectAnswers = request.ShowCorrectAnswers,
             TotalMarks = request.TotalMarks,
             WelcomeMessage = request.WelcomeMessage,
             Instructions = request.Instructions,
-            MaxStudents = Math.Clamp(request.MaxStudents > 0 ? request.MaxStudents : 15, 1, Quiz.MaxAllowedStudentsPerQuiz),
+            MaxStudents = maxStudents,
             IsDeleted = false
         };
 

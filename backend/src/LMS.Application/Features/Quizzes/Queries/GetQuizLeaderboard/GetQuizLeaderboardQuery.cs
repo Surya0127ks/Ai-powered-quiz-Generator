@@ -1,6 +1,7 @@
 using LMS.Application.Common.Interfaces;
 using LMS.Application.Common.Models;
 using LMS.Application.Features.Quizzes.DTOs;
+using LMS.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,11 @@ public class GetQuizLeaderboardQueryHandler : IRequestHandler<GetQuizLeaderboard
     {
         var quiz = await _context.Quizzes
             .Where(q => q.Id == request.QuizId && !q.IsDeleted)
-            .Select(q => new { q.CreatedByUserId })
+            .Select(q => new
+            {
+                q.CreatedByUserId,
+                CreatorRole = q.CreatedByUser != null ? (UserRole?)q.CreatedByUser.Role : null
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (quiz == null)
@@ -36,13 +41,19 @@ public class GetQuizLeaderboardQueryHandler : IRequestHandler<GetQuizLeaderboard
             return Result.Failure<List<QuizLeaderboardItemDto>>("You can only review results for quizzes you created.");
         }
 
-        var attempts = await _context.QuizAttempts
+        // For Student-created practice quizzes, return that student's chronological attempts (Attempt #1, #2, ...) instead of a public leaderboard.
+        bool isStudentCreator = quiz.CreatorRole == UserRole.Student;
+        var baseQuery = _context.QuizAttempts
             .Include(qa => qa.User)
-            .Where(qa => qa.QuizId == request.QuizId && qa.SubmittedAtUtc != null &&
-                (!quiz.CreatedByUserId.HasValue || qa.UserId != quiz.CreatedByUserId.Value))
-            .OrderByDescending(qa => qa.ScorePercentage)
-            .ThenBy(qa => qa.SubmittedAtUtc)
-            .ToListAsync(cancellationToken);
+            .Where(qa => qa.QuizId == request.QuizId && qa.SubmittedAtUtc != null);
+
+        var filteredQuery = isStudentCreator
+            ? baseQuery.Where(qa => qa.UserId == userId).OrderBy(qa => qa.SubmittedAtUtc)
+            : baseQuery.Where(qa => !quiz.CreatedByUserId.HasValue || qa.UserId != quiz.CreatedByUserId.Value)
+                .OrderByDescending(qa => qa.ScorePercentage)
+                .ThenBy(qa => qa.SubmittedAtUtc);
+
+        var attempts = await filteredQuery.ToListAsync(cancellationToken);
 
         var leaderboard = new List<QuizLeaderboardItemDto>();
         int rank = 1;
