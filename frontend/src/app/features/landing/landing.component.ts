@@ -71,7 +71,7 @@ interface FaqItem {
           </h1>
 
           <p class="hero-subtitle">
-            Draft an AI-powered quiz on any topic, choose from 1 to 200 questions, review it, then share a link and track learner results. Add certificates when your assessment needs them.
+            Generate focused study quizzes on programming, CS, or competitive exams (1 to 30 questions per quiz), share one link for up to 50 students, and review explanations and analytics instantly.
           </p>
 
           <div class="hero-cta">
@@ -211,7 +211,7 @@ interface FaqItem {
           <div class="feature-card">
             <div class="feat-icon bg-emerald">🎛️</div>
             <h3>Custom Limits & Difficulty</h3>
-            <p>Choose a preset or enter any count from 1 to 200, select a difficulty, and tune the assessment settings.</p>
+            <p>Choose 10, 15, 20, or 30 presets (or any custom count from 1 to 30) with strict Easy, Medium, or Hard difficulty control.</p>
           </div>
 
           <div class="feature-card">
@@ -287,9 +287,9 @@ interface FaqItem {
             <h3>Automate Weekly Assessments</h3>
             <p>Stop spending hours writing quizzes by hand. Create practice sets, midterms, and chapter reviews in clicks with full curriculum alignment.</p>
             <ul class="role-bullets">
-              <li>✓ Flexible 15, 20, 30, 50 question presets</li>
-              <li>✓ Timed assessments and focus notices</li>
-              <li>✓ Printable official student scorecards</li>
+              <li>✓ Clean 10, 15, 20, 30 question presets (max 30)</li>
+              <li>✓ Up to 50 students per quiz + auto-close when full</li>
+              <li>✓ Printable official student scorecards &amp; analytics</li>
             </ul>
           </div>
 
@@ -1078,8 +1078,8 @@ interface FaqItem {
       box-shadow: 0 6px 20px rgba(54, 95, 143, 0.1);
     }
     .role-card.govt-role-card {
-      border-color: #F59E0B;
-      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.12);
+      border-color: var(--color-primary-300);
+      box-shadow: var(--shadow-sm);
     }
     .role-badge {
       font-size: 0.72rem;
@@ -1089,7 +1089,7 @@ interface FaqItem {
       letter-spacing: 0.05em;
     }
     .role-badge.badge-amber {
-      color: #D97706 !important;
+      color: var(--color-warning-text) !important;
     }
     .role-card h3 {
       font-size: 1.25rem;
@@ -1265,24 +1265,27 @@ interface FaqItem {
 
     /* Mobile Responsive */
     @media (max-width: 768px) {
-      .hero-section { padding: 3.5rem 1.25rem 3rem 1.25rem; }
+      .hero-section { padding: 3rem 1.25rem 2.5rem 1.25rem; }
       .hero-cta { flex-direction: column; width: 100%; }
       .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
       .trust-row { gap: 1rem; }
-      .btn-ghost { display: none; }
+      .btn-ghost { padding: 0.45rem 0.65rem; font-size: 0.82rem; }
       .quiz-top-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .mockup-url { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .footer-bottom-line { flex-direction: column; text-align: center; }
     }
-    @media (max-width: 420px) {
+    @media (max-width: 480px) {
       .landing-navbar { padding: 0.6rem 0; }
-      .landing-navbar .nav-container { padding-inline: 0.75rem; gap: 0.5rem; }
+      .landing-navbar .nav-container { padding-inline: 0.75rem; gap: 0.45rem; }
       .brand-name-group { gap: 0.25rem; }
-      .brand-title { font-size: 1.05rem; }
-      .nav-actions { gap: 0.5rem; }
-      .nav-actions .btn-primary { padding: 0.55rem 0.75rem; font-size: 0.78rem; }
-      .hero-title { font-size: clamp(2rem, 10vw, 2.5rem); }
-      .section { padding-inline: 1rem; }
-      .feature-card, .role-card { padding: 1.25rem; }
+      .brand-title { font-size: 1rem; }
+      .nav-actions { gap: 0.4rem; }
+      .nav-actions .btn-primary, .nav-actions .btn-dashboard { padding: 0.5rem 0.7rem; font-size: 0.78rem; }
+      .nav-actions .btn-ghost { padding: 0.45rem 0.5rem; font-size: 0.78rem; }
+      .hero-title { font-size: clamp(1.9rem, 9vw, 2.5rem); }
+      .section { padding: 3.25rem 1rem; }
+      .feature-card, .role-card, .step-card { padding: 1.25rem; }
+      .mockup-body { padding: 1rem; }
     }
   `]
 })
@@ -1305,12 +1308,12 @@ export class LandingComponent {
     },
     {
       question: 'How many students can take a quiz at the same time?',
-      answer: 'You can configure a participant limit for each quiz. The number of people who can submit at the same time depends on the hosting and database capacity configured for your deployment.',
+      answer: 'Each quiz supports up to 50 students and closes automatically once all seats are filled. Quiz and attempt data automatically clean up after 24 hours to keep free-tier storage fast.',
       open: false
     },
     {
       question: 'Can I choose the number of questions and difficulty level?',
-      answer: 'Yes. Choose a preset or enter a custom count from 1 to 200. You can also select a difficulty and edit the questions before publishing.',
+      answer: 'Yes. Choose 10, 15, 20, or 30 presets or enter a custom count from 1 to 30. Select Easy, Medium, Hard, or Mixed difficulty and edit any question before publishing.',
       open: false
     },
     {

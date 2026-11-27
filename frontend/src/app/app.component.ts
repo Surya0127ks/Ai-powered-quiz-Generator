@@ -60,7 +60,7 @@ import { UserRole } from './core/models/auth.model';
                 <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 20v-6M6 20V10M18 20V4"></path>
                 </svg>
-                <span>Attempt History</span>
+                <span>My Progress</span>
               </a>
 
               <a routerLink="/certificate/generator" routerLinkActive="active" class="nav-link">
@@ -73,7 +73,7 @@ import { UserRole } from './core/models/auth.model';
             }
           </nav>
 
-          <!-- Right: Account, Theme Toggle & AI CTA -->
+          <!-- Right: Account & Theme Toggle -->
           <div class="nav-right">
             <!-- Light / Dark Theme Switcher Button -->
             <button
@@ -87,12 +87,6 @@ import { UserRole } from './core/models/auth.model';
             </button>
 
             @if (authService.isAuthenticated()) {
-              @if (canManageQuizzes()) {
-              <a routerLink="/quizzes/new" class="btn btn-ai btn-sm desktop-only">
-                ✨ Create with AI
-              </a>
-              }
-
               <div class="user-chip desktop-only">
                 <div class="avatar-circle">
                   {{ authService.currentUser()?.firstName?.charAt(0) || 'U' }}
@@ -179,72 +173,21 @@ import { UserRole } from './core/models/auth.model';
       <router-outlet></router-outlet>
     </main>
 
-    <!-- Adaptive Footer (Pure White in Day Mode, Dark Slate in Dark Mode) -->
+    <!-- Compact Study Workspace Footer -->
     @if (!hideLayout()) {
-      <footer class="qp-footer">
+      <footer class="qp-footer no-print">
         <div class="footer-container">
-          <div class="footer-grid">
-            <!-- Col 1: Brand & Tagline -->
-            <div class="footer-brand-col">
-              <div class="brand-logo mb-2">
-                <div class="logo-box">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                  </svg>
-                </div>
-                <span class="brand-title brand-title-footer">Quizzy AI</span>
-              </div>
-              <p class="brand-desc">
-                Empowering students, educators, and organizations with Groq AI quiz creation, instant scoring, and verified digital certificates.
-              </p>
-              <div class="ai-badge-row">
-                <span class="badge badge-ai-footer">⚡ Powered by Groq LLM</span>
-              </div>
+          <div class="footer-compact-row">
+            <div class="footer-compact-brand">
+              <span class="brand-title-footer">Quizzy AI</span>
+              <span class="footer-dot">·</span>
+              <span class="footer-tagline-inline">Study &amp; Assessment Workspace</span>
             </div>
-
-            <!-- Col 2: Navigation Links -->
-            <div class="footer-col">
-              <h5 class="footer-heading">Platform</h5>
-              <ul class="footer-links">
-                <li><a routerLink="/dashboard">Dashboard</a></li>
-                @if (!authService.isAuthenticated() || canManageQuizzes()) {
-                  <li><a routerLink="/quizzes/new">✨ Create Quiz with AI</a></li>
-                }
-                <li><a routerLink="/student/progress">Attempt History</a></li>
-                <li><a routerLink="/certificate/generator">Certificate Studio</a></li>
-                <li><a routerLink="/verify-certificate">Verify Certificate</a></li>
-              </ul>
-            </div>
-
-            <!-- Col 3: Assessment Topics -->
-            <div class="footer-col">
-              <h5 class="footer-heading">Assessment Topics</h5>
-              <ul class="footer-links">
-                @if (!authService.isAuthenticated() || canManageQuizzes()) {
-                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM'}">Artificial Intelligence</a></li>
-                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development'}">Web Development</a></li>
-                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Data Structures & Algorithms'}">Algorithms & Code</a></li>
-                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud'}">Cyber Security</a></li>
-                }
-              </ul>
-            </div>
-
-            <!-- Col 4: Trust & Compliance -->
-            <div class="footer-col">
-              <h5 class="footer-heading">Features</h5>
-              <ul class="footer-links">
-                <li><span>🔒 HTTPS access</span></li>
-                <li><span>📜 Custom Diplomas</span></li>
-                <li><span>⚡ Instant Auto-Grading</span></li>
-                <li><span>🎯 Shareable Links</span></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="footer-bottom-bar">
-            <p>© 2026 Quizzy AI. All rights reserved.</p>
             <div class="footer-bottom-links">
-              <a routerLink="/verify-certificate">Certificate Verification</a>
+              <a routerLink="/dashboard">Dashboard</a>
+              <a routerLink="/student/progress">My Progress</a>
+              <a routerLink="/verify-certificate">Verify Certificate</a>
+              <span class="footer-copy">© 2026 Quizzy AI</span>
             </div>
           </div>
         </div>
@@ -500,104 +443,56 @@ import { UserRole } from './core/models/auth.model';
     .margin-top-xs { margin-top: 0.5rem; }
 
     .app-main-layout {
-      min-height: calc(100vh - 64px - 320px);
+      min-height: calc(100dvh - 64px - 74px);
     }
 
-    /* ADAPTIVE FOOTER STYLES */
+    /* COMPACT WORKSPACE FOOTER */
     .qp-footer {
       background: var(--bg-surface);
       border-top: 1px solid var(--border-hairline);
-      padding: 4rem 0 2rem 0;
+      padding: 1.25rem 0;
       margin-top: auto;
       color: var(--text-secondary);
       transition: background-color 0.2s ease, border-color 0.2s ease;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02);
     }
     .footer-container {
       max-width: 1240px;
       margin: 0 auto;
-      padding: 0 2rem;
+      padding: 0 1.5rem;
     }
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 2.5rem;
-      padding-bottom: 2.5rem;
-      border-bottom: 1px solid var(--footer-bottom-border);
-    }
-    .mb-2 { margin-bottom: 0.65rem; }
-    .brand-title-footer {
-      color: var(--text-heading) !important;
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-    .brand-desc {
-      font-size: 0.95rem;
-      color: var(--text-secondary) !important;
-      line-height: 1.6;
-      max-width: 320px;
-      margin-bottom: 1.25rem;
-    }
-    .badge-ai-footer {
-      background: var(--color-ai-bg);
-      border: 1px solid var(--color-ai-border);
-      color: var(--color-ai-purple) !important;
-      font-weight: 700;
-      padding: 0.35rem 0.75rem;
-      border-radius: var(--radius-sm);
-    }
-    .footer-heading {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: var(--text-heading) !important;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 1.25rem;
-    }
-    .footer-links {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      li {
-        font-size: 0.95rem;
-        color: var(--text-secondary);
-        a {
-          color: var(--text-secondary) !important;
-          text-decoration: none !important;
-          transition: color 0.2s ease, transform 0.2s ease;
-          display: inline-block;
-          &:hover { 
-            color: var(--color-primary-600) !important; 
-            text-decoration: none !important; 
-            transform: translateX(4px);
-          }
-        }
-        span { color: var(--text-muted) !important; }
-      }
-    }
-
-    .footer-bottom-bar {
+    .footer-compact-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 2rem;
-      font-size: 0.85rem;
-      color: var(--text-muted) !important;
-      border-top: 1px solid var(--border-hairline);
-      p { margin: 0; }
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
     }
+    .footer-compact-brand {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .brand-title-footer {
+      color: var(--text-heading) !important;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .footer-dot { color: var(--text-muted); }
+    .footer-tagline-inline { font-size: 0.85rem; color: var(--text-muted); }
+    .footer-copy { font-size: 0.82rem; color: var(--text-muted); }
     .footer-bottom-links {
       display: flex;
-      gap: 1rem;
+      flex-wrap: wrap;
+      gap: 1.15rem;
       align-items: center;
+      font-size: 0.85rem;
       a { 
-        color: var(--text-muted) !important; 
+        color: var(--text-secondary) !important; 
         text-decoration: none; 
-        transition: color 0.2s ease;
+        font-weight: 600;
+        transition: color 0.15s ease;
         &:hover { color: var(--color-primary-600) !important; } 
       }
     }
@@ -606,14 +501,11 @@ import { UserRole } from './core/models/auth.model';
       .nav-menu { display: none; }
       .desktop-only { display: none !important; }
       .mobile-toggle-btn { display: flex; }
-      .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 3rem; }
     }
     @media (max-width: 600px) {
-      .footer-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-      .footer-bottom-bar { flex-direction: column; gap: 1rem; text-align: center; }
-      .footer-bottom-links { flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
-      .footer-container { padding: 0 1.5rem; }
-      .qp-footer { padding: 3rem 0 1.5rem 0; }
+      .footer-compact-row { flex-direction: column; align-items: flex-start; gap: 0.65rem; }
+      .footer-bottom-links { gap: 0.75rem 1rem; }
+      .footer-container { padding: 0 1rem; }
       .nav-container { padding-inline: 1rem; gap: 0.5rem; }
       .brand-title { font-size: 1rem; }
       .nav-right { gap: 0.5rem; }

@@ -50,7 +50,7 @@ export interface GovtExamCategory {
           <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
           </svg>
-          <span>✨ Academic & General AI</span>
+          <span>✨ AI Study Generator</span>
         </button>
 
         <button
@@ -59,7 +59,7 @@ export interface GovtExamCategory {
           (click)="setMode('govt')"
           class="tab-btn tab-btn-govt"
         >
-          <span>🏛️ Govt & Competitive Exams Hub</span>
+          <span>🏛️ Competitive Exams Hub</span>
         </button>
 
         <button
@@ -72,7 +72,7 @@ export interface GovtExamCategory {
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span>Write Questions Manually</span>
+          <span>Manual Builder</span>
         </button>
       </div>
 
@@ -1042,22 +1042,22 @@ export interface GovtExamCategory {
     }
 
     .govt-panel {
-      padding: 1.75rem;
+      padding: 1.5rem;
       background: var(--bg-surface);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-top: 4px solid #b45309;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);
-      .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
+      border: 1px solid var(--border-hairline);
+      border-top: 3px solid var(--color-primary-600);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      .panel-desc { font-size: 0.9rem; color: var(--text-secondary) !important; margin: 0.35rem 0 1.25rem 0; }
     }
 
     .badge-govt {
-      background: rgba(245, 158, 11, 0.12);
-      color: #b45309 !important;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: var(--color-warning-bg);
+      color: var(--color-warning-text) !important;
+      border: 1px solid var(--color-warning-border);
       font-weight: 800;
       font-size: 0.72rem;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
     }
 
     /* Compact question-count controls */
@@ -1288,7 +1288,7 @@ export interface GovtExamCategory {
     }
 
     .btn-govt-generate {
-      background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+      background: var(--gradient-ai);
       color: #ffffff !important;
       font-weight: 800;
       padding: 0.85rem;
@@ -1296,11 +1296,11 @@ export interface GovtExamCategory {
       font-size: 0.95rem;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);
-      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      transition: filter 0.2s ease, transform 0.15s ease;
       &:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(180, 83, 9, 0.45);
+        transform: translateY(-1px);
+        filter: brightness(1.06);
       }
     }
     .govt-pulsing {
@@ -1595,15 +1595,15 @@ export interface GovtExamCategory {
       .advanced-settings summary { align-items: flex-start; flex-wrap: wrap; padding-block: 0.5rem; }
       .advanced-settings summary span { flex-basis: 100%; }
       .quiz-preferences-grid { grid-template-columns: 1fr; }
-      .q-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-      .q-header .btn-remove { width: 100%; text-align: center; justify-content: center; }
+      .q-header { flex-direction: row; align-items: center; gap: 0.5rem; }
       .options-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
       .options-header .link-btn { align-self: flex-start; }
       .form-actions-bar { flex-direction: column-reverse; gap: 0.75rem; }
       .form-actions-bar .btn { width: 100%; justify-content: center; margin: 0; }
-      .header-title-row h1 { font-size: 1.6rem; }
-      .option-row { flex-direction: row; flex-wrap: wrap; }
-      .btn-opt-delete { width: 100%; text-align: center; }
+      .header-title-row h1 { font-size: 1.55rem; }
+      .option-row { flex-direction: row; flex-wrap: nowrap; align-items: center; }
+      .option-input { min-width: 0; }
+      .btn-opt-delete { min-width: 38px; min-height: 38px; flex-shrink: 0; }
     }
   `]
 })

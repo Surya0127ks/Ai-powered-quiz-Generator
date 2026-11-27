@@ -204,7 +204,7 @@ import { UserRole } from '../../../core/models/auth.model';
       padding: 0.85rem;
       border-radius: 0.6rem;
       border: 1px solid var(--border-hairline);
-      background: #ffffff;
+      background: var(--bg-surface);
       cursor: pointer;
       transition: all 0.15s ease;
     }
@@ -228,7 +228,7 @@ import { UserRole } from '../../../core/models/auth.model';
       padding: 0.65rem 0.85rem;
       border-radius: 0.5rem;
       border: 1px solid var(--border-hairline);
-      background: #ffffff;
+      background: var(--bg-surface);
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-secondary) !important;

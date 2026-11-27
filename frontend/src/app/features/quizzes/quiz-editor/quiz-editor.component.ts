@@ -350,7 +350,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .tab-switch-bar {
       display: flex;
       gap: 0.5rem;
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       padding: 0.35rem;
       border-radius: 0.5rem;
@@ -387,10 +387,10 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     /* Generator Panel */
     .generator-panel {
       padding: 1.75rem;
-      background: #ffffff;
-      border: 1px solid var(--color-ai-border);
-      border-top: 4px solid var(--color-ai-purple);
-      border-radius: 0.75rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-top: 3px solid var(--color-primary-600);
+      border-radius: var(--radius-xl);
       .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
     }
     .margin-top-sm { margin-top: 0.85rem; }
@@ -479,7 +479,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .shimmer-line {
       height: 12px;
       border-radius: 4px;
-      background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+      background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-hairline) 50%, var(--bg-hover) 75%);
       background-size: 200% 100%;
       animation: shimmerMove 1.5s infinite;
     }
@@ -553,9 +553,9 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       .qpb-actions { display: grid; grid-template-columns: 1fr; width: 100%; gap: 0.5rem; }
       .qpb-actions .btn, .form-actions-bar .btn { width: 100%; justify-content: center; }
       .form-actions-bar { flex-direction: column-reverse; gap: 0.5rem; }
-      .option-row { align-items: flex-start; flex-wrap: wrap; }
-      .option-input { min-width: 0; flex-basis: calc(100% - 3.5rem); }
-      .btn-opt-delete { min-width: 44px; min-height: 44px; }
+      .option-row { align-items: center; flex-wrap: nowrap; }
+      .option-input { min-width: 0; flex: 1; }
+      .btn-opt-delete { min-width: 38px; min-height: 38px; flex-shrink: 0; }
     }
   `]
 })

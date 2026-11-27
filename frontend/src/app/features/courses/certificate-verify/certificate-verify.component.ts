@@ -13,7 +13,7 @@ import { VerifyCertificateResult } from '../../../core/models/certificate.model'
     <div class="verify-container">
       <header class="verify-header">
         <h1>Official Certificate Verification Portal</h1>
-        <p>Verify authentic completion credentials issued by LMS SaaS Academy</p>
+        <p>Verify authentic completion credentials issued by Quizzy AI</p>
       </header>
 
       <div class="search-card glass-panel">
@@ -68,23 +68,33 @@ import { VerifyCertificateResult } from '../../../core/models/certificate.model'
     </div>
   `,
   styles: [`
-    .verify-container { padding: 3rem 1.5rem; max-width: 800px; margin: 0 auto; color: #f8fafc; text-align: center; }
-    .verify-header { margin-bottom: 2rem; h1 { font-size: 2.25rem; font-weight: 700; color: #38bdf8; margin: 0 0 0.5rem 0; } p { color: #94a3b8; } }
-    .glass-panel { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 2rem; }
+    .verify-container { padding: 2.5rem 1.25rem; max-width: 780px; margin: 0 auto; color: var(--text-body); text-align: center; }
+    .verify-header { margin-bottom: 1.75rem; h1 { font-size: clamp(1.5rem, 3.5vw, 2.15rem); font-weight: 800; color: var(--text-heading); margin: 0 0 0.5rem 0; letter-spacing: -0.02em; } p { color: var(--text-muted); margin: 0; font-size: 0.95rem; } }
+    .glass-panel { background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: 1rem; padding: 1.75rem; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05); }
     .search-form { display: flex; gap: 0.75rem; }
-    .form-control { flex: 1; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.5rem; padding: 0.85rem 1rem; color: #f8fafc; outline: none; font-size: 1rem; }
-    .margin-top { margin-top: 2rem; }
-    .result-card.valid { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05); }
-    .result-card.invalid { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); }
-    .result-header { display: flex; align-items: center; justify-content: center; gap: 0.5rem; h3 { font-size: 1.35rem; margin: 0; } }
-    .status-icon { font-size: 1.5rem; font-weight: 800; }
-    .result-msg { color: #cbd5e1; margin: 0.5rem 0 1.5rem 0; }
-    .cert-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; text-align: left; background: rgba(15, 23, 42, 0.6); padding: 1.5rem; border-radius: 0.75rem; }
-    .detail-item { display: flex; flex-direction: column; gap: 0.2rem; }
-    .label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
-    .value { font-weight: 600; font-size: 0.95rem; color: #f8fafc; }
-    .btn { padding: 0.85rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; border: none; }
-    .btn-primary { background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #fff; }
+    .form-control { flex: 1; background: var(--bg-app); border: 1px solid var(--border-hairline); border-radius: 0.5rem; padding: 0.8rem 1rem; color: var(--text-body); outline: none; font-size: 0.95rem; min-width: 0; }
+    .form-control:focus { border-color: var(--color-primary-500); box-shadow: 0 0 0 3px rgba(74, 124, 179, 0.14); }
+    .margin-top { margin-top: 1.5rem; }
+    .result-card.valid { border-color: var(--color-success-border); background: var(--color-success-bg); }
+    .result-card.invalid { border-color: var(--color-danger-border); background: var(--color-danger-bg); }
+    .result-header { display: flex; align-items: center; justify-content: center; gap: 0.5rem; h3 { font-size: 1.25rem; margin: 0; color: var(--text-heading); } }
+    .status-icon { font-size: 1.35rem; font-weight: 800; }
+    .result-msg { color: var(--text-secondary); margin: 0.5rem 0 1.25rem 0; font-size: 0.92rem; }
+    .cert-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.15rem; text-align: left; background: var(--bg-surface); border: 1px solid var(--border-hairline); padding: 1.35rem; border-radius: 0.75rem; }
+    .detail-item { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+    .label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
+    .value { font-weight: 600; font-size: 0.95rem; color: var(--text-heading); word-break: break-word; }
+    .btn { padding: 0.8rem 1.4rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; border: none; font-size: 0.92rem; white-space: nowrap; }
+    .btn-primary { background: var(--color-primary-600); color: #ffffff; transition: background 0.15s ease; }
+    .btn-primary:hover { background: var(--color-primary-700); }
+
+    @media (max-width: 600px) {
+      .verify-container { padding: 1.75rem 1rem; }
+      .glass-panel { padding: 1.25rem; }
+      .search-form { flex-direction: column; }
+      .btn { width: 100%; }
+      .cert-details-grid { grid-template-columns: 1fr; padding: 1rem; gap: 0.9rem; }
+    }
   `]
 })
 export class CertificateVerifyComponent implements OnInit {

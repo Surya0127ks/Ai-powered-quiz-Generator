@@ -354,15 +354,17 @@ import { UserRole } from '../../../core/models/auth.model';
     .mb-3 { margin-bottom: 1.0rem; }
     .font-sm { font-size: 0.85rem; }
     .page-header {
-      padding: 1.75rem 2.0rem;
+      padding: 1.5rem 1.75rem;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 2.0rem;
-      background: #ffffff;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       border-radius: 0.75rem;
-      h1 { font-size: 1.85rem; font-weight: 800; color: var(--text-primary) !important; margin: 0.25rem 0 0 0; }
+      h1 { font-size: clamp(1.35rem, 3vw, 1.85rem); font-weight: 800; color: var(--text-primary) !important; margin: 0.25rem 0 0 0; }
       p { color: var(--text-secondary) !important; margin-top: 0.25rem; font-size: 0.925rem; }
     }
     .header-actions { display: flex; gap: 0.75rem; align-items: center; }
@@ -619,10 +621,10 @@ import { UserRole } from '../../../core/models/auth.model';
     .accordion-card.expanded .accordion-icon { 
       transform: rotate(180deg); 
       color: var(--color-primary-600);
-      background: #ffffff;
+      background: var(--bg-surface);
     }
     .accordion-body { 
-      background: #ffffff; 
+      background: var(--bg-surface); 
       padding: 0.5rem;
     }
     .empty-leaderboard {

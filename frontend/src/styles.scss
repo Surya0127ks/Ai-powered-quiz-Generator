@@ -44,13 +44,13 @@
   --color-ai-bg:             #edf5f4;
   --color-ai-border:         #c6ddda;
 
-  /* ---------- DEFAULT LIGHT MODE CANVAS ---------- */
-  --bg-app:      #f8fafc;      /* Crisp light slate canvas */
-  --bg-surface:  #ffffff;      /* Pure white card surface */
+  /* ---------- DEFAULT LIGHT MODE CANVAS (Study-friendly soft paper slate) ---------- */
+  --bg-app:      #f5f7fb;      /* Soft eye-relaxing study canvas */
+  --bg-surface:  #ffffff;      /* Clean card surface */
   --bg-card:     var(--bg-surface);
-  --bg-hover:    #f1f5f9;
+  --bg-hover:    #eef2f7;
   --bg-subtle:   #f8fafc;
-  --border-hairline: #e2e8f0;  /* Sharp light hairline border */
+  --border-hairline: #e2e8f0;  /* Crisp hairline border */
   --border-strong:   #cbd5e1;
   --border-input:    #cbd5e1;
 

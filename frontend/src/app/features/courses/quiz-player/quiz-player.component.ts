@@ -607,9 +607,9 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
       align-items: center;
       gap: 1.0rem;
     }
-    .share-info { display: flex; align-items: center; gap: 0.6rem; flex-grow: 1; }
+    .share-info { display: flex; align-items: center; gap: 0.6rem; flex-grow: 1; min-width: 0; flex-wrap: wrap; }
     .share-label { font-size: 0.825rem; font-weight: 700; color: var(--text-primary) !important; white-space: nowrap; }
-    .share-url-box { font-size: 0.825rem !important; background: #ffffff !important; font-family: monospace; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-hairline); }
+    .share-url-box { font-size: 0.825rem !important; background: var(--bg-surface) !important; color: var(--text-body) !important; font-family: monospace; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-hairline); word-break: break-all; }
     .share-btns { display: flex; gap: 0.4rem; flex-shrink: 0; }
 
     .specs-grid {
@@ -618,7 +618,7 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
       gap: 1.0rem;
     }
     .spec-box {
-      background: #ffffff;
+      background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       border-radius: 0.65rem;
       padding: 1.1rem;
@@ -682,6 +682,8 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 0.65rem;
       margin-bottom: 0.6rem;
     }
     .header-right-meta {
@@ -851,7 +853,7 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
     .exp-box-val { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text-primary) !important; line-height: 1.4; }
     .exp-detail-box { padding: 1rem 1.15rem; border-radius: var(--radius-md); background: var(--color-primary-50); border: 1px solid var(--color-primary-200); border-left: 4px solid var(--color-primary-600); }
     .exp-detail-text { margin: 0; font-size: 0.93rem; color: var(--text-body) !important; line-height: 1.6; }
-    .exp-modal-footer { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-hairline); }
+    .exp-modal-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.65rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-hairline); }
 
     .result-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
     .margin-top { margin-top: 1.75rem; }
@@ -932,13 +934,14 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
       backdrop-filter: blur(6px);
     }
     .disqualified-card {
-      background: #ffffff;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
       border-radius: 1rem;
-      padding: 3rem 2.5rem;
+      padding: 2.25rem 1.75rem;
       max-width: 480px;
-      width: 90%;
+      width: 92%;
       text-align: center;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
     }
     .dq-icon { font-size: 4rem; margin-bottom: 1rem; }
     .disqualified-card h2 { font-size: 1.75rem; font-weight: 800; color: var(--color-danger); margin: 0 0 0.75rem; }
