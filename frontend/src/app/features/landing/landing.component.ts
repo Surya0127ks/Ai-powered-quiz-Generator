@@ -70,20 +70,25 @@ interface FaqItem {
         </div>
       </nav>
 
-      <!-- Asymmetric Split Hero: Calm Paper Copy + Live Assessment Sheet Visual -->
+      <!-- Asymmetric Split Hero: Study Canvas + Live Assessment Sheet Visual -->
+      <div class="hero-band">
       <header class="hero-section">
         <div class="hero-split">
           <div class="hero-copy">
+            <span class="hero-kicker">
+              <span class="kicker-dot" aria-hidden="true"></span>
+              AI quiz studio · Teaching &amp; exam prep
+            </span>
             <h1 class="hero-title">Structured quizzes for focused teaching and exam prep</h1>
 
             <p class="hero-subtitle">
-              Draft 1 to 30 questions with Groq LLMs across programming, academic subjects, and Indian competitive exams. Share one link for up to 50 students or run private timed self-retests with explanations and certificates.
+              Draft 1 to 30 questions with Groq LLMs across programming, courses, and Indian competitive exams. Share one link for 50 seats or run timed private retests with certificates.
             </p>
 
             <div class="hero-cta">
               @if (authService.isAuthenticated()) {
                 <a routerLink="/dashboard" class="btn-hero-primary">
-                  <span>{{ authService.userRole() === UserRole.Student ? 'Open student dashboard' : 'Open educator dashboard' }}</span>
+                  <span>{{ authService.userRole() === UserRole.Student ? 'Open dashboard' : 'Dashboard' }}</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -94,7 +99,7 @@ interface FaqItem {
                 }
               } @else {
                 <a routerLink="/auth/register" class="btn-hero-primary">
-                  <span>Start creating free</span>
+                  <span>Start free</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -104,15 +109,15 @@ interface FaqItem {
               }
             </div>
 
-            <p class="hero-spec-strip">
-              <span>1–30 questions per quiz</span>
+            <div class="hero-spec-strip">
+              <span class="spec-item"><span class="spec-dot dot-blue"></span>1–30 questions</span>
               <span class="spec-sep" aria-hidden="true">·</span>
-              <span>Up to 50 learner seats</span>
+              <span class="spec-item"><span class="spec-dot dot-emerald"></span>Up to 50 seats</span>
               <span class="spec-sep" aria-hidden="true">·</span>
-              <span>Private student retests</span>
+              <span class="spec-item"><span class="spec-dot dot-teal"></span>Private retests</span>
               <span class="spec-sep" aria-hidden="true">·</span>
-              <span>24h auto-cleanup</span>
-            </p>
+              <span class="spec-item"><span class="spec-dot dot-amber"></span>24h auto-clean</span>
+            </div>
           </div>
 
           <!-- Signature Product Moment: Live Exam Folio Sheet -->
@@ -174,6 +179,7 @@ interface FaqItem {
           </div>
         </div>
       </header>
+      </div>
 
       <!-- Capabilities -->
       <section class="section">
@@ -560,12 +566,20 @@ interface FaqItem {
       &:active { transform: scale(0.985); }
     }
 
-    /* Asymmetric Split Hero */
+    /* Asymmetric Split Hero with Subtle Architectural Paper Grid */
+    .hero-band {
+      background-color: var(--bg-app);
+      background-image:
+        radial-gradient(rgba(29, 78, 216, 0.09) 1px, transparent 1px),
+        linear-gradient(180deg, var(--surface-tint-blue) 0%, var(--bg-app) 100%);
+      background-size: 22px 22px, 100% 100%;
+      border-bottom: 1px solid var(--border-hairline);
+    }
     .hero-section {
       max-width: 1200px;
       width: 100%;
       margin: 0 auto;
-      padding: 4.5rem 1.5rem 5rem;
+      padding: 4rem 1.5rem 4.75rem;
       min-height: calc(100svh - 60px);
       display: flex;
       align-items: center;
@@ -585,21 +599,42 @@ interface FaqItem {
       text-align: left;
       min-width: 0;
     }
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--color-primary-200);
+      color: var(--color-primary-700);
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-bottom: 0.9rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .kicker-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-primary-600);
+      flex-shrink: 0;
+    }
     .hero-title {
       font-family: var(--font-display);
-      font-size: clamp(2.25rem, 4.4vw, 3.625rem);
+      font-size: clamp(2.15rem, 4.3vw, 3.5rem);
       font-weight: 500;
       color: var(--text-heading) !important;
-      line-height: 1.07;
+      line-height: 1.08;
       letter-spacing: -0.025em;
-      margin: 0 0 1.25rem 0;
+      margin: 0 0 1rem 0;
     }
     .hero-subtitle {
-      font-size: 1.0625rem;
+      font-size: 1.02rem;
       color: var(--text-body);
-      line-height: 1.6;
+      line-height: 1.58;
       max-width: 34rem;
-      margin: 0 0 2rem 0;
+      margin: 0 0 1.65rem 0;
       font-weight: 400;
     }
     .hero-cta {
@@ -607,11 +642,12 @@ interface FaqItem {
       align-items: center;
       flex-wrap: wrap;
       gap: 0.75rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.35rem;
     }
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
       height: 44px;
       padding: 0 1.25rem;
@@ -628,6 +664,7 @@ interface FaqItem {
     .btn-hero-secondary {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       height: 44px;
       padding: 0 1.25rem;
       background: var(--bg-surface);
@@ -645,13 +682,29 @@ interface FaqItem {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.4rem 0.6rem;
+      gap: 0.45rem 0.65rem;
       font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text-muted);
       margin: 0;
     }
-    .spec-sep { opacity: 0.5; }
+    .spec-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+    .spec-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-blue    { background: var(--color-primary-600); }
+    .dot-emerald { background: var(--color-success-text); }
+    .dot-teal    { background: var(--color-teal-text); }
+    .dot-amber   { background: var(--color-warning-text); }
+    .spec-sep { opacity: 0.45; }
 
     /* Signature Hero Visual: Live Assessment Folio Sheet */
     .hero-visual {
@@ -660,9 +713,10 @@ interface FaqItem {
     }
     .exam-folio {
       background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
+      border: 1px solid var(--border-strong);
+      border-top: 2px solid var(--color-primary-600);
       border-radius: 14px;
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 14px 36px rgba(21, 28, 44, 0.10);
       overflow: hidden;
       max-width: 100%;
     }
@@ -1169,22 +1223,70 @@ interface FaqItem {
 
     @media (max-width: 640px) {
       .hide-xs { display: none; }
-      .landing-navbar .nav-container { padding-inline: 1rem; gap: 0.5rem; }
-      .hero-section { padding: 2rem 1rem 2.75rem; min-height: auto; }
-      .hero-title { font-size: clamp(1.85rem, 8vw, 2.35rem); }
-      .hero-cta { width: 100%; flex-direction: column; align-items: stretch; }
-      .hero-cta a { width: 100%; justify-content: center; }
-      .folio-header { height: auto; min-height: 40px; padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 0.35rem 0.75rem; }
-      .folio-body { padding: 1rem; }
-      .folio-opt { padding: 0.6rem 0.75rem; font-size: 0.84rem; }
-      .folio-footer { flex-direction: column; align-items: stretch; }
-      .folio-score-slip { align-items: flex-start; }
-      .section { padding: 2.75rem 1rem; }
-      .section-header { margin-bottom: 1.75rem; }
-      .features-grid, .steps-grid, .roles-grid { grid-template-columns: 1fr; gap: 1rem; }
-      .bottom-cta { padding: 0 1rem 3rem; }
-      .cta-inner { padding: 1.75rem 1.15rem; }
-      .cta-buttons { width: 100%; flex-direction: column; align-items: stretch; }
+      .landing-navbar .nav-container { padding-inline: 0.875rem; gap: 0.5rem; }
+      .nav-text-link { padding: 0 0.5rem; font-size: 0.8125rem; }
+      .btn-primary-nav { padding: 0 0.75rem; font-size: 0.8125rem; }
+      .hero-section { padding: 1.5rem 1rem 2.25rem; min-height: auto; }
+      .hero-split { gap: 1.5rem; }
+      .hero-kicker { font-size: 0.72rem; margin-bottom: 0.7rem; }
+      .hero-title { font-size: clamp(1.85rem, 8.2vw, 2.25rem); margin-bottom: 0.75rem; }
+      .hero-subtitle { font-size: 0.925rem; line-height: 1.5; margin-bottom: 1.15rem; }
+      .hero-cta {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 0.55rem;
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+      .btn-hero-primary, .btn-hero-secondary {
+        width: 100%;
+        height: 42px;
+        padding: 0 0.75rem;
+        font-size: 0.875rem;
+      }
+      .hero-spec-strip {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem 0.65rem;
+        width: 100%;
+        padding: 0.65rem 0.75rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-hairline);
+        border-radius: 10px;
+      }
+      .spec-sep { display: none; }
+      .folio-header { height: auto; min-height: 36px; padding: 0.45rem 0.75rem; flex-wrap: wrap; gap: 0.25rem 0.6rem; }
+      .folio-body { padding: 0.9rem; gap: 0.85rem; }
+      .folio-q-text { font-size: 0.875rem; }
+      .folio-opt { padding: 0.52rem 0.7rem; font-size: 0.82rem; gap: 0.55rem; }
+      .folio-key { width: 22px; height: 22px; font-size: 0.7rem; }
+      .folio-footer { flex-direction: column; align-items: stretch; gap: 0.65rem; padding-top: 0.75rem; }
+      .folio-score-slip { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+
+      .section { padding: 2.5rem 1rem; }
+      .section-header { margin-bottom: 1.5rem; }
+      .features-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+      .feature-card {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr);
+        column-gap: 0.85rem;
+        row-gap: 0.25rem;
+        padding: 1rem;
+        align-items: start;
+      }
+      .feature-card .feat-icon { grid-row: 1 / span 2; margin-bottom: 0; width: 38px; height: 38px; }
+      .feature-card h3 { grid-column: 2; margin: 0; font-size: 0.95rem; }
+      .feature-card p { grid-column: 2; font-size: 0.835rem; line-height: 1.5; }
+
+      .steps-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+      .step-card { padding: 1.05rem; border-left: 2px solid var(--color-primary-300); }
+      .step-number { margin-bottom: 0.5rem; }
+
+      .roles-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+      .role-card { padding: 1.2rem; }
+      .bottom-cta { padding: 0 1rem 2.75rem; }
+      .cta-inner { padding: 1.5rem 1.1rem; }
+      .cta-buttons { width: 100%; display: grid; grid-template-columns: 1.3fr 1fr; gap: 0.55rem; }
       .cta-buttons a { width: 100%; justify-content: center; }
       .footer-container { padding-inline: 1rem; }
     }
