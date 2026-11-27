@@ -34,7 +34,7 @@ public class GetUserQuizDashboardSummaryQueryHandler : IRequestHandler<GetUserQu
 
         // Attempts on quizzes created by user
         var attemptsOnUserQuizzes = await _context.QuizAttempts
-            .Where(qa => createdQuizIds.Contains(qa.QuizId))
+            .Where(qa => createdQuizIds.Contains(qa.QuizId) && qa.UserId != request.UserId)
             .ToListAsync(cancellationToken);
 
         var myQuizzesList = new List<UserQuizItemDto>();

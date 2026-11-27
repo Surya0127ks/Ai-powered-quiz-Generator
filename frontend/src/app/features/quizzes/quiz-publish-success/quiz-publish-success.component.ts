@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { QuizService } from '../../../core/services/quiz.service';
 import { Quiz } from '../../../core/models/quiz.model';
+import { copyTextToClipboard } from '../../../core/utils/clipboard';
 
 @Component({
   selector: 'app-quiz-publish-success',
@@ -10,16 +11,6 @@ import { Quiz } from '../../../core/models/quiz.model';
   imports: [CommonModule, RouterLink],
   template: `
     <div class="success-wrapper">
-
-      <!-- Confetti bubbles -->
-      <div class="confetti-bg" aria-hidden="true">
-        <span class="bubble b1"></span>
-        <span class="bubble b2"></span>
-        <span class="bubble b3"></span>
-        <span class="bubble b4"></span>
-        <span class="bubble b5"></span>
-        <span class="bubble b6"></span>
-      </div>
 
       @if (isLoading()) {
         <div class="loading-card">
@@ -31,14 +22,17 @@ import { Quiz } from '../../../core/models/quiz.model';
         <!-- Hero Banner -->
         <div class="hero-card">
           <div class="hero-icon-wrap">
-            <span class="hero-emoji">🎉</span>
-            <div class="hero-ring r1"></div>
-            <div class="hero-ring r2"></div>
+            <svg class="hero-success-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
           </div>
-          <h1 class="hero-title">Quiz Published Successfully!</h1>
+          <h1 class="hero-title">{{ quiz()?.isPublished ? 'Quiz Published Successfully!' : 'Quiz Draft Saved' }}</h1>
           <p class="hero-sub">
-            "<strong>{{ quiz()?.title }}</strong>" is now live.<br>
-            Share the link below with your students — they can attempt it on any device!
+            @if (quiz()?.isPublished) {
+              "<strong>{{ quiz()?.title }}</strong>" is now live. Share the link below with your students.
+            } @else {
+              "<strong>{{ quiz()?.title }}</strong>" is private. Preview it or continue editing; publish it before sharing.
+            }
           </p>
 
           <!-- Quick Stats Row -->
@@ -74,6 +68,7 @@ import { Quiz } from '../../../core/models/quiz.model';
           </div>
         </div>
 
+        @if (quiz()?.isPublished) {
         <!-- Share Section -->
         <div class="panel share-panel">
           <div class="panel-head">
@@ -100,13 +95,12 @@ import { Quiz } from '../../../core/models/quiz.model';
                 [value]="quizUrl()"
                 readonly
                 class="link-input"
-                #linkInput
                 id="quiz-share-link"
               />
             </div>
             <button
               id="copy-link-btn"
-              (click)="copyLink(linkInput)"
+              (click)="copyLink()"
               class="copy-btn"
               [class.copied]="linkCopied()"
             >
@@ -141,10 +135,13 @@ import { Quiz } from '../../../core/models/quiz.model';
             >
               <span>✉️</span> Email
             </a>
-            <button (click)="copyLink(linkInput)" class="share-pill copy-pill">
+            <button (click)="copyLink()" class="share-pill copy-pill">
               <span>🔗</span> Copy URL
             </button>
           </div>
+          @if (copyError()) {
+            <p class="copy-error" role="alert">Link copy failed. Select the URL above and copy it manually.</p>
+          }
 
           <!-- QR Code -->
           <div class="qr-divider">
@@ -171,6 +168,7 @@ import { Quiz } from '../../../core/models/quiz.model';
             </div>
           </div>
         </div>
+        }
 
         <!-- Actions Section -->
         <div class="actions-grid">
@@ -255,32 +253,6 @@ import { Quiz } from '../../../core/models/quiz.model';
       gap: clamp(1rem, 3vw, 1.5rem);
     }
 
-    /* ── Ambient background orbs ── */
-    .confetti-bg {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.055;
-      animation: float-orb 9s infinite ease-in-out;
-    }
-    .b1 { width: 280px; height: 280px; background: radial-gradient(circle, #6366f1, transparent); top: -5%;  left: -5%;  animation-delay: 0s;   animation-duration: 10s; }
-    .b2 { width: 180px; height: 180px; background: radial-gradient(circle, #7c3aed, transparent); top: 40%;  right: -4%; animation-delay: 2.5s; animation-duration: 12s; }
-    .b3 { width: 120px; height: 120px; background: radial-gradient(circle, #06b6d4, transparent); top: 15%;  right: 22%; animation-delay: 5s;   animation-duration: 8s;  }
-    .b4 { width: 220px; height: 220px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: 5%; left: 10%;  animation-delay: 1s;   animation-duration: 11s; }
-    .b5 { width: 140px; height: 140px; background: radial-gradient(circle, #a78bfa, transparent); bottom: 20%;right: 15%; animation-delay: 3.5s; animation-duration: 9s;  }
-    .b6 { width: 80px;  height: 80px;  background: radial-gradient(circle, #4f46e5, transparent); top: 65%;  left: 45%;  animation-delay: 7s;   animation-duration: 7s;  }
-    @keyframes float-orb {
-      0%,  100% { transform: translate(0, 0)    scale(1);    }
-      33%        { transform: translate(8px, -18px) scale(1.04); }
-      66%        { transform: translate(-6px, 10px) scale(0.97); }
-    }
-
     /* ── Loading state ── */
     .loading-card {
       display: flex;
@@ -310,71 +282,37 @@ import { Quiz } from '../../../core/models/quiz.model';
     .hero-card {
       position: relative;
       z-index: 1;
-      background: linear-gradient(145deg, #4338ca 0%, #6d28d9 45%, #7c3aed 75%, #8b5cf6 100%);
-      border-radius: var(--radius-2xl);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-xl);
       padding: clamp(1.75rem, 5vw, 2.75rem) clamp(1.25rem, 5vw, 2.25rem) clamp(1.5rem, 4vw, 2.25rem);
       text-align: center;
       width: 100%;
       max-width: 760px;
-      box-shadow:
-        0 4px 6px rgba(79,70,229,0.1),
-        0 20px 48px rgba(109,40,217,0.32),
-        0 0 0 1px rgba(255,255,255,0.08) inset;
+      box-shadow: var(--shadow-md);
       overflow: hidden;
-      animation: slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-    /* subtle mesh overlay */
-    .hero-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 20% 0%,  rgba(255,255,255,0.1) 0%, transparent 55%),
-        radial-gradient(ellipse at 80% 100%, rgba(124,58,237,0.3) 0%, transparent 55%);
-      pointer-events: none;
-    }
-    @keyframes slide-in {
-      from { opacity: 0; transform: translateY(-20px); }
-      to   { opacity: 1; transform: translateY(0); }
+      animation: fade-up 220ms ease-out both;
     }
 
-    /* Emoji with pulse rings */
+    /* Quiet success marker */
     .hero-icon-wrap {
-      position: relative;
-      display: inline-flex;
+      width: 48px;
+      height: 48px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 1.1rem;
+      margin: 0 auto 1rem;
+      border-radius: var(--radius-full);
+      background: var(--color-success-bg);
+      color: var(--color-success-text);
+      border: 1px solid var(--color-success-border);
     }
-    .hero-emoji {
-      font-size: clamp(3rem, 8vw, 4rem);
-      animation: pop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.4) 0.15s both;
-      display: block;
-      position: relative;
-      z-index: 2;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
-    }
-    @keyframes pop {
-      from { transform: scale(0) rotate(-25deg); opacity: 0; }
-      to   { transform: scale(1) rotate(0deg);   opacity: 1; }
-    }
-    .hero-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      animation: pulse-ring 2.2s ease-out infinite;
-    }
-    .r1 { width: 76px;  height: 76px;  animation-delay: 0s;   }
-    .r2 { width: 108px; height: 108px; animation-delay: 0.5s; }
-    @keyframes pulse-ring {
-      0%   { transform: scale(0.82); opacity: 0.9; }
-      100% { transform: scale(1.45); opacity: 0;   }
-    }
+    .hero-success-icon { width: 24px; height: 24px; }
 
     .hero-title {
       font-size: clamp(1.4rem, 5vw, 1.9rem);
       font-weight: 900;
-      color: #ffffff !important;
+      color: var(--text-primary) !important;
       margin: 0 0 0.5rem;
       letter-spacing: -0.035em;
       line-height: 1.15;
@@ -383,14 +321,14 @@ import { Quiz } from '../../../core/models/quiz.model';
     }
     .hero-sub {
       font-size: clamp(0.875rem, 2.5vw, 0.975rem);
-      color: rgba(255,255,255,0.82) !important;
+      color: var(--text-secondary) !important;
       line-height: 1.65;
       margin: 0 auto 1.75rem;
       max-width: 480px;
       position: relative;
       z-index: 1;
     }
-    .hero-sub strong { color: #ffffff !important; font-weight: 800; }
+    .hero-sub strong { color: var(--text-primary) !important; font-weight: 800; }
 
     /* Stats chips */
     .stats-row {
@@ -405,12 +343,10 @@ import { Quiz } from '../../../core/models/quiz.model';
       display: flex;
       align-items: center;
       gap: 0.45rem;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.2);
+      background: var(--bg-hover);
+      border: 1px solid var(--border-hairline);
       border-radius: var(--radius-lg);
       padding: 0.55rem 0.8rem;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
     }
     .stat-icon { font-size: 1rem; line-height: 1; }
     .stat-chip > div {
@@ -419,8 +355,8 @@ import { Quiz } from '../../../core/models/quiz.model';
       line-height: 1.15;
       gap: 0.1rem;
     }
-    .stat-val   { font-size: 0.82rem; font-weight: 800; color: #ffffff !important; }
-    .stat-label { font-size: 0.62rem; color: rgba(255,255,255,0.65) !important; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-val   { font-size: 0.82rem; font-weight: 800; color: var(--text-primary) !important; }
+    .stat-label { font-size: 0.62rem; color: var(--text-muted) !important; text-transform: uppercase; letter-spacing: 0.06em; }
 
     /* ── Content Panels ── */
     .panel {
@@ -485,6 +421,15 @@ import { Quiz } from '../../../core/models/quiz.model';
       margin-bottom: 0.875rem;
       align-items: stretch;
     }
+    .copy-error {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      color: var(--color-danger) !important;
+      background: var(--color-danger-bg);
+      border: 1px solid var(--color-danger-border);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+    }
     .link-input-wrap {
       flex: 1;
       position: relative;
@@ -541,7 +486,7 @@ import { Quiz } from '../../../core/models/quiz.model';
     }
     .copy-btn:hover:not(.copied) {
       background: var(--color-primary-700);
-      box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+      box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
     .copy-btn:active { transform: translateY(0); }
@@ -737,7 +682,7 @@ import { Quiz } from '../../../core/models/quiz.model';
     }
     .preview-btn:hover {
       background: var(--color-primary-700);
-      box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+      box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
     /* Amber — edit */
@@ -849,14 +794,10 @@ import { Quiz } from '../../../core/models/quiz.model';
        DARK MODE — uses app-wide CSS tokens automatically
        Some overrides for elements that use hard-coded values
     ============================================================ */
-    @media (prefers-color-scheme: dark) {
-      .qr-box { border-color: rgba(255,255,255,0.1); }
-      .link-input { color: var(--text-body) !important; }
-    }
     [data-theme="dark"] .qr-box { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
     [data-theme="dark"] .link-input { color: var(--text-body) !important; }
     [data-theme="dark"] .action-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-    [data-theme="dark"] .copy-btn:hover { box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
+    [data-theme="dark"] .copy-btn:hover { box-shadow: var(--shadow-md); }
     [data-theme="dark"] .share-icon-box { background: var(--color-primary-50); }
   `]
 
@@ -868,6 +809,7 @@ export class QuizPublishSuccessComponent implements OnInit {
   readonly quiz = signal<Quiz | null>(null);
   readonly isLoading = signal(true);
   readonly linkCopied = signal(false);
+  readonly copyError = signal(false);
 
   ngOnInit(): void {
     const quizId = this.route.snapshot.paramMap.get('id');
@@ -893,24 +835,13 @@ export class QuizPublishSuccessComponent implements OnInit {
     return `${window.location.origin}/q/${shortId}`;
   }
 
-  copyLink(inputElement: HTMLInputElement): void {
+  async copyLink(): Promise<void> {
     const url = this.quizUrl();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        this.linkCopied.set(true);
-        setTimeout(() => this.linkCopied.set(false), 3000);
-      }).catch(() => this.fallbackCopy(inputElement));
-    } else {
-      this.fallbackCopy(inputElement);
-    }
-  }
-
-  private fallbackCopy(inputElement: HTMLInputElement): void {
-    inputElement.select();
-    inputElement.setSelectionRange(0, 99999);
-    document.execCommand('copy');
-    this.linkCopied.set(true);
+    const copied = await copyTextToClipboard(url);
+    this.copyError.set(!copied);
+    this.linkCopied.set(copied);
     setTimeout(() => this.linkCopied.set(false), 3000);
+    setTimeout(() => this.copyError.set(false), 5000);
   }
 
   encodeUrl(url: string): string {

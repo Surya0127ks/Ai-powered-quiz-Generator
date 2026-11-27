@@ -13,7 +13,7 @@ public class LessonsController : ApiControllerBase
     /// Creates a new lesson under a section.
     /// </summary>
     [HttpPost("/api/v1/sections/{sectionId:guid}/lessons")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateLesson(Guid sectionId, [FromBody] CreateLessonDto dto, CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ public class LessonsController : ApiControllerBase
     /// Updates lesson details.
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateLesson(Guid id, [FromBody] UpdateLessonDto dto, CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ public class LessonsController : ApiControllerBase
     /// Soft deletes a lesson.
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SoftDeleteLesson(Guid id, CancellationToken cancellationToken)

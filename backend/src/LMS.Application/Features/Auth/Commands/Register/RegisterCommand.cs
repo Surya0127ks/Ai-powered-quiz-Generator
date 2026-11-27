@@ -32,6 +32,10 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .NotEmpty().WithMessage("Password is required.")
             .MinimumLength(8).WithMessage("Password must be at least 8 characters long.");
 
+        RuleFor(x => x.Role)
+            .Must(role => role is UserRole.Student or UserRole.Instructor)
+            .WithMessage("Choose either Student or Teacher/Tutor for self-registration.");
+
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First name is required.");
 
@@ -65,28 +69,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 
     public async Task<Result<AuthResponseDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        if (request.Role is not (UserRole.Student or UserRole.Instructor))
+        {
+            return Result.Failure<AuthResponseDto>("Choose either Student or Teacher/Tutor for self-registration.");
+        }
+
         var normalizedIdentifier = request.TenantIdentifier.ToLowerInvariant();
         var normalizedEmail = request.Email.ToLowerInvariant();
 
-        // 1. Check or resolve Tenant
-        var tenant = await _context.Tenants
-            .FirstOrDefaultAsync(t => t.Identifier == normalizedIdentifier, cancellationToken);
-
-        if (tenant == null)
-        {
-            // Create new tenant if it doesn't exist
-            tenant = new Tenant
-            {
-                Id = Guid.NewGuid(),
-                Name = request.TenantName,
-                Identifier = normalizedIdentifier,
-                IsActive = true
-            };
-            tenant.MarkAsCreated(null);
-            _context.Tenants.Add(tenant);
-        }
-
-        // 2. Check if user email already exists globally
+        // Self-registration must never join an existing tenant by guessing its slug.
+        // Organization membership needs a separate verified invite flow.
         var existingUser = await _context.Users
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
@@ -96,7 +88,26 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             return Result.Failure<AuthResponseDto>("User with this email already exists.");
         }
 
-        // 3. Create user
+        var tenantAlreadyExists = await _context.Tenants
+            .IgnoreQueryFilters()
+            .AnyAsync(t => t.Identifier == normalizedIdentifier, cancellationToken);
+
+        if (tenantAlreadyExists)
+        {
+            return Result.Failure<AuthResponseDto>("That workspace identifier is already in use. Choose another one.");
+        }
+
+        var tenant = new Tenant
+        {
+            Id = Guid.NewGuid(),
+            Name = request.TenantName,
+            Identifier = normalizedIdentifier,
+            IsActive = true
+        };
+        tenant.MarkAsCreated(null);
+        _context.Tenants.Add(tenant);
+
+        // Create user
         var passwordHash = _passwordHasher.HashPassword(request.Password);
         var user = new User
         {

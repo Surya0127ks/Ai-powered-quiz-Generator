@@ -11,10 +11,12 @@ public record GetQuizAttemptByIdQuery(Guid AttemptId) : IRequest<Result<AdminAtt
 public class GetQuizAttemptByIdQueryHandler : IRequestHandler<GetQuizAttemptByIdQuery, Result<AdminAttemptDetailsDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetQuizAttemptByIdQueryHandler(IApplicationDbContext context)
+    public GetQuizAttemptByIdQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<AdminAttemptDetailsDto>> Handle(GetQuizAttemptByIdQuery request, CancellationToken cancellationToken)
@@ -30,6 +32,13 @@ public class GetQuizAttemptByIdQueryHandler : IRequestHandler<GetQuizAttemptById
         if (attempt == null)
         {
             return Result.Failure<AdminAttemptDetailsDto>("Attempt not found.");
+        }
+
+        var currentUserId = _currentUserService.UserId;
+        var isQuizOwner = currentUserId.HasValue && attempt.Quiz.CreatedByUserId == currentUserId;
+        if (!isQuizOwner)
+        {
+            return Result.Failure<AdminAttemptDetailsDto>("Only the quiz creator can review participant details.");
         }
 
         var studentName = !string.IsNullOrWhiteSpace(attempt.StudentName) 

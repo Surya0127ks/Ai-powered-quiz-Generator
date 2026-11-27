@@ -14,7 +14,7 @@ public class QuizAttemptAnswer : BaseEntity
     public Guid? SelectedOptionId { get; set; }
     public string? SelectedOptionIdsJson { get; set; }
     public bool IsCorrect { get; set; }
-    public int PointsEarned { get; set; }
+    public decimal PointsEarned { get; set; }
 
     // Navigation properties
     public QuizAttempt Attempt { get; set; } = null!;

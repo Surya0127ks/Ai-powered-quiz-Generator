@@ -62,14 +62,34 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
 
     public async Task<Result<QuizDto>> Handle(CreateQuizCommand request, CancellationToken cancellationToken)
     {
+        if (_currentUserService.UserId is not { } userId)
+        {
+            return Result.Failure<QuizDto>("Sign in with a teacher account to create quizzes.");
+        }
+
         var tenantId = _tenantContext.TenantId ?? Guid.Empty;
+        if (tenantId == Guid.Empty)
+        {
+            return Result.Failure<QuizDto>("Your account is not linked to a workspace.");
+        }
+
+        if (request.LessonId.HasValue)
+        {
+            var lessonBelongsToWorkspace = await _context.Lessons
+                .AnyAsync(lesson => lesson.Id == request.LessonId.Value && lesson.TenantId == tenantId && !lesson.IsDeleted, cancellationToken);
+
+            if (!lessonBelongsToWorkspace)
+            {
+                return Result.Failure<QuizDto>("The selected lesson was not found in your workspace.");
+            }
+        }
 
         var quiz = new Quiz
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
             LessonId = request.LessonId,
-            CreatedByUserId = _currentUserService.UserId,
+            CreatedByUserId = userId,
             Title = request.Title,
             Description = request.Description,
             Category = request.Category ?? "General",

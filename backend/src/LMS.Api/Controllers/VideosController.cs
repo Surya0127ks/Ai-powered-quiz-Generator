@@ -34,7 +34,7 @@ public class VideosController : ApiControllerBase
     /// Upserts video metadata for a lesson (Supports Cloudinary placeholders).
     /// </summary>
     [HttpPut("/api/v1/lessons/{lessonId:guid}/video")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(VideoMetadataDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpsertVideoMetadata(Guid lessonId, [FromBody] UpsertVideoMetadataDto dto, CancellationToken cancellationToken)

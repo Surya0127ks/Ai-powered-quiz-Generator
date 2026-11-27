@@ -4,6 +4,7 @@ using LMS.Application.Common.Interfaces;
 using LMS.Application.Common.Models;
 using LMS.Application.Features.Quizzes.DTOs;
 using LMS.Domain.Entities;
+using LMS.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,6 +57,7 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
         var quiz = await _context.Quizzes
             .Include(q => q.Questions)
                 .ThenInclude(ques => ques.Options)
+            .Include(q => q.CreatedByUser)
             .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken);
 
         if (quiz == null)
@@ -63,10 +65,68 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
             return Result.Failure<QuizAttemptResultDto>("Quiz not found.");
         }
 
+        var isQuizOwner = userId.HasValue && quiz.CreatedByUserId == userId.Value;
+        if (!isQuizOwner)
+        {
+            if (!quiz.IsPublished)
+            {
+                return Result.Failure<QuizAttemptResultDto>("This quiz is not published yet.");
+            }
+
+            if (quiz.CreatedByUser?.Role == UserRole.Student)
+            {
+                return Result.Failure<QuizAttemptResultDto>("Student-created quizzes cannot be shared or submitted publicly.");
+            }
+
+            if (quiz.IsCapReached)
+            {
+                return Result.Failure<QuizAttemptResultDto>("This quiz has reached its participant limit.");
+            }
+
+            if (quiz.ExpiryDateUtc.HasValue && quiz.ExpiryDateUtc.Value <= DateTimeOffset.UtcNow)
+            {
+                return Result.Failure<QuizAttemptResultDto>("This quiz has expired.");
+            }
+
+            var participantAttemptCount = await _context.QuizAttempts
+                .CountAsync(attempt => attempt.QuizId == quiz.Id &&
+                    (!quiz.CreatedByUserId.HasValue || attempt.UserId != quiz.CreatedByUserId.Value), cancellationToken);
+            if (participantAttemptCount >= quiz.MaxStudents)
+            {
+                return Result.Failure<QuizAttemptResultDto>("This quiz has reached its participant limit.");
+            }
+
+            if (quiz.MaxAttempts is > 0)
+            {
+                int previousAttempts;
+                if (userId.HasValue)
+                {
+                    previousAttempts = await _context.QuizAttempts
+                        .CountAsync(attempt => attempt.QuizId == quiz.Id && attempt.UserId == userId.Value, cancellationToken);
+                }
+                else if (!string.IsNullOrWhiteSpace(request.Email))
+                {
+                    var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+                    previousAttempts = await _context.QuizAttempts
+                        .CountAsync(attempt => attempt.QuizId == quiz.Id && !attempt.UserId.HasValue &&
+                            attempt.Email == normalizedEmail, cancellationToken);
+                }
+                else
+                {
+                    return Result.Failure<QuizAttemptResultDto>("An email address is required for this quiz's attempt limit.");
+                }
+
+                if (previousAttempts >= quiz.MaxAttempts.Value)
+                {
+                    return Result.Failure<QuizAttemptResultDto>("You have used all attempts allowed for this quiz.");
+                }
+            }
+        }
+
         var tenantId = _tenantContext.TenantId ?? quiz.TenantId;
 
         int totalPossiblePoints = quiz.Questions.Sum(q => q.Points);
-        int totalEarnedPoints = 0;
+        decimal totalEarnedPoints = 0m;
 
         var attempt = new QuizAttempt
         {
@@ -78,13 +138,14 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
             RollNumber = request.RollNumber,
             ClassName = request.ClassName,
             Department = request.Department,
-            Email = request.Email,
+            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant(),
             PhoneNumber = request.PhoneNumber,
             StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             TotalPossiblePoints = totalPossiblePoints,
-            FocusLostCount = request.FocusLostCount,
-            IsDisqualified = request.IsDisqualified
+            FocusLostCount = Math.Clamp(request.FocusLostCount, 0, 100),
+            // Focus/disqualification flags come from the browser and are not trustworthy.
+            IsDisqualified = false
         };
 
         var reviews = new List<AnswerReviewItemDto>();
@@ -115,17 +176,14 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
                 isCorrect = selectedOptionIds.OrderBy(id => id).SequenceEqual(correctOptions.OrderBy(id => id));
             }
 
-            int pointsEarned = 0;
+            decimal pointsEarned = 0m;
             if (isCorrect)
             {
                 pointsEarned = ques.Points;
             }
             else if (selectedOptionIds.Count > 0 && quiz.NegativeMarkingPoints.HasValue)
             {
-                // Convert double to int or just use int for points if total points is int.
-                // However, total points is int, so we might need to deduct whole points or round it.
-                // For now we'll subtract rounded negative points or keep total points as int.
-                pointsEarned = -(int)Math.Round(quiz.NegativeMarkingPoints.Value);
+                pointsEarned = -Math.Round((decimal)quiz.NegativeMarkingPoints.Value, 2, MidpointRounding.AwayFromZero);
             }
 
             totalEarnedPoints += pointsEarned;
@@ -176,7 +234,8 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
         // --- Max Students Cap Logic ---
         // Count total completed attempts for this quiz
         var attemptCount = await _context.QuizAttempts
-            .CountAsync(a => a.QuizId == quiz.Id, cancellationToken);
+            .CountAsync(a => a.QuizId == quiz.Id &&
+                (!quiz.CreatedByUserId.HasValue || a.UserId != quiz.CreatedByUserId.Value), cancellationToken);
 
         bool isCapReached = false;
         if (attemptCount >= quiz.MaxStudents)

@@ -11,25 +11,35 @@ public record GetQuizLeaderboardQuery(Guid QuizId) : IRequest<Result<List<QuizLe
 public class GetQuizLeaderboardQueryHandler : IRequestHandler<GetQuizLeaderboardQuery, Result<List<QuizLeaderboardItemDto>>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetQuizLeaderboardQueryHandler(IApplicationDbContext context)
+    public GetQuizLeaderboardQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<List<QuizLeaderboardItemDto>>> Handle(GetQuizLeaderboardQuery request, CancellationToken cancellationToken)
     {
-        var quizExists = await _context.Quizzes
-            .AnyAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken);
+        var quiz = await _context.Quizzes
+            .Where(q => q.Id == request.QuizId && !q.IsDeleted)
+            .Select(q => new { q.CreatedByUserId })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (!quizExists)
+        if (quiz == null)
         {
             return Result.Failure<List<QuizLeaderboardItemDto>>("Quiz assessment not found.");
         }
 
+        if (_currentUserService.UserId is not { } userId || quiz.CreatedByUserId != userId)
+        {
+            return Result.Failure<List<QuizLeaderboardItemDto>>("You can only review results for quizzes you created.");
+        }
+
         var attempts = await _context.QuizAttempts
             .Include(qa => qa.User)
-            .Where(qa => qa.QuizId == request.QuizId && qa.SubmittedAtUtc != null)
+            .Where(qa => qa.QuizId == request.QuizId && qa.SubmittedAtUtc != null &&
+                (!quiz.CreatedByUserId.HasValue || qa.UserId != quiz.CreatedByUserId.Value))
             .OrderByDescending(qa => qa.ScorePercentage)
             .ThenBy(qa => qa.SubmittedAtUtc)
             .ToListAsync(cancellationToken);

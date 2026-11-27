@@ -46,6 +46,8 @@ import { AuthService } from '../../../core/services/auth.service';
               id="email"
               type="email"
               formControlName="email"
+              autocomplete="email"
+              required
               placeholder="you&#64;example.com"
               class="input-control"
               [class.is-invalid]="emailControl?.invalid && emailControl?.touched"
@@ -58,11 +60,14 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="form-field">
             <div class="label-row">
               <label for="password">Password</label>
+              <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
             </div>
             <input
               id="password"
               type="password"
               formControlName="password"
+              autocomplete="current-password"
+              required
               placeholder="••••••••"
               class="input-control"
               [class.is-invalid]="passwordControl?.invalid && passwordControl?.touched"
@@ -93,7 +98,7 @@ import { AuthService } from '../../../core/services/auth.service';
   `,
   styles: [`
     .auth-page {
-      min-height: calc(100vh - 64px);
+      min-height: calc(100dvh - 64px);
       display: flex;
       flex-direction: column;
       align-items: center;

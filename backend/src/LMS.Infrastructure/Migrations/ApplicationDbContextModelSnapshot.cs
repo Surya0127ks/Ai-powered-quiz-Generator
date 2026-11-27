@@ -895,8 +895,9 @@ namespace LMS.Infrastructure.Migrations
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("TotalPointsEarned")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("TotalPointsEarned")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
 
                     b.Property<int>("TotalPossiblePoints")
                         .HasColumnType("integer");
@@ -925,8 +926,9 @@ namespace LMS.Infrastructure.Migrations
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("PointsEarned")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("PointsEarned")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
 
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");

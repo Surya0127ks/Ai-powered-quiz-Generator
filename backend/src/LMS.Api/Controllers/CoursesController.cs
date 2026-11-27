@@ -51,7 +51,7 @@ public class CoursesController : ApiControllerBase
     /// Creates a new course.
     /// </summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto, CancellationToken cancellationToken)
@@ -85,7 +85,7 @@ public class CoursesController : ApiControllerBase
     /// Updates course details.
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto dto, CancellationToken cancellationToken)
@@ -120,7 +120,7 @@ public class CoursesController : ApiControllerBase
     /// Updates the status of a course (Draft, Published, Archived).
     /// </summary>
     [HttpPatch("{id:guid}/status")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ChangeCourseStatus(Guid id, [FromBody] CourseStatus status, CancellationToken cancellationToken)
@@ -140,7 +140,7 @@ public class CoursesController : ApiControllerBase
     /// Soft deletes a course.
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SoftDeleteCourse(Guid id, CancellationToken cancellationToken)

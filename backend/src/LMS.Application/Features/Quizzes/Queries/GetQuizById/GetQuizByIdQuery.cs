@@ -1,6 +1,7 @@
 using LMS.Application.Common.Interfaces;
 using LMS.Application.Common.Models;
 using LMS.Application.Features.Quizzes.DTOs;
+using LMS.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,10 +22,16 @@ public class GetQuizByIdQueryHandler : IRequestHandler<GetQuizByIdQuery, Result<
 
     public async Task<Result<QuizDto>> Handle(GetQuizByIdQuery request, CancellationToken cancellationToken)
     {
+        var currentUserId = _currentUserService.UserId;
+        var now = DateTimeOffset.UtcNow;
         var quiz = await _context.Quizzes
             .Include(q => q.Questions)
                 .ThenInclude(ques => ques.Options)
-            .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken);
+            .Include(q => q.CreatedByUser)
+            .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted &&
+                ((q.IsPublished && !q.IsCapReached && (!q.ExpiryDateUtc.HasValue || q.ExpiryDateUtc > now) &&
+                  (q.CreatedByUser == null || q.CreatedByUser.Role != UserRole.Student)) ||
+                 (currentUserId.HasValue && q.CreatedByUserId == currentUserId)), cancellationToken);
 
         if (quiz == null)
         {

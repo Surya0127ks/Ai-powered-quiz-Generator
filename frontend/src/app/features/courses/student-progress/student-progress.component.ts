@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { QuizService } from '../../../core/services/quiz.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboardItem } from '../../../core/models/quiz.model';
+import { UserRole } from '../../../core/models/auth.model';
 
 @Component({
   selector: 'app-student-progress',
@@ -28,9 +29,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <span>{{ isClearing() ? 'Clearing...' : 'Clear All History' }}</span>
             </button>
           }
-          <a routerLink="/quizzes/new" class="btn btn-ai btn-sm">
-            ✨ Take New AI Quiz
-          </a>
+          @if (canManageQuizzes()) {
+            <a routerLink="/quizzes/new" class="btn btn-ai btn-sm">
+              ✨ Create New Quiz
+            </a>
+          }
         </div>
       </header>
 
@@ -72,19 +75,17 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 <p class="text-muted font-sm">Submitted on {{ selectedReportAttempt()?.submittedAtUtc | date:'medium' }}</p>
               </div>
 
-              <!-- Correct / Wrong Answers Breakdown -->
+              <!-- Show only values available in this attempt summary. -->
               <div class="report-stats-grid mb-3">
                 <div class="report-stat-box score">
                   <span class="stat-label">Final Score</span>
                   <span class="stat-num text-primary">{{ selectedReportAttempt()?.scorePercentage }}%</span>
                 </div>
-                <div class="report-stat-box correct">
-                  <span class="stat-label">Correct Answers</span>
-                  <span class="stat-num text-success">✓ {{ getCorrectCount(selectedReportAttempt()?.scorePercentage) }}</span>
-                </div>
-                <div class="report-stat-box wrong">
-                  <span class="stat-label">Wrong Answers</span>
-                  <span class="stat-num text-danger">❌ {{ getWrongCount(selectedReportAttempt()?.scorePercentage) }}</span>
+                <div class="report-stat-box">
+                  <span class="stat-label">Outcome</span>
+                  <span class="stat-num" [class.text-success]="selectedReportAttempt()?.isPassed" [class.text-danger]="!selectedReportAttempt()?.isPassed">
+                    {{ selectedReportAttempt()?.isPassed ? 'Passed' : 'Not passed' }}
+                  </span>
                 </div>
               </div>
 
@@ -184,10 +185,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   </svg>
                 </div>
                 <h4>No attempt history found</h4>
-                <p>You haven't completed any quizzes yet. Generate a quiz with AI or open a quiz link to start taking assessments.</p>
-                <a routerLink="/quizzes/new" class="btn btn-ai">
-                  ✨ Generate Quiz with AI
-                </a>
+                @if (canManageQuizzes()) {
+                  <p>You haven't completed any quizzes yet. Open a published quiz link to preview the learner experience.</p>
+                } @else {
+                  <p>You haven't completed any quizzes yet. Open a quiz link shared by your teacher to get started.</p>
+                }
               </div>
             } @else {
               <div class="quiz-table-wrapper">
@@ -462,7 +464,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .report-stats-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.75rem;
       margin: 1.25rem 0;
     }
@@ -671,7 +673,12 @@ export class StudentProgressComponent implements OnInit {
   }
 
   showInstructorTab(): boolean {
-    return this.authService.userRole() !== 3 || (this.summary()?.myQuizzes?.length ?? 0) > 0;
+    return this.canManageQuizzes();
+  }
+
+  canManageQuizzes(): boolean {
+    const role = this.authService.userRole();
+    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
   }
 
   fetchDashboardSummary(): void {
@@ -697,16 +704,6 @@ export class StudentProgressComponent implements OnInit {
     const s = this.summary();
     if (!s || s.totalAttemptsCount === 0) return 0;
     return Math.round((s.certificatesEarnedCount / s.totalAttemptsCount) * 100);
-  }
-
-  getCorrectCount(scorePercentage?: number): number {
-    if (scorePercentage === undefined) return 0;
-    return Math.round((scorePercentage / 100) * 10);
-  }
-
-  getWrongCount(scorePercentage?: number): number {
-    if (scorePercentage === undefined) return 0;
-    return 10 - this.getCorrectCount(scorePercentage);
   }
 
   onDeleteAttempt(attemptId: string): void {

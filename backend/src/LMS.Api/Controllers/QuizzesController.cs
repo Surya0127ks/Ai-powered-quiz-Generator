@@ -77,7 +77,7 @@ public class QuizzesController : ApiControllerBase
     /// Gets detailed information about a specific quiz attempt for review/scorecard.
     /// </summary>
     [HttpGet("/api/v1/quizzes/attempts/{attemptId:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(AdminAttemptDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -124,7 +124,7 @@ public class QuizzesController : ApiControllerBase
     /// Deletes a quiz.
     /// </summary>
     [HttpDelete("/api/v1/quizzes/{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -190,7 +190,7 @@ public class QuizzesController : ApiControllerBase
     /// Gets student submissions and leaderboard for a specific quiz assessment.
     /// </summary>
     [HttpGet("/api/v1/quizzes/{quizId:guid}/leaderboard")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(List<QuizLeaderboardItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetQuizLeaderboard(Guid quizId, CancellationToken cancellationToken)
@@ -230,7 +230,7 @@ public class QuizzesController : ApiControllerBase
     /// Creates a standalone quiz assessment.
     /// </summary>
     [HttpPost("/api/v1/quizzes")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(QuizDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateStandaloneQuiz([FromBody] CreateQuizDto dto, CancellationToken cancellationToken)
@@ -275,7 +275,7 @@ public class QuizzesController : ApiControllerBase
     /// Updates an existing standalone quiz assessment.
     /// </summary>
     [HttpPut("/api/v1/quizzes/{quizId:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(QuizDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateStandaloneQuiz(Guid quizId, [FromBody] UpdateQuizDto dto, CancellationToken cancellationToken)
@@ -318,7 +318,7 @@ public class QuizzesController : ApiControllerBase
     /// Creates a new quiz assessment under a lesson (legacy course compatibility).
     /// </summary>
     [HttpPost("/api/v1/lessons/{lessonId:guid}/quiz")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(QuizDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateQuiz(Guid lessonId, [FromBody] CreateQuizDto dto, CancellationToken cancellationToken)
@@ -415,7 +415,7 @@ public class QuizzesController : ApiControllerBase
     /// Extends the student limit of a quiz by 15 additional slots. Can only be done twice.
     /// </summary>
     [HttpPost("/api/v1/quizzes/{quizId:guid}/extend-limit")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(ExtendQuizLimitResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ExtendQuizLimit(Guid quizId, CancellationToken cancellationToken)

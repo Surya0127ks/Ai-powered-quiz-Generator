@@ -1,12 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   template: `
     <div class="auth-page-wrapper">
       <div class="auth-top-nav">
@@ -28,43 +27,12 @@ import { RouterLink } from '@angular/router';
             </div>
           </a>
           <h2>Reset Your Password</h2>
-          <p class="sub-heading">Enter your registered email address to receive password reset instructions</p>
+          <p class="sub-heading">Automated password recovery is not available for this account.</p>
         </div>
 
-        @if (isSuccess()) {
-          <div class="alert alert-success">
-            <span>✅ Password reset instructions sent! Check your inbox to complete reset.</span>
-          </div>
-        } @else {
-          <form [formGroup]="resetForm" (ngSubmit)="onSubmit()" class="auth-form-layout">
-            <div class="form-field">
-              <label for="email">Registered Email Address</label>
-              <input
-                id="email"
-                type="email"
-                formControlName="email"
-                placeholder="you@example.com"
-                class="input-control"
-                [class.is-invalid]="emailControl?.invalid && emailControl?.touched"
-              />
-              @if (emailControl?.invalid && emailControl?.touched) {
-                <span class="field-error">Please enter a valid email address.</span>
-              }
-            </div>
-
-            <button
-              type="submit"
-              class="btn btn-primary btn-submit-primary"
-              [disabled]="resetForm.invalid || isLoading()"
-            >
-              @if (isLoading()) {
-                <span>Sending Instructions...</span>
-              } @else {
-                <span>Send Reset Link</span>
-              }
-            </button>
-          </form>
-        }
+        <div class="alert-error" role="status">
+          Please contact your organization administrator to reset your password.
+        </div>
 
         <div class="auth-card-footer">
           <p>Remembered password? <a routerLink="/auth/login">Back to Sign In</a></p>
@@ -74,7 +42,7 @@ import { RouterLink } from '@angular/router';
   `,
   styles: [`
     .auth-page-wrapper {
-      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -166,6 +134,16 @@ import { RouterLink } from '@angular/router';
       line-height: 1.5;
       span { color: var(--color-success) !important; }
     }
+    .alert-error {
+      color: var(--color-warning) !important;
+      background: var(--color-warning-bg);
+      border: 1px solid var(--color-warning-border);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
     .auth-form-layout {
       display: flex;
       flex-direction: column;
@@ -212,24 +190,4 @@ import { RouterLink } from '@angular/router';
     }
   `]
 })
-export class ForgotPasswordComponent {
-  private readonly fb = inject(FormBuilder);
-
-  readonly isLoading = signal(false);
-  readonly isSuccess = signal(false);
-
-  readonly resetForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]]
-  });
-
-  get emailControl() { return this.resetForm.get('email'); }
-
-  onSubmit(): void {
-    if (this.resetForm.invalid) return;
-    this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.isSuccess.set(true);
-    }, 1200);
-  }
-}
+export class ForgotPasswordComponent {}

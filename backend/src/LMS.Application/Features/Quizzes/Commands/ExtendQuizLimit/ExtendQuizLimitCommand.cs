@@ -29,11 +29,17 @@ public class ExtendQuizLimitCommandHandler : IRequestHandler<ExtendQuizLimitComm
 
     public async Task<Result<ExtendQuizLimitResult>> Handle(ExtendQuizLimitCommand request, CancellationToken cancellationToken)
     {
+        if (_currentUserService.UserId is not { } userId)
+            return Result.Failure<ExtendQuizLimitResult>("Sign in to manage this quiz.");
+
         var quiz = await _context.Quizzes
-            .FirstOrDefaultAsync(q => q.Id == request.QuizId, cancellationToken);
+            .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken);
 
         if (quiz == null)
             return Result.Failure<ExtendQuizLimitResult>("Quiz not found.");
+
+        if (quiz.CreatedByUserId != userId)
+            return Result.Failure<ExtendQuizLimitResult>("You can only extend limits for your own quizzes.");
 
         if (quiz.LimitExtensionCount >= 2)
             return Result.Failure<ExtendQuizLimitResult>("Maximum extensions (2) already used. This quiz cannot be extended further.");

@@ -25,7 +25,7 @@ public class CategoriesController : ApiControllerBase
     /// Creates a new course category.
     /// </summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto dto, CancellationToken cancellationToken)

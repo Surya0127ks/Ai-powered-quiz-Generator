@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { UserRole } from '../../core/models/auth.model';
 
 interface FaqItem {
   question: string;
@@ -27,7 +28,6 @@ interface FaqItem {
             </div>
             <div class="brand-name-group">
               <span class="brand-title">Quizzy AI</span>
-              <span class="brand-tag">v2.0</span>
             </div>
           </a>
 
@@ -36,6 +36,8 @@ interface FaqItem {
             <button
               (click)="themeService.toggleTheme()"
               class="theme-toggle-btn"
+              [attr.aria-label]="themeService.isDarkMode() ? 'Switch to light theme' : 'Switch to dark theme'"
+              [attr.aria-pressed]="themeService.isDarkMode()"
               [title]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
             >
               {{ themeService.isDarkMode() ? '☀️' : '🌙' }}
@@ -64,23 +66,25 @@ interface FaqItem {
           </div>
 
           <h1 class="hero-title">
-            Create Smart AI Quizzes in Seconds.<br>
+            Create AI-Powered Quizzes.<br>
             <span class="text-gradient">Assess, Track & Certify.</span>
           </h1>
 
           <p class="hero-subtitle">
-            Generate high-yield multiple-choice tests on any topic with custom question limits (10, 15, 20, 30, 50+) and tailored difficulty. Share instant assessment links with 50+ students concurrently and issue verifiable digital certificates.
+            Draft an AI-powered quiz on any topic, choose from 1 to 200 questions, review it, then share a link and track learner results. Add certificates when your assessment needs them.
           </p>
 
           <div class="hero-cta">
             @if (authService.isAuthenticated()) {
               <a routerLink="/dashboard" class="btn-hero-primary">
-                <span>Open Educator Dashboard</span>
+                <span>{{ authService.userRole() === UserRole.Student ? 'Open Student Dashboard' : 'Open Educator Dashboard' }}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </a>
-              <a routerLink="/quizzes/new" class="btn-hero-secondary">
-                <span>✨ Create Quiz Now</span>
-              </a>
+              @if (canManageQuizzes()) {
+                <a routerLink="/quizzes/new" class="btn-hero-secondary">
+                  <span>✨ Create Quiz Now</span>
+                </a>
+              }
             } @else {
               <a routerLink="/auth/register" class="btn-hero-primary">
                 <span>Start Creating for Free</span>
@@ -96,19 +100,19 @@ interface FaqItem {
           <div class="trust-row">
             <div class="trust-item">
               <span class="trust-icon">⚡</span>
-              <span>Sub-3s Generation</span>
+              <span>Questions from any topic</span>
             </div>
             <div class="trust-item">
               <span class="trust-icon">👥</span>
-              <span>15–50+ Concurrent Students</span>
+              <span>Configurable quiz limits</span>
             </div>
             <div class="trust-item">
               <span class="trust-icon">📜</span>
-              <span>Auto-Issued QR Diplomas</span>
+              <span>Verifiable certificates</span>
             </div>
             <div class="trust-item">
               <span class="trust-icon">🔒</span>
-              <span>Student Privacy Safe</span>
+              <span>Review every submission</span>
             </div>
           </div>
         </div>
@@ -201,13 +205,13 @@ interface FaqItem {
           <div class="feature-card">
             <div class="feat-icon bg-indigo">⚡</div>
             <h3>Ultra-Fast Groq AI</h3>
-            <p>Generate comprehensive 10, 15, 20, 30, or 50 question tests in under 3 seconds using optimized LLM models.</p>
+            <p>Draft multiple-choice questions for a topic, then review and edit them before publishing your assessment.</p>
           </div>
 
           <div class="feature-card">
             <div class="feat-icon bg-emerald">🎛️</div>
             <h3>Custom Limits & Difficulty</h3>
-            <p>Select question counts (15, 20, 30, 50 or custom) and specify Easy, Medium, or Hard difficulty tailored to your learners.</p>
+            <p>Choose a preset or enter any count from 1 to 200, select a difficulty, and tune the assessment settings.</p>
           </div>
 
           <div class="feature-card">
@@ -218,20 +222,20 @@ interface FaqItem {
 
           <div class="feature-card">
             <div class="feat-icon bg-purple">👥</div>
-            <h3>Simultaneous Classrooms</h3>
-            <p>Built to handle 15, 30, 50+ students submitting quizzes at the same time without server lag or downtime.</p>
+            <h3>Track Learner Submissions</h3>
+            <p>Review submitted attempts, scores, pass status, and answer details from your dashboard.</p>
           </div>
 
           <div class="feature-card">
             <div class="feat-icon bg-amber">📜</div>
-            <h3>Tamper-Proof Certificates</h3>
-            <p>Passing students automatically receive high-resolution certificates complete with verifiable QR codes and security keys.</p>
+            <h3>Verifiable Certificates</h3>
+            <p>When certificates are enabled, passing students receive a certificate with a unique ID and a verification link.</p>
           </div>
 
           <div class="feature-card">
             <div class="feat-icon bg-rose">📊</div>
-            <h3>Real-Time Analytics</h3>
-            <p>Review total scores, time per question, question accuracy breakdowns, and printable candidate scorecards.</p>
+            <h3>Assessment Analytics</h3>
+            <p>Review scores, pass status, submitted answers, and printable candidate scorecards.</p>
           </div>
           <div class="feature-card">
             <div class="feat-icon bg-amber">🏛️</div>
@@ -246,7 +250,7 @@ interface FaqItem {
         <div class="section-header">
           <span class="section-tag">SIMPLE 3-STEP PROCESS</span>
           <h2 class="section-heading">How Quizzy AI Works</h2>
-          <p class="section-description">Create, launch, and grade assessments in less than one minute.</p>
+          <p class="section-description">Create a draft, share one link with learners, then review their submissions.</p>
         </div>
 
         <div class="steps-grid">
@@ -259,7 +263,7 @@ interface FaqItem {
           <div class="step-card">
             <div class="step-number">02</div>
             <h3>AI Builds the Assessment</h3>
-            <p>Groq AI compiles challenging questions, 4 plausible options, verified answer keys, and clear explanations instantaneously.</p>
+            <p>AI drafts questions, answer options, and explanations. Review and edit the draft before you share it with learners.</p>
           </div>
 
           <div class="step-card">
@@ -284,7 +288,7 @@ interface FaqItem {
             <p>Stop spending hours writing quizzes by hand. Create practice sets, midterms, and chapter reviews in clicks with full curriculum alignment.</p>
             <ul class="role-bullets">
               <li>✓ Flexible 15, 20, 30, 50 question presets</li>
-              <li>✓ Instant anti-cheat countdown timers</li>
+              <li>✓ Timed assessments and focus notices</li>
               <li>✓ Printable official student scorecards</li>
             </ul>
           </div>
@@ -332,14 +336,22 @@ interface FaqItem {
         </div>
 
         <div class="faq-list">
-          @for (faq of faqs(); track faq.question) {
-            <div class="faq-item" [class.open]="faq.open" (click)="toggleFaq(faq)">
-              <div class="faq-question-row">
-                <h4>{{ faq.question }}</h4>
-                <span class="faq-chevron">{{ faq.open ? '−' : '+' }}</span>
-              </div>
+          @for (faq of faqs(); track faq.question; let i = $index) {
+            <div class="faq-item" [class.open]="faq.open">
+              <h3 class="faq-question-heading">
+                <button
+                  type="button"
+                  class="faq-question-row"
+                  [attr.aria-expanded]="faq.open"
+                  [attr.aria-controls]="'faq-answer-' + i"
+                  (click)="toggleFaq(faq)"
+                >
+                  <span class="faq-question-title">{{ faq.question }}</span>
+                  <span class="faq-chevron" aria-hidden="true">{{ faq.open ? '−' : '+' }}</span>
+                </button>
+              </h3>
               @if (faq.open) {
-                <div class="faq-answer-body">
+                <div class="faq-answer-body" [id]="'faq-answer-' + i">
                   <p>{{ faq.answer }}</p>
                 </div>
               }
@@ -351,11 +363,13 @@ interface FaqItem {
       <!-- Bottom Call To Action -->
       <section class="bottom-cta">
         <div class="cta-inner">
-          <span class="cta-pill">⚡ START IN UNDER 30 SECONDS</span>
+          <span class="cta-pill">⚡ START CREATING YOUR FIRST QUIZ</span>
           <h2>Transform How You Test Knowledge Today</h2>
           <p>Join educators and self-learners building better, faster quizzes with Quizzy AI.</p>
           <div class="cta-buttons">
-            <a routerLink="/auth/register" class="btn-hero-primary">Create Your First Quiz Free →</a>
+            @if (!authService.isAuthenticated() || canManageQuizzes()) {
+              <a routerLink="/auth/register" class="btn-hero-primary">Create Your First Quiz Free →</a>
+            }
             @if (authService.isAuthenticated()) {
               <a routerLink="/dashboard" class="btn-hero-secondary">Go to Dashboard</a>
             }
@@ -380,7 +394,9 @@ interface FaqItem {
 
           <div class="footer-links-group">
             <a routerLink="/dashboard">Dashboard</a>
-            <a routerLink="/quizzes/new">Create Quiz</a>
+            @if (!authService.isAuthenticated() || canManageQuizzes()) {
+              <a routerLink="/quizzes/new">Create Quiz</a>
+            }
             <a routerLink="/verify-certificate">Verify Certificate</a>
             <a routerLink="/auth/login">Sign In</a>
             <a routerLink="/auth/register">Register</a>
@@ -388,7 +404,7 @@ interface FaqItem {
 
           <div class="footer-bottom-line">
             <p>© {{ currentYear }} Quizzy AI. All rights reserved.</p>
-            <p class="privacy-note">🔒 Student assessments and answers are encrypted & private.</p>
+            <p class="privacy-note">Quiz creators can review submitted attempts and the details learners provide.</p>
           </div>
         </div>
       </footer>
@@ -451,7 +467,7 @@ interface FaqItem {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+      box-shadow: 0 2px 8px rgba(54, 95, 143, 0.18);
     }
     .brand-name-group {
       display: flex;
@@ -486,8 +502,8 @@ interface FaqItem {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       border-radius: 50%;
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -513,7 +529,7 @@ interface FaqItem {
       padding: 0.5rem 1rem;
       border-radius: var(--radius-md);
       text-decoration: none;
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+      box-shadow: var(--shadow-sm);
       transition: all 0.2s ease;
       &:hover {
         background: var(--color-primary-700);
@@ -540,7 +556,7 @@ interface FaqItem {
       text-decoration: none;
       padding: 0.5rem 1.15rem;
       border-radius: var(--radius-md);
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+      box-shadow: var(--shadow-sm);
       transition: all 0.2s ease;
       &:hover {
         background: var(--color-primary-700);
@@ -568,7 +584,7 @@ interface FaqItem {
       transform: translateX(-50%);
       width: 70vw;
       height: 450px;
-      background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.16) 0%, transparent 70%);
+      background: radial-gradient(ellipse at top, rgba(54, 95, 143, 0.08) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -614,7 +630,7 @@ interface FaqItem {
     }
 
     .text-gradient {
-      background: linear-gradient(135deg, var(--color-primary-600) 0%, #8b5cf6 100%);
+      background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-ai-purple) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -648,12 +664,12 @@ interface FaqItem {
       padding: 0.85rem 2rem;
       border-radius: 9999px;
       text-decoration: none;
-      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+      box-shadow: 0 6px 18px rgba(54, 95, 143, 0.2);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       &:hover {
         background: var(--color-primary-700);
         transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.45);
+        box-shadow: 0 8px 22px rgba(54, 95, 143, 0.24);
       }
     }
 
@@ -707,7 +723,7 @@ interface FaqItem {
       border: 1px solid var(--border-hairline);
       border-radius: var(--radius-xl);
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(79, 70, 229, 0.06);
+      box-shadow: var(--shadow-lg);
       text-align: left;
     }
 
@@ -813,7 +829,7 @@ interface FaqItem {
     .progress-fill {
       height: 100%;
       width: 25%;
-      background: linear-gradient(90deg, var(--color-primary-600), #8b5cf6);
+      background: linear-gradient(90deg, var(--color-primary-600), var(--color-ai-purple));
       border-radius: 9999px;
     }
     .progress-text {
@@ -957,7 +973,7 @@ interface FaqItem {
     /* Features Grid */
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
       gap: 1.75rem;
     }
     .feature-card {
@@ -986,7 +1002,7 @@ interface FaqItem {
     .bg-indigo { background: var(--color-primary-50); color: var(--color-primary-600); }
     .bg-emerald { background: rgba(16, 185, 129, 0.12); color: #10b981; }
     .bg-blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-    .bg-purple { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+    .bg-purple { background: var(--color-ai-bg); color: var(--color-ai-purple); }
     .bg-amber { background: var(--color-warning-bg); color: var(--color-warning-text); }
     .bg-rose { background: rgba(244, 63, 94, 0.12); color: #f43f5e; }
 
@@ -1013,7 +1029,7 @@ interface FaqItem {
     /* Workflow Steps */
     .steps-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
       gap: 1.75rem;
     }
     .step-card {
@@ -1046,7 +1062,7 @@ interface FaqItem {
     /* Roles */
     .roles-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
       gap: 1.75rem;
     }
     .role-card {
@@ -1059,7 +1075,7 @@ interface FaqItem {
     }
     .role-card.highlight-role {
       border-color: var(--color-primary-500);
-      box-shadow: 0 8px 30px rgba(79, 70, 229, 0.12);
+      box-shadow: 0 6px 20px rgba(54, 95, 143, 0.1);
     }
     .role-card.govt-role-card {
       border-color: #F59E0B;
@@ -1114,22 +1130,29 @@ interface FaqItem {
       border: 1px solid var(--border-hairline);
       border-radius: var(--radius-md);
       padding: 1.25rem 1.5rem;
-      cursor: pointer;
       transition: border-color 0.2s ease, background-color 0.2s ease;
       &:hover { border-color: var(--color-primary-300); }
       &.open { border-color: var(--color-primary-500); background: var(--bg-hover); }
     }
     .faq-question-row {
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text-heading);
+      text-align: left;
+      cursor: pointer;
     }
-    .faq-question-row h4 {
+    .faq-question-heading { margin: 0; font-size: inherit; }
+    .faq-question-title {
       font-size: 1rem;
       font-weight: 700;
       color: var(--text-heading) !important;
-      margin: 0;
+      line-height: 1.45;
     }
     .faq-chevron {
       font-size: 1.35rem;
@@ -1250,27 +1273,44 @@ interface FaqItem {
       .quiz-top-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
       .footer-bottom-line { flex-direction: column; text-align: center; }
     }
+    @media (max-width: 420px) {
+      .landing-navbar { padding: 0.6rem 0; }
+      .landing-navbar .nav-container { padding-inline: 0.75rem; gap: 0.5rem; }
+      .brand-name-group { gap: 0.25rem; }
+      .brand-title { font-size: 1.05rem; }
+      .nav-actions { gap: 0.5rem; }
+      .nav-actions .btn-primary { padding: 0.55rem 0.75rem; font-size: 0.78rem; }
+      .hero-title { font-size: clamp(2rem, 10vw, 2.5rem); }
+      .section { padding-inline: 1rem; }
+      .feature-card, .role-card { padding: 1.25rem; }
+    }
   `]
 })
 export class LandingComponent {
   readonly authService = inject(AuthService);
+  readonly UserRole = UserRole;
   readonly themeService = inject(ThemeService);
   readonly currentYear = new Date().getFullYear();
+
+  canManageQuizzes(): boolean {
+    const role = this.authService.userRole();
+    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
+  }
 
   readonly faqs = signal<FaqItem[]>([
     {
       question: 'How does Quizzy AI generate quizzes?',
-      answer: 'Quizzy AI uses ultra-fast Groq LLMs (such as Llama 3 & Mixtral) to analyze any subject, prompt, or topic you provide. It automatically generates high-quality multiple-choice questions with 4 distinct options, accurate answer keys, and clear explanations.',
+      answer: 'Enter a topic and the AI drafts multiple-choice questions, answer options, and explanations. Review the generated content and make edits before you publish the quiz.',
       open: true
     },
     {
       question: 'How many students can take a quiz at the same time?',
-      answer: 'Quizzy AI easily supports 15, 20, 30, 50, and up to hundreds of concurrent students. Our lightweight architecture and distributed API handle peak classroom submissions smoothly without server lag.',
+      answer: 'You can configure a participant limit for each quiz. The number of people who can submit at the same time depends on the hosting and database capacity configured for your deployment.',
       open: false
     },
     {
       question: 'Can I choose the number of questions and difficulty level?',
-      answer: 'Yes! You can choose quick presets (10, 15, 20, 30, 50 questions) or enter any custom count up to 50. You can also set the difficulty to Easy, Medium, or Hard, or provide specific custom guidelines in the prompt.',
+      answer: 'Yes. Choose a preset or enter a custom count from 1 to 200. You can also select a difficulty and edit the questions before publishing.',
       open: false
     },
     {
@@ -1280,12 +1320,12 @@ export class LandingComponent {
     },
     {
       question: 'How do students get their certificates?',
-      answer: 'If the educator enables certificates and the student achieves the passing percentage (default 70%), Quizzy AI automatically issues an official digital diploma with a verifiable unique QR code and certificate ID.',
+      answer: 'If certificates are enabled and a learner meets the pass mark, the quiz can issue a certificate with a unique ID and a verification link.',
       open: false
     },
     {
       question: 'Is student assessment data private and secure?',
-      answer: 'Yes, all assessment responses and scores are encrypted with TLS in transit and stored securely in dedicated tenant workspaces. Scores are accessible only to the test taker and the quiz creator.',
+      answer: 'Quiz creators can review submitted attempts and any learner details collected by the quiz. Only request information you need, and avoid entering sensitive personal data into quiz content.',
       open: false
     },
     {
@@ -1296,6 +1336,8 @@ export class LandingComponent {
   ]);
 
   toggleFaq(faq: FaqItem): void {
-    faq.open = !faq.open;
+    this.faqs.update(items => items.map(item =>
+      item.question === faq.question ? { ...item, open: !item.open } : item
+    ));
   }
 }

@@ -1,6 +1,10 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { roleGuard } from './core/guards/role.guard';
+import { UserRole } from './core/models/auth.model';
+
+const quizCreatorRoles = [UserRole.Instructor, UserRole.TenantAdmin, UserRole.SuperAdmin];
 
 export const routes: Routes = [
   {
@@ -66,13 +70,13 @@ export const routes: Routes = [
     path: 'quiz/:id/edit',
     loadComponent: () => import('./features/quizzes/quiz-editor/quiz-editor.component').then(c => c.QuizEditorComponent),
     title: 'Quizzy AI - Edit Quiz',
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard(quizCreatorRoles)]
   },
   {
     path: 'quiz/:id/success',
     loadComponent: () => import('./features/quizzes/quiz-publish-success/quiz-publish-success.component').then(c => c.QuizPublishSuccessComponent),
     title: 'Quizzy AI - Quiz Published',
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard(quizCreatorRoles)]
   },
   {
     path: 'quiz/:id',
@@ -91,12 +95,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/quizzes/quiz-creator/quiz-creator.component').then((m) => m.QuizCreatorComponent),
     title: 'Quizzy AI - Create Quiz with AI',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(quizCreatorRoles)],
   },
   {
     path: 'unauthorized',
     loadComponent: () =>
-      import('./shared/components/not-found/not-found.component').then((m) => m.NotFoundComponent),
+      import('./shared/components/unauthorized/unauthorized.component').then((m) => m.UnauthorizedComponent),
     title: 'Quizzy AI - Access Denied',
   },
   {

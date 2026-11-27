@@ -26,7 +26,7 @@ public class SectionsController : ApiControllerBase
     /// Creates a new section under a course.
     /// </summary>
     [HttpPost("/api/v1/courses/{courseId:guid}/sections")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(SectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateSection(Guid courseId, [FromBody] CreateSectionDto dto, CancellationToken cancellationToken)
@@ -46,7 +46,7 @@ public class SectionsController : ApiControllerBase
     /// Soft deletes a section and its lessons.
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SoftDeleteSection(Guid id, CancellationToken cancellationToken)

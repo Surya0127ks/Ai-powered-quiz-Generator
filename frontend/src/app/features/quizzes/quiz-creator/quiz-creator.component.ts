@@ -89,12 +89,12 @@ export interface GovtExamCategory {
           </div>
           @if (creationMode() === 'smart') {
             <div class="error-actions margin-top-xs">
-              @if (!showApiKeyInput()) {
+              @if (!showApiKeyInput() && canOfferCustomApiKey()) {
                 <button type="button" (click)="showApiKeyInput.set(true)" class="btn btn-outline btn-sm">
                   🔑 Enter Custom Groq API Key
                 </button>
               }
-              <button (click)="generateSmartQuestions()" [disabled]="isGenerating()" class="btn btn-danger btn-sm">
+              <button (click)="generateSmartQuestions()" [disabled]="isGenerating()" class="btn btn-outline btn-sm">
                 🔄 Retry AI Generation
               </button>
             </div>
@@ -168,47 +168,39 @@ export interface GovtExamCategory {
                 <label>Number of Questions *</label>
                 <span class="count-badge">{{ requestedQuestionCount }} Questions</span>
               </div>
-              <div class="question-chips-row">
+              <div class="count-control-row">
+                <div class="question-chips-row" role="group" aria-label="Question count presets">
                 @for (cnt of questionPresets; track cnt) {
                   <button
                     type="button"
                     class="chip-btn"
                     [class.active]="requestedQuestionCount === cnt"
+                    [attr.aria-pressed]="requestedQuestionCount === cnt"
                     (click)="setQuestionCount(cnt)"
                     [disabled]="isGenerating()"
                   >
                     {{ cnt }}
                   </button>
                 }
+                </div>
+                <label class="custom-count-field">
+                  <span>Custom</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    step="1"
+                    inputmode="numeric"
+                    [(ngModel)]="requestedQuestionCount"
+                    [ngModelOptions]="{standalone: true}"
+                    (input)="onManualQuestionCountChange($event)"
+                    class="input-control custom-count-input"
+                    aria-label="Custom question count, 1 to 30"
+                    [disabled]="isGenerating()"
+                  />
+                </label>
               </div>
-              <div class="stepper-input-row margin-top-xs">
-                <button
-                  type="button"
-                  class="stepper-btn"
-                  (click)="adjustQuestionCount(-1)"
-                  [disabled]="requestedQuestionCount <= 1 || isGenerating()"
-                  title="Decrease questions"
-                >−</button>
-                <input
-                  type="number"
-                  min="1"
-                  max="200"
-                  [(ngModel)]="requestedQuestionCount"
-                  [ngModelOptions]="{standalone: true}"
-                  (input)="onManualQuestionCountChange($event)"
-                  class="input-control stepper-input"
-                  placeholder="Custom count (1-200)"
-                  [disabled]="isGenerating()"
-                />
-                <button
-                  type="button"
-                  class="stepper-btn"
-                  (click)="adjustQuestionCount(1)"
-                  [disabled]="requestedQuestionCount >= 200 || isGenerating()"
-                  title="Increase questions"
-                >+</button>
-                <span class="stepper-hint">Choose 1–200 questions</span>
-              </div>
+              <p class="count-help">Choose 1–30 questions. Max 30 for smooth Groq free-tier generation.</p>
             </div>
 
             <div class="form-group">
@@ -260,7 +252,7 @@ export interface GovtExamCategory {
                   <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
                   </svg>
-                  <span>Generating {{ requestedQuestionCount }} Questions via Groq AI...</span>
+                  <span>Generating {{ requestedQuestionCount }} questions. Larger quizzes may take longer.</span>
                 </span>
               } @else {
                 <span>✨ Generate & Pre-Fill Quiz Builder with Groq AI</span>
@@ -280,7 +272,7 @@ export interface GovtExamCategory {
               </div>
               <div>
                 <h4>Groq AI is crafting your quiz questions...</h4>
-                <p>Generating {{ requestedQuestionCount }} technical questions with answer choices and explanations live.</p>
+                <p>Questions are generated in small batches. Larger quizzes may take longer because of provider limits.</p>
               </div>
             </div>
 
@@ -372,35 +364,39 @@ export interface GovtExamCategory {
                     <label>Number of Questions *</label>
                     <span class="count-badge">{{ requestedQuestionCount }} Questions</span>
                   </div>
-                  <div class="question-chips-row">
-                    @for (cnt of [10, 15, 20, 25, 30, 50]; track cnt) {
+                  <div class="count-control-row">
+                    <div class="question-chips-row" role="group" aria-label="Question count presets">
+                    @for (cnt of questionPresets; track cnt) {
                       <button
                         type="button"
                         class="chip-btn"
                         [class.active]="requestedQuestionCount === cnt"
+                        [attr.aria-pressed]="requestedQuestionCount === cnt"
                         (click)="setQuestionCount(cnt)"
                         [disabled]="isGenerating()"
                       >
                         {{ cnt }}
                       </button>
                     }
+                    </div>
+                    <label class="custom-count-field">
+                      <span>Custom</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        step="1"
+                        inputmode="numeric"
+                        [(ngModel)]="requestedQuestionCount"
+                        [ngModelOptions]="{standalone: true}"
+                        (input)="onManualQuestionCountChange($event)"
+                        class="input-control custom-count-input"
+                        aria-label="Custom question count, 1 to 30"
+                        [disabled]="isGenerating()"
+                      />
+                    </label>
                   </div>
-                  <div class="stepper-input-row margin-top-xs">
-                    <button type="button" class="stepper-btn" (click)="adjustQuestionCount(-1)" [disabled]="requestedQuestionCount <= 1 || isGenerating()">−</button>
-                    <input
-                      type="number"
-                      min="1"
-                      max="200"
-                      [(ngModel)]="requestedQuestionCount"
-                      [ngModelOptions]="{standalone: true}"
-                      (input)="onManualQuestionCountChange($event)"
-                      class="input-control stepper-input"
-                      placeholder="Custom count (1-200)"
-                      [disabled]="isGenerating()"
-                    />
-                    <button type="button" class="stepper-btn" (click)="adjustQuestionCount(1)" [disabled]="requestedQuestionCount >= 200 || isGenerating()">+</button>
-                    <span class="stepper-hint">Choose 1–200 questions</span>
-                  </div>
+                  <p class="count-help">Choose 1–30 questions. Max 30 for smooth Groq free-tier generation.</p>
                 </div>
 
                 <!-- Exam Difficulty -->
@@ -521,7 +517,7 @@ export interface GovtExamCategory {
               </div>
               <div>
                 <h4>Groq AI is crafting {{ currentGovtExam()?.name }} questions...</h4>
-                <p>Generating {{ requestedQuestionCount }} exam-standard questions with answer keys and detailed explanations.</p>
+                <p>Questions are generated in small batches. Larger quizzes may take longer because of provider limits.</p>
               </div>
             </div>
 
@@ -543,8 +539,8 @@ export interface GovtExamCategory {
       <form [formGroup]="quizForm" (ngSubmit)="onSubmit(true)" class="creator-form-layout">
         <!-- Section 1: Quiz Details -->
         <div class="saas-card form-section">
-          <h3>📌 Quiz Details & Settings</h3>
-          <p class="section-desc">Configure title, passing score, and time limit for your quiz.</p>
+          <h3>Quiz details</h3>
+          <p class="section-desc">Set the title and the few settings learners need before starting.</p>
 
           <div class="form-grid-2">
             <div class="form-group">
@@ -570,6 +566,9 @@ export interface GovtExamCategory {
             </div>
           </div>
 
+          <details class="advanced-settings margin-top-sm">
+            <summary>Optional learner messages <span>Description, welcome message, and instructions</span></summary>
+            <div class="advanced-settings-content">
           <div class="form-group margin-top-sm">
             <label for="description">Description</label>
             <textarea
@@ -602,6 +601,8 @@ export interface GovtExamCategory {
               class="input-control"
             ></textarea>
           </div>
+            </div>
+          </details>
 
           <div class="form-grid-3 margin-top-sm">
             <div class="form-group">
@@ -637,6 +638,9 @@ export interface GovtExamCategory {
             </div>
           </div>
 
+          <details class="advanced-settings margin-top-sm">
+            <summary>Scoring, access, and certificates <span>Negative marking, limits, and result settings</span></summary>
+            <div class="advanced-settings-content">
           <div class="form-grid-3 margin-top-sm">
             <div class="form-group">
               <label for="totalMarks">Total Marks (Optional)</label>
@@ -742,42 +746,44 @@ export interface GovtExamCategory {
             </div>
           </div>
 
-          <div class="form-grid-2 margin-top-sm" style="align-items: center; gap: 1.5rem; background: var(--bg-hover); padding: 1.25rem; border-radius: var(--radius-lg);">
-            <div>
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+          <div class="quiz-preferences-grid margin-top-sm">
+            <div class="preference-group">
+              <label class="setting-option">
                 <input type="checkbox" formControlName="shuffleQuestions" class="check-control" />
                 Shuffle Questions
               </label>
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-top: 0.5rem;">
+              <label class="setting-option">
                 <input type="checkbox" formControlName="shuffleOptions" class="check-control" />
                 Shuffle Options
               </label>
             </div>
-            <div>
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+            <div class="preference-group">
+              <label class="setting-option">
                 <input type="checkbox" formControlName="enableCertificate" class="check-control" />
                 Issue Certificate on Pass
               </label>
               @if (quizForm.get('enableCertificate')?.value) {
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-top: 0.5rem; margin-left: 1.5rem; color: var(--text-muted) !important;">
+                <label class="setting-option setting-option-nested">
                   <input type="checkbox" formControlName="certificateForTopperOnly" class="check-control" />
                   Only issue to Top Scorer (Topper)
                 </label>
               }
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-top: 0.5rem;">
+              <label class="setting-option">
                 <input type="checkbox" formControlName="autoSubmit" class="check-control" />
                 Auto-Submit on Time Up
               </label>
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-top: 0.5rem;">
+              <label class="setting-option">
                 <input type="checkbox" formControlName="showResultsAfterSubmission" class="check-control" />
                 Show Detailed Results After Submission
               </label>
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-top: 0.5rem;">
+              <label class="setting-option">
                 <input type="checkbox" formControlName="showCorrectAnswers" class="check-control" />
                 Show Correct Answers in Results
               </label>
             </div>
           </div>
+            </div>
+          </details>
         </div>
 
         <!-- Quick Publish Action Bar (Top) — appears once questions are loaded -->
@@ -941,8 +947,8 @@ export interface GovtExamCategory {
     </div>
   `,
   styles: [`
-    .creator-container { max-width: 960px; margin: 0 auto; padding: 2.0rem 1.5rem; }
-    .creator-header { margin-bottom: 1.5rem; }
+    .creator-container { max-width: 1040px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
+    .creator-header { margin-bottom: 1.25rem; }
     .back-link { color: var(--color-primary) !important; font-weight: 600; text-decoration: none; font-size: 0.875rem; margin-bottom: 0.5rem; display: inline-block; }
     .header-title-row h1 { font-size: 2.0rem; font-weight: 800; color: var(--text-primary) !important; margin: 0.25rem 0; letter-spacing: -0.02em; }
     .header-title-row p { font-size: 0.95rem; color: var(--text-secondary) !important; margin: 0; }
@@ -955,7 +961,7 @@ export interface GovtExamCategory {
       border: 1px solid var(--border-hairline);
       padding: 0.35rem;
       border-radius: 0.5rem;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.25rem;
     }
     .tab-btn {
       flex: 1;
@@ -979,25 +985,24 @@ export interface GovtExamCategory {
         .tab-svg { stroke: var(--color-primary); }
       }
       &.tab-btn-ai.active {
-        background: var(--color-ai-bg);
-        color: var(--color-ai-purple) !important;
-        .tab-svg { stroke: var(--color-ai-purple); }
+        background: var(--color-primary-50);
+        color: var(--color-primary-600) !important;
+        .tab-svg { stroke: var(--color-primary-600); }
       }
       &.tab-btn-govt.active {
-        background: rgba(245, 158, 11, 0.15);
-        color: #b45309 !important;
-        border-color: #f59e0b;
+        background: var(--color-primary-50);
+        color: var(--color-primary-600) !important;
       }
     }
 
     /* Generator Panel & Govt Exam Hub */
     .generator-panel {
-      padding: 1.75rem;
+      padding: 1.5rem;
       background: var(--bg-surface);
-      border: 1px solid var(--color-ai-border);
-      border-top: 4px solid var(--color-ai-purple);
-      border-radius: 0.75rem;
-      .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
+      border: 1px solid var(--border-hairline);
+      border-top: 3px solid var(--color-primary-600);
+      border-radius: var(--radius-xl);
+      .panel-desc { font-size: 0.9rem; color: var(--text-secondary) !important; margin: 0.35rem 0 1.25rem 0; }
     }
 
     .govt-panel {
@@ -1019,7 +1024,7 @@ export interface GovtExamCategory {
       letter-spacing: 0.05em;
     }
 
-    /* Question count chips & stepper */
+    /* Compact question-count controls */
     .label-with-count {
       display: flex;
       align-items: center;
@@ -1037,74 +1042,54 @@ export interface GovtExamCategory {
       border-radius: 9999px;
     }
 
+    .count-control-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.75rem;
+    }
     .question-chips-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 0.5rem;
+      gap: 0.45rem;
     }
     .chip-btn {
-      padding: 0.35rem 0.75rem;
-      border-radius: 6px;
-      border: 1.5px solid var(--border-hairline);
+      min-width: 44px;
+      min-height: 42px;
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
       color: var(--text-body);
-      font-size: 0.8rem;
+      font-size: 0.875rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
       &:hover {
         border-color: var(--color-primary-600);
         color: var(--color-primary-600);
       }
       &.active {
-        background: var(--color-primary-600);
+        background: var(--color-primary-50);
         border-color: var(--color-primary-600);
-        color: #ffffff;
-        box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+        color: var(--color-primary-700);
       }
     }
-
-    .stepper-input-row {
+    .custom-count-field {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .stepper-btn {
-      width: 34px;
-      height: 34px;
-      border-radius: 6px;
-      border: 1px solid var(--border-strong);
-      background: var(--bg-hover);
-      font-size: 1.15rem;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-heading);
-      transition: all 0.15s ease;
-      &:hover:not(:disabled) {
-        background: var(--color-primary-50);
-        color: var(--color-primary-600);
-        border-color: var(--color-primary-300);
-      }
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-    }
-    .stepper-input {
-      width: 120px !important;
-      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
       font-weight: 700;
-      font-size: 0.95rem;
+      white-space: nowrap;
     }
-    .stepper-hint {
-      font-size: 0.75rem;
-      color: var(--text-muted) !important;
-    }
+    .custom-count-input { width: 96px !important; min-height: 42px; padding: 0.5rem !important; }
+    .count-help { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.78rem; line-height: 1.45; }
+    .count-control-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; }
+    .custom-count-field { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; }
+    .custom-count-input { width: 96px !important; min-height: 42px; padding: 0.5rem !important; }
+    .count-help { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.78rem; line-height: 1.45; }
 
     /* Govt Exam Streams & Topic Cards */
     .govt-streams-label {
@@ -1334,7 +1319,7 @@ export interface GovtExamCategory {
         background: var(--color-primary-600);
         border-color: var(--color-primary-600);
         color: #ffffff;
-        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+        box-shadow: var(--shadow-sm);
       }
     }
 
@@ -1370,15 +1355,11 @@ export interface GovtExamCategory {
 
     .ai-generating-loader {
       background: var(--bg-surface);
-      border: 1.5px solid var(--color-ai-border);
+      border: 1px solid var(--border-hairline);
+      border-left: 3px solid var(--color-primary-600);
       border-radius: var(--radius-xl);
       padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15);
-      animation: pulseGlow 2s ease-in-out infinite alternate;
-    }
-    @keyframes pulseGlow {
-      0% { border-color: #DDD6FE; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.12); }
-      100% { border-color: #7C3AED; box-shadow: 0 6px 25px rgba(124, 58, 237, 0.25); }
+      box-shadow: var(--shadow-sm);
     }
 
     .loader-header {
@@ -1436,6 +1417,35 @@ export interface GovtExamCategory {
     }
 
     .form-section { padding: 1.5rem; h3 { font-size: 1.15rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; } .section-desc { font-size: 0.85rem; color: var(--text-muted) !important; margin: 0.25rem 0 1.25rem 0; } }
+    .advanced-settings { border-top: 1px solid var(--border-hairline); }
+    .advanced-settings summary {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-weight: 700;
+      list-style: none;
+      cursor: pointer;
+    }
+    .advanced-settings summary::-webkit-details-marker { display: none; }
+    .advanced-settings summary::after { content: '+'; margin-left: auto; color: var(--color-primary-600); font-size: 1.25rem; }
+    .advanced-settings[open] summary::after { content: '−'; }
+    .advanced-settings summary span { color: var(--text-muted); font-size: 0.78rem; font-weight: 500; }
+    .advanced-settings-content { padding: 0.25rem 0 0.5rem; }
+    .quiz-preferences-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+    }
+    .preference-group { display: grid; gap: 0.35rem; align-content: start; }
+    .setting-option { display: flex; align-items: center; gap: 0.6rem; min-height: 40px; color: var(--text-body); font-size: 0.875rem; font-weight: 600; }
+    .setting-option-nested { margin-left: 1.5rem; color: var(--text-muted); }
     .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.0rem; }
     .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.0rem; }
 
@@ -1504,11 +1514,21 @@ export interface GovtExamCategory {
     }
     
     @media (max-width: 600px) {
+      .tab-switch-bar { display: grid; grid-template-columns: 1fr; gap: 0.25rem; }
+      .tab-btn { justify-content: flex-start; min-height: 44px; }
       .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+      .count-control-row { grid-template-columns: 1fr; align-items: start; }
+      .custom-count-field { justify-content: space-between; }
+      .count-control-row { grid-template-columns: 1fr; align-items: start; }
+      .custom-count-field { justify-content: space-between; }
       .qpb-actions {
         grid-template-columns: 1fr;
       }
       .creator-container { padding: 1.25rem 1rem; }
+      .form-section { padding: 1.1rem; }
+      .advanced-settings summary { align-items: flex-start; flex-wrap: wrap; padding-block: 0.5rem; }
+      .advanced-settings summary span { flex-basis: 100%; }
+      .quiz-preferences-grid { grid-template-columns: 1fr; }
       .q-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       .q-header .btn-remove { width: 100%; text-align: center; justify-content: center; }
       .options-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
@@ -1550,8 +1570,9 @@ export class QuizCreatorComponent implements OnInit {
   requestedQuestionCount = 10;
   selectedDifficulty = 'Mixed';
 
-  // Question presets and stepper controls
-  readonly questionPresets = [5, 10, 15, 20, 25, 30, 50];
+  // A short preset list keeps the count control easy to scan.
+  // Max 30 — optimised for Groq free-tier token limits.
+  readonly questionPresets = [10, 15, 20, 30];
 
   // Government & Competitive Examination Data
   readonly govtExamCategories: GovtExamCategory[] = [
@@ -1657,7 +1678,7 @@ export class QuizCreatorComponent implements OnInit {
   selectGovtTopic(topic: GovtExamTopic): void {
     this.selectedGovtTopicTitle = topic.title;
     this.customTopic = topic.title;
-    this.requestedQuestionCount = topic.recommendedQuestions;
+    this.requestedQuestionCount = Math.min(30, topic.recommendedQuestions);
     this.selectedDifficulty = topic.difficulty;
     this.selectedNegativeMarking = topic.defaultNegativeMarking;
 
@@ -1674,18 +1695,13 @@ export class QuizCreatorComponent implements OnInit {
   }
 
   setQuestionCount(cnt: number): void {
-    this.requestedQuestionCount = Math.min(200, Math.max(1, cnt));
-  }
-
-  adjustQuestionCount(delta: number): void {
-    const next = (this.requestedQuestionCount || 10) + delta;
-    this.requestedQuestionCount = Math.min(200, Math.max(1, next));
+    this.requestedQuestionCount = Math.min(30, Math.max(1, cnt));
   }
 
   onManualQuestionCountChange(event: Event): void {
     const val = Number((event.target as HTMLInputElement).value);
     if (!isNaN(val) && val > 0) {
-      this.requestedQuestionCount = Math.min(200, Math.max(1, Math.floor(val)));
+      this.requestedQuestionCount = Math.min(30, Math.max(1, Math.floor(val)));
     } else {
       this.requestedQuestionCount = 10;
     }
@@ -1809,7 +1825,7 @@ export class QuizCreatorComponent implements OnInit {
       return;
     }
 
-    const questionCount = Math.min(200, Math.max(1, Math.floor(Number(this.requestedQuestionCount) || 10)));
+    const questionCount = Math.min(30, Math.max(1, Math.floor(Number(this.requestedQuestionCount) || 10)));
 
     this.isGenerating.set(true);
     this.errorMessage.set(null);
@@ -1836,17 +1852,34 @@ export class QuizCreatorComponent implements OnInit {
           this.showSuccessToast.set(true);
           setTimeout(() => this.showSuccessToast.set(false), 3500);
         } else {
-          this.showApiKeyInput.set(true);
-          this.errorMessage.set('Groq AI returned no questions. Please enter your API key or check your topic prompt and click Retry.');
+          this.errorMessage.set('The AI provider returned no questions. Check the topic and retry.');
         }
       },
       error: (err) => {
         this.isGenerating.set(false);
-        this.showApiKeyInput.set(true);
-        const msg = err.error?.message || 'Failed to generate questions via Groq AI. You can enter a custom Groq API key below and click Retry.';
-        this.errorMessage.set(msg);
+        this.errorMessage.set(this.getGenerationErrorMessage(String(err.error?.message || '')));
       }
     });
+  }
+
+  private getGenerationErrorMessage(providerMessage: string): string {
+    if (/429|rate.?limit|tokens per minute|token-per-minute/i.test(providerMessage)) {
+      const retryAfter = providerMessage.match(/(?:try again in|retry after)\s*([\d.]+)\s*s/i)?.[1];
+      const waitMessage = retryAfter
+        ? `Wait about ${Math.ceil(Number(retryAfter))} seconds, then retry.`
+        : 'Wait for the provider limit to reset, then retry.';
+      return `Groq temporarily reached its token limit. ${waitMessage} Large quizzes use more tokens and may exceed the current plan limit.`;
+    }
+
+    if (providerMessage) {
+      return providerMessage;
+    }
+
+    return 'Question generation failed. Check your connection and retry.';
+  }
+
+  canOfferCustomApiKey(): boolean {
+    return !/429|rate.?limit|tokens per minute|token-per-minute/i.test(this.errorMessage() ?? '');
   }
 
   populateQuestionsArray(questions: CreateQuizQuestionItem[]): void {

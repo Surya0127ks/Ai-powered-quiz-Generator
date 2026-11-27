@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { QuizService } from '../../../core/services/quiz.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { copyTextToClipboard } from '../../../core/utils/clipboard';
 import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../../core/models/quiz.model';
 
 @Component({
@@ -20,35 +21,20 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
 
       <!-- Toast Notification -->
       @if (showToast()) {
-        <div class="toast-notification">
+        <div class="toast-notification" role="status" aria-live="polite">
           ✨ Shareable Quiz Link copied to clipboard!
+        </div>
+      }
+      @if (shareCopyFailed()) {
+        <div class="toast-notification" role="alert">
+          Could not copy the link. Select the URL above and copy it manually.
         </div>
       }
 
       <!-- Focus Loss Warning Toast -->
       @if (showFocusWarning()) {
-        <div class="toast-notification warning-toast">
-          ⚠️ Warning {{ cheatWarningCount }}/2: Leaving the assessment window is not allowed! One more violation will auto-submit your exam.
-        </div>
-      }
-
-      <!-- Cheating / Disqualified Overlay -->
-      @if (isDisqualified()) {
-        <div class="disqualified-overlay">
-          <div class="disqualified-card">
-            <div class="dq-icon">🚫</div>
-            <h2>Assessment Terminated</h2>
-            <p>You were <strong>disqualified</strong> for switching browser tabs or leaving the exam window. Your attempt has been automatically submitted and flagged for the instructor.</p>
-            <div class="dq-details">
-              <span>📋 Violations: {{ cheatWarningCount }}</span>
-              <span>⏱️ Remaining time was forfeited</span>
-            </div>
-            @if (!isPublicMode) {
-              <a routerLink="/dashboard" class="btn btn-outline" style="margin-top: 1.5rem;">Return to Dashboard</a>
-            } @else {
-              <p style="margin-top: 1.5rem; color: var(--text-muted);">This window can now be closed.</p>
-            }
-          </div>
+        <div class="toast-notification warning-toast" role="status" aria-live="polite">
+          Assessment focus changed. Switching apps, opening notifications, or browser controls can trigger this on some devices.
         </div>
       }
 
@@ -239,7 +225,7 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
           </div>
 
           <!-- Share & QR Quick Actions Bar -->
-          @if (quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId && authService.userRole() !== 3) {
+          @if (quiz()?.isPublished && quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId && authService.userRole() !== 3) {
             <div class="share-banner margin-top">
               <div class="share-info">
                 <span class="share-label">🔗 Share Assessment Link:</span>
@@ -826,6 +812,7 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   readonly retryAttempt = signal(0);
   readonly emailAlreadyUsed = signal(false);
   readonly showToast = signal(false);
+  readonly shareCopyFailed = signal(false);
   readonly showQrModal = signal(false);
   readonly isStarted = signal(false);
   readonly remainingSeconds = signal<number>(15 * 60);
@@ -850,60 +837,24 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   private timerInterval: any = null;
   isPublicMode: boolean = false;
   focusLostCount: number = 0;
-  cheatWarningCount: number = 0;
   showFocusWarning = signal(false);
-  readonly isDisqualified = signal(false);
 
   @HostListener('window:blur')
   onWindowBlur() {
-    if (this.isStarted() && !this.result() && !this.isDisqualified()) {
+    if (this.isStarted() && !this.result()) {
       this.focusLostCount++;
-      this.cheatWarningCount++;
-      if (this.cheatWarningCount >= 2) {
-        // Second violation: disqualify and auto-submit
-        this.disqualifyAndSubmit();
-      } else {
-        // First violation: show warning
-        this.showFocusWarning.set(true);
-        setTimeout(() => this.showFocusWarning.set(false), 5000);
-      }
-    }
-  }
-
-  @HostListener('contextmenu', ['$event'])
-  onRightClick(event: Event) {
-    if (this.isStarted() && !this.result()) {
-      event.preventDefault();
-    }
-  }
-
-  @HostListener('copy', ['$event'])
-  @HostListener('paste', ['$event'])
-  @HostListener('cut', ['$event'])
-  onClipboard(event: Event) {
-    if (this.isStarted() && !this.result()) {
-      event.preventDefault();
+      this.showFocusWarning.set(true);
+      setTimeout(() => this.showFocusWarning.set(false), 5000);
     }
   }
 
   @HostListener('document:fullscreenchange', ['$event'])
   onFullScreenChange() {
-    if (this.isStarted() && !this.result() && !this.isDisqualified()) {
+    if (this.isStarted() && !this.result()) {
       if (!document.fullscreenElement) {
         this.focusLostCount++;
-        this.cheatWarningCount++;
-        if (this.cheatWarningCount >= 2) {
-          this.disqualifyAndSubmit();
-        } else {
-          this.showFocusWarning.set(true);
-          setTimeout(() => this.showFocusWarning.set(false), 5000);
-          // Re-request fullscreen after a short delay
-          setTimeout(() => {
-            if (this.isStarted() && !this.result()) {
-              document.documentElement.requestFullscreen().catch(() => {});
-            }
-          }, 1500);
-        }
+        this.showFocusWarning.set(true);
+        setTimeout(() => this.showFocusWarning.set(false), 5000);
       }
     }
   }
@@ -1084,44 +1035,6 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
     });
   }
 
-  disqualifyAndSubmit(): void {
-    if (this.isDisqualified()) return; // prevent double-call
-    this.isDisqualified.set(true);
-    this.showFocusWarning.set(false);
-    if (this.timerInterval) clearInterval(this.timerInterval);
-    localStorage.removeItem('qp_active_ongoing_attempt');
-    // Exit fullscreen if active
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    }
-    // Auto-submit with disqualified flag
-    const q = this.quiz();
-    if (!q) return;
-    const answersList: StudentAnswerItem[] = [];
-    q.questions.forEach(ques => {
-      const selected = this.selectedAnswersMap.get(ques.id) || [];
-      answersList.push({
-        questionId: ques.id,
-        selectedOptionId: selected[0] || undefined,
-        selectedOptionIds: selected
-      });
-    });
-    const payload = {
-      answers: answersList,
-      ...this.studentDetails,
-      focusLostCount: this.focusLostCount,
-      isDisqualified: true,
-      disqualificationReason: 'Student switched tabs or left the exam window multiple times'
-    };
-    const submitObs = this.isPublicMode
-      ? this.quizService.submitPublicQuizAttempt(q.id, payload)
-      : this.quizService.submitQuizAttempt(q.id, payload);
-    submitObs.subscribe({
-      next: () => {},
-      error: () => {}
-    });
-  }
-
   private startTimerInterval(): void {
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.timerInterval = setInterval(() => {
@@ -1299,11 +1212,14 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
     return encodeURIComponent(url);
   }
 
-  copyShareLink(): void {
-    navigator.clipboard.writeText(this.getShareableUrl()).then(() => {
-      this.showToast.set(true);
-      setTimeout(() => this.showToast.set(false), 3000);
-    });
+  async copyShareLink(): Promise<void> {
+    const copied = await copyTextToClipboard(this.getShareableUrl());
+    this.shareCopyFailed.set(!copied);
+    this.showToast.set(copied);
+    setTimeout(() => {
+      this.showToast.set(false);
+      this.shareCopyFailed.set(false);
+    }, 3000);
   }
 
   toggleQrModal(): void {

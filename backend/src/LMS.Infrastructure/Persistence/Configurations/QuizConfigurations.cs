@@ -71,6 +71,7 @@ public class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAttempt>
     public void Configure(EntityTypeBuilder<QuizAttempt> builder)
     {
         builder.HasKey(a => a.Id);
+        builder.Property(a => a.TotalPointsEarned).HasPrecision(10, 2);
 
         builder.HasOne(a => a.User)
             .WithMany()
@@ -90,6 +91,7 @@ public class QuizAttemptAnswerConfiguration : IEntityTypeConfiguration<QuizAttem
     public void Configure(EntityTypeBuilder<QuizAttemptAnswer> builder)
     {
         builder.HasKey(ans => ans.Id);
+        builder.Property(ans => ans.PointsEarned).HasPrecision(10, 2);
 
         builder.HasOne(ans => ans.Attempt)
             .WithMany(a => a.Answers)

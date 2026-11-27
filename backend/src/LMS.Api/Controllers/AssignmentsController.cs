@@ -34,7 +34,7 @@ public class AssignmentsController : ApiControllerBase
     /// Creates a new coursework assignment under a lesson.
     /// </summary>
     [HttpPost("/api/v1/lessons/{lessonId:guid}/assignment")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(AssignmentDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateAssignment(Guid lessonId, [FromBody] CreateAssignmentDto dto, CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ public class AssignmentsController : ApiControllerBase
     /// Grades student submission and provides feedback (Instructor feature).
     /// </summary>
     [HttpPost("/api/v1/assignments/submissions/{submissionId:guid}/grade")]
-    [Authorize]
+    [Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
     [ProducesResponseType(typeof(AssignmentSubmissionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GradeSubmission(Guid submissionId, [FromBody] GradeSubmissionDto dto, CancellationToken cancellationToken)

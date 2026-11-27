@@ -11,7 +11,12 @@ export class ThemeService {
   }
 
   private initTheme(): void {
-    const saved = localStorage.getItem('qp-theme');
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem('qp-theme');
+    } catch {
+      // Keep the app usable when browser storage is disabled.
+    }
     if (saved) {
       const isDark = saved === 'dark';
       this.isDarkMode.set(isDark);
@@ -26,7 +31,11 @@ export class ThemeService {
   toggleTheme(): void {
     const nextDark = !this.isDarkMode();
     this.isDarkMode.set(nextDark);
-    localStorage.setItem('qp-theme', nextDark ? 'dark' : 'light');
+    try {
+      localStorage.setItem('qp-theme', nextDark ? 'dark' : 'light');
+    } catch {
+      // The selected theme still applies for this page session.
+    }
     this.applyTheme(nextDark);
   }
 

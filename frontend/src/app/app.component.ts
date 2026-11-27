@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, Event } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
@@ -11,8 +11,8 @@ import { UserRole } from './core/models/auth.model';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     @if (isNavigating()) {
-      <div class="global-page-loader">
-        <div class="spinner-brand">
+      <div class="global-page-loader" role="status" aria-live="polite" aria-label="Loading page">
+        <div class="spinner-brand" aria-hidden="true">
           <div class="spinner-circle"></div>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -35,7 +35,7 @@ import { UserRole } from './core/models/auth.model';
           </a>
 
           <!-- Desktop Nav Links -->
-          <nav class="nav-menu">
+          <nav class="nav-menu" aria-label="Primary navigation">
             <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
               <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7"></rect>
@@ -47,12 +47,14 @@ import { UserRole } from './core/models/auth.model';
             </a>
 
             @if (authService.isAuthenticated()) {
+              @if (canManageQuizzes()) {
               <a routerLink="/quizzes/new" routerLinkActive="active" class="nav-link">
                 <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
                 </svg>
                 <span>Create Quiz</span>
               </a>
+              }
 
               <a routerLink="/student/progress" routerLinkActive="active" class="nav-link">
                 <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -77,15 +79,19 @@ import { UserRole } from './core/models/auth.model';
             <button
               (click)="themeService.toggleTheme()"
               class="theme-toggle-btn"
+              [attr.aria-label]="themeService.isDarkMode() ? 'Switch to light theme' : 'Switch to dark theme'"
+              [attr.aria-pressed]="themeService.isDarkMode()"
               [title]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
             >
               {{ themeService.isDarkMode() ? '☀️' : '🌙' }}
             </button>
 
             @if (authService.isAuthenticated()) {
+              @if (canManageQuizzes()) {
               <a routerLink="/quizzes/new" class="btn btn-ai btn-sm desktop-only">
                 ✨ Create with AI
               </a>
+              }
 
               <div class="user-chip desktop-only">
                 <div class="avatar-circle">
@@ -104,7 +110,13 @@ import { UserRole } from './core/models/auth.model';
             }
 
             <!-- Mobile Hamburger Button -->
-            <button (click)="mobileMenuOpen.set(!mobileMenuOpen())" class="mobile-toggle-btn">
+            <button
+              (click)="mobileMenuOpen.set(!mobileMenuOpen())"
+              class="mobile-toggle-btn"
+              [attr.aria-expanded]="mobileMenuOpen()"
+              aria-controls="mobile-primary-navigation"
+              [attr.aria-label]="mobileMenuOpen() ? 'Close navigation menu' : 'Open navigation menu'"
+            >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 @if (mobileMenuOpen()) {
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -121,14 +133,16 @@ import { UserRole } from './core/models/auth.model';
 
         <!-- Mobile Collapsible Drawer Navigation Menu -->
         @if (mobileMenuOpen()) {
-          <div class="mobile-drawer-menu">
+          <nav id="mobile-primary-navigation" class="mobile-drawer-menu" aria-label="Mobile navigation">
             <a routerLink="/dashboard" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
               <span>🏠 Dashboard</span>
             </a>
             @if (authService.isAuthenticated()) {
+              @if (canManageQuizzes()) {
               <a routerLink="/quizzes/new" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item highlight-ai">
                 <span>✨ Create Quiz with AI</span>
               </a>
+              }
               <a routerLink="/student/progress" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
                 <span>📊 Attempt History & Score Reports</span>
               </a>
@@ -155,7 +169,7 @@ import { UserRole } from './core/models/auth.model';
                 <span>Create Account</span>
               </a>
             }
-          </div>
+          </nav>
         }
       </header>
     }
@@ -193,7 +207,9 @@ import { UserRole } from './core/models/auth.model';
               <h5 class="footer-heading">Platform</h5>
               <ul class="footer-links">
                 <li><a routerLink="/dashboard">Dashboard</a></li>
-                <li><a routerLink="/quizzes/new">✨ Create Quiz with AI</a></li>
+                @if (!authService.isAuthenticated() || canManageQuizzes()) {
+                  <li><a routerLink="/quizzes/new">✨ Create Quiz with AI</a></li>
+                }
                 <li><a routerLink="/student/progress">Attempt History</a></li>
                 <li><a routerLink="/certificate/generator">Certificate Studio</a></li>
                 <li><a routerLink="/verify-certificate">Verify Certificate</a></li>
@@ -204,10 +220,12 @@ import { UserRole } from './core/models/auth.model';
             <div class="footer-col">
               <h5 class="footer-heading">Assessment Topics</h5>
               <ul class="footer-links">
-                <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM'}">Artificial Intelligence</a></li>
-                <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development'}">Web Development</a></li>
-                <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Data Structures & Algorithms'}">Algorithms & Code</a></li>
-                <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud'}">Cyber Security</a></li>
+                @if (!authService.isAuthenticated() || canManageQuizzes()) {
+                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM'}">Artificial Intelligence</a></li>
+                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development'}">Web Development</a></li>
+                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Data Structures & Algorithms'}">Algorithms & Code</a></li>
+                  <li><a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud'}">Cyber Security</a></li>
+                }
               </ul>
             </div>
 
@@ -215,7 +233,7 @@ import { UserRole } from './core/models/auth.model';
             <div class="footer-col">
               <h5 class="footer-heading">Features</h5>
               <ul class="footer-links">
-                <li><span>🔒 SSL Encrypted</span></li>
+                <li><span>🔒 HTTPS access</span></li>
                 <li><span>📜 Custom Diplomas</span></li>
                 <li><span>⚡ Instant Auto-Grading</span></li>
                 <li><span>🎯 Shareable Links</span></li>
@@ -227,10 +245,6 @@ import { UserRole } from './core/models/auth.model';
             <p>© 2026 Quizzy AI. All rights reserved.</p>
             <div class="footer-bottom-links">
               <a routerLink="/verify-certificate">Certificate Verification</a>
-              <span>·</span>
-              <a href="javascript:void(0)">Privacy Policy</a>
-              <span>·</span>
-              <a href="javascript:void(0)">Terms of Service</a>
             </div>
           </div>
         </div>
@@ -314,7 +328,7 @@ import { UserRole } from './core/models/auth.model';
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+      box-shadow: 0 2px 8px rgba(54, 95, 143, 0.18);
     }
     .brand-title {
       font-family: var(--font-heading);
@@ -367,8 +381,9 @@ import { UserRole } from './core/models/auth.model';
 
     /* Theme Toggle Switcher Button */
     .theme-toggle-btn {
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
       border-radius: var(--radius-md);
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
@@ -418,6 +433,11 @@ import { UserRole } from './core/models/auth.model';
     /* Mobile Hamburger & Drawer Menu */
     .mobile-toggle-btn {
       display: none;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
       background: transparent;
       border: none;
       cursor: pointer;
@@ -433,12 +453,19 @@ import { UserRole } from './core/models/auth.model';
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-hairline);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      padding: 1.0rem 0;
+      padding: 0.75rem 0;
+      max-height: min(72dvh, 560px);
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
       z-index: 1000;
       border-radius: 0 0 1.25rem 1.25rem;
+      animation: mobile-drawer-enter 160ms ease-out both;
+    }
+    @keyframes mobile-drawer-enter {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .mobile-nav-item {
       display: flex;
@@ -455,7 +482,7 @@ import { UserRole } from './core/models/auth.model';
     }
     .mobile-nav-item.highlight-ai {
       color: var(--color-ai-purple) !important;
-      background: rgba(139, 92, 246, 0.05);
+      background: var(--color-ai-bg);
       border-left-color: var(--color-ai-purple);
       font-weight: 700;
     }
@@ -578,7 +605,7 @@ import { UserRole } from './core/models/auth.model';
     @media (max-width: 900px) {
       .nav-menu { display: none; }
       .desktop-only { display: none !important; }
-      .mobile-toggle-btn { display: block; }
+      .mobile-toggle-btn { display: flex; }
       .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 3rem; }
     }
     @media (max-width: 600px) {
@@ -587,6 +614,9 @@ import { UserRole } from './core/models/auth.model';
       .footer-bottom-links { flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
       .footer-container { padding: 0 1.5rem; }
       .qp-footer { padding: 3rem 0 1.5rem 0; }
+      .nav-container { padding-inline: 1rem; gap: 0.5rem; }
+      .brand-title { font-size: 1rem; }
+      .nav-right { gap: 0.5rem; }
     }
   `]
 })
@@ -603,6 +633,7 @@ export class AppComponent implements OnInit {
     this.router.events.subscribe((event: Event) => {
       if (event instanceof NavigationStart) {
         this.isNavigating.set(true);
+        this.mobileMenuOpen.set(false);
       } else if (
         event instanceof NavigationEnd ||
         event instanceof NavigationCancel ||
@@ -616,6 +647,11 @@ export class AppComponent implements OnInit {
     });
   }
 
+  @HostListener('document:keydown.escape')
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
+
   hideLayout(): boolean {
     const url = this.router.url;
     return url === '/' || url.startsWith('/auth') || url.startsWith('/q/') || (url.includes('/quiz/') && !url.includes('/edit'));
@@ -625,10 +661,15 @@ export class AppComponent implements OnInit {
     switch (role) {
       case UserRole.SuperAdmin: return 'Admin';
       case UserRole.TenantAdmin: return 'Admin';
-      case UserRole.Instructor: return 'Creator';
-      case UserRole.Student: return 'Learner';
+      case UserRole.Instructor: return 'Teacher / Tutor';
+      case UserRole.Student: return 'Student';
       default: return 'User';
     }
+  }
+
+  canManageQuizzes(): boolean {
+    const role = this.authService.userRole();
+    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
   }
 
   onLogout(): void {

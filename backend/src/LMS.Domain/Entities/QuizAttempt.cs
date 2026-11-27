@@ -19,7 +19,7 @@ public class QuizAttempt : AuditableEntity
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
     public double ScorePercentage { get; set; }
-    public int TotalPointsEarned { get; set; }
+    public decimal TotalPointsEarned { get; set; }
     public int TotalPossiblePoints { get; set; }
     public bool IsPassed { get; set; }
     public int FocusLostCount { get; set; }

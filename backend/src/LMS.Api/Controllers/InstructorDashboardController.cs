@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LMS.Api.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Instructor,TenantAdmin,SuperAdmin")]
 public class InstructorDashboardController : ApiControllerBase
 {
     /// <summary>

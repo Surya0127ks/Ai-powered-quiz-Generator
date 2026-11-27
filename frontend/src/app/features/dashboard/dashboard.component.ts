@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { QuizService } from '../../core/services/quiz.service';
+import { copyTextToClipboard } from '../../core/utils/clipboard';
+import { UserRole } from '../../core/models/auth.model';
 import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboardItem, AdminAttemptDetails } from '../../core/models/quiz.model';
 
 @Component({
@@ -19,28 +21,41 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </div>
           <h1>
             Welcome back, {{ authService.currentUser()?.firstName || 'User' }}
-            @if (authService.userRole() === 2) {
-              <span class="badge" style="background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); font-size: 0.45em; vertical-align: middle; margin-left: 0.5rem;">Teacher</span>
+            @if (canManageQuizzes()) {
+              <span class="role-chip">Teacher / Tutor</span>
+            } @else if (authService.userRole() === UserRole.Student) {
+              <span class="role-chip">Student</span>
             }
           </h1>
           <p class="hero-desc">
-            Generate AI assessments in seconds with Groq LLM, track student performance, view live admin leaderboards, and issue verified digital certificates.
+            @if (canManageQuizzes()) {
+              Create assessments, share them with learners, and review results from one place.
+            } @else {
+              Open a quiz link from your teacher, complete the assessment, and track your results here.
+            }
           </p>
         </div>
-        <div class="hero-actions">
-          <a routerLink="/quizzes/new" class="hero-btn">
-            ✨ Create Quiz with AI
-          </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="hero-btn hero-btn-govt">
-            🏛️ Govt Exams Hub
-          </a>
-        </div>
+        @if (canManageQuizzes()) {
+          <div class="hero-actions">
+            <a routerLink="/quizzes/new" class="hero-btn">
+              ✨ Create Quiz with AI
+            </a>
+            <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="hero-btn hero-btn-govt">
+              🏛️ Govt Exams Hub
+            </a>
+          </div>
+        }
       </header>
 
       <!-- Toast Notification -->
       @if (showToast()) {
-        <div class="toast-notification print-hide">
+        <div class="toast-notification print-hide" role="status" aria-live="polite">
           ✨ Shareable Quiz Link copied to clipboard!
+        </div>
+      }
+      @if (shareCopyFailed()) {
+        <div class="toast-notification print-hide" role="alert">
+          Could not copy the link. Open the quiz to select and copy it manually.
         </div>
       }
 
@@ -159,19 +174,17 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 <p class="text-muted font-sm">Submitted on {{ selectedReportAttempt()?.submittedAtUtc | date:'medium' }}</p>
               </div>
 
-              <!-- Correct / Wrong Answers Breakdown -->
+              <!-- Show only values available in this attempt summary. -->
               <div class="report-stats-grid mb-3">
                 <div class="report-stat-box score">
                   <span class="stat-label">Final Score</span>
                   <span class="stat-num text-primary">{{ selectedReportAttempt()?.scorePercentage }}%</span>
                 </div>
-                <div class="report-stat-box correct">
-                  <span class="stat-label">Correct Answers</span>
-                  <span class="stat-num text-success">✓ {{ getCorrectCount(selectedReportAttempt()?.scorePercentage ?? 0) }}</span>
-                </div>
-                <div class="report-stat-box wrong">
-                  <span class="stat-label">Wrong Answers</span>
-                  <span class="stat-num text-danger">❌ {{ getWrongCount(selectedReportAttempt()?.scorePercentage ?? 0) }}</span>
+                <div class="report-stat-box">
+                  <span class="stat-label">Outcome</span>
+                  <span class="stat-num" [class.text-success]="selectedReportAttempt()?.isPassed" [class.text-danger]="!selectedReportAttempt()?.isPassed">
+                    {{ selectedReportAttempt()?.isPassed ? 'Passed' : 'Not passed' }}
+                  </span>
                 </div>
               </div>
 
@@ -315,14 +328,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         </div>
       }
 
-      <!-- Instant AI Prompt Suggestion Tool Bar -->
+      @if (canManageQuizzes()) {
+      <!-- Quick topic starters -->
       <div class="suggestion-toolbar saas-card mb-4 print-hide">
         <div class="suggestion-header mb-2">
           <div class="suggestion-title-group">
             <div class="ai-spark-circle">✨</div>
             <div>
-              <span class="suggestion-title">Groq AI Instant Quick Launcher</span>
-              <p class="suggestion-desc">Tap any domain topic below to auto-fill details & generate a 10-item quiz instantly</p>
+              <span class="suggestion-title">Quick topic starters</span>
+              <p class="suggestion-desc">Choose a topic to open a prefilled quiz draft.</p>
             </div>
           </div>
         </div>
@@ -353,16 +367,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
             <div>
               <div class="govt-hub-title-row">
                 <span class="govt-hub-title">Government & Competitive Exam Preparation Hub</span>
-                <span class="govt-badge-cbt">REAL CBT EXAM PATTERN</span>
+                <span class="govt-badge-cbt">EXAM PRACTICE</span>
               </div>
-              <p class="govt-hub-desc">Practice PYQ-standard questions with official negative marking schemes (-0.25, -0.33, -0.50, -1.0) and exam-length timers.</p>
+              <p class="govt-hub-desc">Build exam-style practice quizzes with configurable scoring and time limits.</p>
             </div>
           </div>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="btn-govt-explore">
-            All 7 Exam Streams →
-          </a>
+          <button
+            type="button"
+            class="btn-govt-explore"
+            [attr.aria-expanded]="showGovernmentExamStreams()"
+            (click)="toggleGovernmentExamStreams()"
+          >
+            {{ showGovernmentExamStreams() ? 'Hide exam streams' : 'Browse 7 exam streams' }}
+          </button>
         </div>
-        <div class="govt-stream-pills-row">
+        @if (showGovernmentExamStreams()) {
+          <div class="govt-stream-pills-row">
           <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'upsc' }" class="stream-pill pill-upsc" title="UPSC Civil Services Prelims GS & CSAT">
             🏛️ UPSC Civil Services (IAS/IPS)
           </a>
@@ -384,11 +404,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'entrance' }" class="stream-pill pill-entrance" title="Pre-Medical & Pre-Engineering Entrance Exams">
             🔬 Entrance (NEET UG & JEE)
           </a>
-        </div>
+          </div>
+        }
       </div>
+
+      }
 
       <!-- Key Performance Metrics Cards -->
       <div class="metrics-grid mb-4 print-hide">
+        @if (canManageQuizzes()) {
         <div class="stat-card card-indigo saas-card">
           <div class="stat-card-top">
             <div class="stat-icon-box icon-indigo">
@@ -403,6 +427,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           <div class="stat-value">{{ summary()?.quizzesCreatedCount ?? 0 }}</div>
           <span class="stat-subtext">{{ summary()?.publishedCount ?? 0 }} Published · {{ summary()?.draftsCount ?? 0 }} Drafts</span>
         </div>
+        }
 
         <div class="stat-card card-purple saas-card">
           <div class="stat-card-top">
@@ -585,6 +610,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       </div>
       }
 
+      @if (canManageQuizzes()) {
       <!-- Created Quizzes Data Table -->
       <div class="content-card mb-4">
         <div class="section-title-row">
@@ -671,9 +697,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                           <button (click)="openLeaderboardModal(q)" class="btn btn-outline btn-sm" title="View Student Submissions & Leaderboard">
                             🏆 Leaderboard
                           </button>
-                          <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
-                            📋 Link
-                          </button>
+                          @if (q.isPublished) {
+                            <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
+                              📋 Link
+                            </button>
+                          }
                           <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
                             Edit
                           </a>
@@ -690,6 +718,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </div>
         }
       </div>
+      }
 
       <!-- Recent Attempt History Table -->
       @if (authService.userRole() === 3 || (summary()?.myAttempts?.length ?? 0) > 0) {
@@ -718,7 +747,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 </svg>
               </div>
             <h4>No attempt history yet</h4>
-            <p>You haven't completed any quizzes yet. Pick a suggestion topic above or open a quiz link to start.</p>
+            @if (canManageQuizzes()) {
+              <p>You haven't completed any quizzes yet. Open a published quiz link to preview the student experience.</p>
+            } @else {
+              <p>You haven't completed a quiz yet. Open the assessment link shared by your teacher to get started.</p>
+            }
           </div>
         } @else {
           <div class="quiz-table-wrapper">
@@ -796,44 +829,49 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Adaptive Hero Banner */
     .dashboard-hero {
-      padding: 2.5rem 3rem;
-      background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-ai-purple) 100%);
-      border-radius: 1.5rem;
+      padding: 1.75rem 2rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-left: 4px solid var(--color-primary-600);
+      border-radius: var(--radius-xl);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 2rem;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      gap: 1.5rem;
+      box-shadow: var(--shadow-sm);
       position: relative;
-      overflow: hidden;
-      color: #ffffff !important;
-      border: none;
-    }
-    .dashboard-hero::before {
-      content: '';
-      position: absolute;
-      top: 0; right: 0; bottom: 0; left: 0;
-      background: radial-gradient(circle at top right, rgba(255,255,255,0.15), transparent 60%);
-      pointer-events: none;
     }
     .hero-content {
       flex: 1;
       min-width: 0;
       z-index: 1;
       h1 {
-        font-size: clamp(1.8rem, 4vw, 2.75rem);
+        font-size: clamp(1.7rem, 3vw, 2.25rem);
         font-weight: 800;
-        color: #ffffff !important;
+        color: var(--text-primary) !important;
         letter-spacing: -0.025em;
         margin: 0 0 0.5rem 0;
         line-height: 1.2;
       }
       .hero-desc {
         font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.9) !important;
+        color: var(--text-secondary) !important;
         line-height: 1.6;
         margin: 0;
       }
+    }
+    .role-chip {
+      display: inline-flex;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--color-primary-200);
+      border-radius: var(--radius-full);
+      background: var(--color-primary-50);
+      color: var(--color-primary-700);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0;
     }
     .hero-badge {
       display: inline-flex;
@@ -841,46 +879,46 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       gap: 6px;
       font-size: 0.75rem;
       font-weight: 800;
-      padding: 0.4rem 1rem;
-      border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.15);
-      color: #ffffff !important;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-50);
+      color: var(--color-primary-700) !important;
+      border: 1px solid var(--color-primary-200);
     }
     .hero-actions {
       flex-shrink: 0;
       z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
       .hero-btn {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 1.1rem 2rem;
-        background: #ffffff;
-        color: var(--color-primary-600) !important;
+        min-height: 44px;
+        padding: 0.7rem 1rem;
+        background: var(--color-primary-600);
+        color: #ffffff !important;
         font-weight: 800;
-        font-size: 1.05rem;
-        border-radius: 9999px;
+        font-size: 0.9rem;
+        border-radius: var(--radius-md);
         text-decoration: none !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: none;
+        transition: background-color var(--transition-fast), transform var(--transition-fast);
         &:hover {
-          transform: translateY(-4px) scale(1.02);
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+          transform: translateY(-1px);
+          background: var(--color-primary-700);
           text-decoration: none !important;
         }
       }
       .hero-btn-govt {
-        background: rgba(255, 255, 255, 0.16) !important;
-        color: #ffffff !important;
-        border: 1.5px solid rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(8px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        background: var(--bg-surface) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-strong);
         &:hover {
-          background: rgba(255, 255, 255, 0.28) !important;
-          color: #ffffff !important;
-          border-color: #ffffff;
+          background: var(--bg-hover) !important;
+          color: var(--text-primary) !important;
+          border-color: var(--color-primary-400);
         }
       }
     }
@@ -955,12 +993,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
       color: var(--text-primary) !important;
-      transition: all 0.2s ease;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        background: var(--color-primary-50);
         border-color: var(--color-primary-400);
         color: var(--color-primary-600) !important;
       }
@@ -968,10 +1004,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Government & Competitive Examination Hub Launcher */
     .govt-dashboard-hub {
-      padding: 1.5rem 2rem;
-      border-left: 5px solid #D97706 !important;
-      border-radius: 1.25rem;
-      background: linear-gradient(135deg, rgba(217, 119, 6, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%), var(--bg-surface);
+      padding: 1.25rem 1.5rem;
+      border-left: 3px solid var(--color-primary-600) !important;
+      border-radius: var(--radius-xl);
+      background: var(--bg-surface);
       display: flex;
       flex-direction: column;
     }
@@ -991,8 +1027,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       width: 38px;
       height: 38px;
       border-radius: var(--radius-md);
-      background: #FEF3C7;
-      border: 1px solid #FDE68A;
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-primary-200);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1014,9 +1050,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       font-size: 0.675rem;
       font-weight: 800;
       letter-spacing: 0.04em;
-      background: #FEF3C7;
-      color: #92400E !important;
-      border: 1px solid #FDE68A;
+      background: var(--color-primary-50);
+      color: var(--color-primary-700) !important;
+      border: 1px solid var(--color-primary-200);
       padding: 0.15rem 0.55rem;
       border-radius: 9999px;
     }
@@ -1028,18 +1064,19 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .btn-govt-explore {
       font-size: 0.825rem;
       font-weight: 700;
-      color: #B45309 !important;
+      color: var(--color-primary-700) !important;
       text-decoration: none !important;
+      font-family: inherit;
+      cursor: pointer;
       padding: 0.45rem 1rem;
       border-radius: 9999px;
-      background: #FEF3C7;
-      border: 1px solid #FDE68A;
-      transition: all 0.2s ease;
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-primary-200);
+      transition: background-color var(--transition-fast), border-color var(--transition-fast);
       white-space: nowrap;
       &:hover {
-        background: #FDE68A;
-        color: #78350F !important;
-        transform: translateX(3px);
+        background: var(--color-primary-100);
+        border-color: var(--color-primary-400);
       }
     }
     .govt-stream-pills-row {
@@ -1057,24 +1094,17 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
       color: var(--text-primary) !important;
-      transition: all 0.2s ease;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
       &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        border-color: var(--color-primary-400);
+        background: var(--color-primary-50);
+        color: var(--color-primary-700) !important;
       }
     }
-    .pill-upsc:hover { border-color: #D97706; color: #B45309 !important; background: #FFFBEB; }
-    .pill-ssc:hover { border-color: #2563EB; color: #1D4ED8 !important; background: #EFF6FF; }
-    .pill-banking:hover { border-color: #059669; color: #047857 !important; background: #ECFDF5; }
-    .pill-railways:hover { border-color: #DC2626; color: #B91C1C !important; background: #FEF2F2; }
-    .pill-defence:hover { border-color: #4F46E5; color: #4338CA !important; background: #EEF2FF; }
-    .pill-teaching:hover { border-color: #7C3AED; color: #6D28D9 !important; background: #F5F3FF; }
-    .pill-entrance:hover { border-color: #0D9488; color: #0F766E !important; background: #F0FDFA; }
 
     /* Stats Grid */
     .metrics-grid {
@@ -1096,10 +1126,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
       }
     }
-    .card-indigo { border-left: 5px solid var(--color-primary-600) !important; }
-    .card-purple { border-left: 5px solid var(--color-ai-purple) !important; }
-    .card-emerald{ border-left: 5px solid var(--color-success-text) !important; }
-    .card-amber  { border-left: 5px solid #b45309 !important; }
+    .card-indigo, .card-purple, .card-emerald, .card-amber { border-left: 3px solid var(--color-primary-600) !important; }
+    .icon-purple, .icon-emerald, .icon-amber { background: var(--color-primary-50); color: var(--color-primary-600); }
 
     .stat-card-top {
       display: flex;
@@ -1796,7 +1824,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .report-stats-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.75rem;
       margin: 1.25rem 0;
     }
@@ -1929,11 +1957,13 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       .hero-desc { font-size: 0.9rem !important; }
       
       /* Create square box layout for stats on small screens instead of wide thin lines */
-      .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
-      .stat-card { padding: 1.15rem !important; display: flex !important; align-items: flex-start !important; justify-content: center !important; flex-direction: column !important; }
-      .stat-card-top { margin-bottom: 0.5rem !important; }
+      .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.75rem !important; }
+      .stat-card { min-width: 0 !important; padding: 0.85rem !important; display: flex !important; align-items: flex-start !important; justify-content: center !important; flex-direction: column !important; }
+      .stat-card-top { min-width: 0; margin-bottom: 0.5rem !important; align-items: flex-start; flex-direction: column; gap: 0.4rem; }
       .stat-value { font-size: 1.5rem !important; text-align: left !important; line-height: 1.1 !important; margin-bottom: 0.25rem !important; }
       .stat-subtext { text-align: left !important; margin-top: 0 !important; font-size: 0.7rem !important; line-height: 1.2 !important; }
+      .stat-title { min-width: 0; font-size: 0.72rem !important; letter-spacing: 0 !important; overflow-wrap: anywhere; }
+      .stat-icon-box { width: 30px; height: 30px; }
       
       .topic-pills-row {
         display: flex;
@@ -1966,6 +1996,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
   `]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  readonly UserRole = UserRole;
   readonly authService = inject(AuthService);
   private readonly quizService = inject(QuizService);
   private readonly router = inject(Router);
@@ -1973,6 +2004,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly summary = signal<UserQuizDashboardSummary | null>(null);
   readonly isLoading = signal(true);
   readonly showToast = signal(false);
+  readonly showGovernmentExamStreams = signal(false);
+  readonly shareCopyFailed = signal(false);
   readonly selectedReportAttempt = signal<UserAttemptItem | null>(null);
   readonly ongoingAttempt = signal<any | null>(null);
   readonly ongoingTimerText = signal<string>('');
@@ -1990,6 +2023,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.fetchDashboardSummary();
     this.checkOngoingAttempt();
+  }
+
+  toggleGovernmentExamStreams(): void {
+    this.showGovernmentExamStreams.update(isOpen => !isOpen);
   }
 
   ngOnDestroy(): void {
@@ -2081,6 +2118,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return list.filter(q => q.isPublished);
   }
 
+  canManageQuizzes(): boolean {
+    const role = this.authService.userRole();
+    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
+  }
+
   getHistoryQuizzes(): UserQuizItem[] {
     const list = this.summary()?.myQuizzes ?? [];
     return list.filter(q => q.totalAttemptsCount > 0);
@@ -2124,19 +2166,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  getCorrectCount(scorePercentage: number): number {
-    return Math.round((scorePercentage / 100) * 10);
-  }
-
-  getWrongCount(scorePercentage: number): number {
-    return 10 - this.getCorrectCount(scorePercentage);
-  }
-
   editQuiz(quizId: string): void {
     this.router.navigate(['/quiz', quizId, 'edit']);
   }
 
-  copyShareLink(shortId: string): void {
+  async copyShareLink(shortId: string): Promise<void> {
     const protocol = window.location.protocol;
     const host = window.location.hostname;
     const port = window.location.port ? `:${window.location.port}` : '';
@@ -2145,10 +2179,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const devOverride = env?.devHostOverride || null;
     const origin = (host === 'localhost' || host === '127.0.0.1') && devOverride ? devOverride : defaultOrigin;
     const url = `${origin}/q/${shortId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      this.showToast.set(true);
-      setTimeout(() => this.showToast.set(false), 3000);
-    });
+    const copied = await copyTextToClipboard(url);
+    this.shareCopyFailed.set(!copied);
+    this.showToast.set(copied);
+    setTimeout(() => {
+      this.showToast.set(false);
+      this.shareCopyFailed.set(false);
+    }, 3000);
   }
 
   // --- SCORECARD METHODS ---

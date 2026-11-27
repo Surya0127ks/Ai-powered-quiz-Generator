@@ -18,18 +18,14 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Quizzy AI - AI Powered Quiz Generator">
   <meta property="og:description" content="Generate complex AI quizzes in seconds, track student progress in real-time, and issue verified digital certificates automatically.">
-  <meta property="og:image" content="/assets/og-banner.png">
-  <meta property="og:url" content="https://quizzy-ai.vercel.app">
+  <meta property="og:image" content="/assets/images/ai_quiz.png">
   <meta property="og:site_name" content="Quizzy AI">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Quizzy AI - AI Quiz Platform">
   <meta name="twitter:description" content="Generate AI-powered quizzes instantly with Groq LLM. Issue verified digital certificates.">
-  <meta name="twitter:image" content="/assets/og-banner.png">
-
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://quizzy-ai.vercel.app">
+  <meta name="twitter:image" content="/assets/images/ai_quiz.png">
 
   <!-- Theme Color for Mobile Browsers -->
   <meta name="theme-color" content="#4f46e5">
@@ -39,16 +35,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Theme Pre-load Script: Prevents dark mode FOUC (Flash of Unstyled Content) -->
+  <!-- Match ThemeService storage key to avoid a flash of the wrong theme. -->
   <script>
     (function() {
       try {
-        var theme = localStorage.getItem('theme');
-        if (theme === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        } else if (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
+        var theme = localStorage.getItem('qp-theme');
+        document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
       } catch(e) {}
     })();
   </script>

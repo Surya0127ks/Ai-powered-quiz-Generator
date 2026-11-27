@@ -5,11 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models/auth.model';
 
-export enum RegistrationType {
-  Individual = 'individual',
-  Organization = 'organization'
-}
-
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -35,7 +30,7 @@ export enum RegistrationType {
             </div>
           </a>
           <h2>Create Your Quizzy AI Account</h2>
-          <p class="sub-text">Choose your role and setup your assessment workspace</p>
+          <p class="sub-text">Choose how you will use Quizzy AI. You can update your profile later.</p>
         </div>
 
         @if (errorMessage()) {
@@ -55,14 +50,20 @@ export enum RegistrationType {
                 [class.active]="registerForm.get('role')?.value === UserRole.Instructor"
               >
                 <input type="radio" formControlName="role" [value]="UserRole.Instructor" class="hidden-radio" />
-                <span>👨‍🏫 Teacher / Educator</span>
+                <span class="role-option-copy">
+                  <strong>👩‍🏫 Teacher / Tutor</strong>
+                  <small>Create, publish, preview, and review quiz results.</small>
+                </span>
               </label>
               <label
                 class="pill-option"
                 [class.active]="registerForm.get('role')?.value === UserRole.Student"
               >
                 <input type="radio" formControlName="role" [value]="UserRole.Student" class="hidden-radio" />
-                <span>🎓 Student / Learner</span>
+                <span class="role-option-copy">
+                  <strong>🎓 Student / Learner</strong>
+                  <small>Take quizzes shared by teachers and track your results.</small>
+                </span>
               </label>
             </div>
           </div>
@@ -241,7 +242,11 @@ export enum RegistrationType {
         span { color: var(--color-primary) !important; }
       }
     }
-    .hidden-radio { display: none; }
+    .hidden-radio { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+    .pill-option:focus-within { outline: 3px solid var(--color-primary-300); outline-offset: 2px; }
+    .role-option-copy { display: flex; flex-direction: column; gap: 0.25rem; }
+    .role-option-copy strong { color: inherit; font-size: 0.9rem; }
+    .role-option-copy small { color: var(--text-muted); font-size: 0.75rem; font-weight: 500; line-height: 1.4; }
     .alert-error {
       background: var(--color-danger-bg);
       border: 1px solid var(--color-danger-border);
@@ -300,14 +305,11 @@ export class RegisterComponent {
   private readonly router = inject(Router);
 
   readonly UserRole = UserRole;
-  readonly RegistrationType = RegistrationType;
-  readonly accountType = signal<RegistrationType>(RegistrationType.Individual);
-
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
   readonly registerForm = this.fb.group({
-    role: [UserRole.Instructor, Validators.required],
+    role: [UserRole.Student, Validators.required],
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     tenantName: ['Individual Workspace'],
@@ -315,29 +317,6 @@ export class RegisterComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]]
   });
-
-  setAccountType(type: RegistrationType): void {
-    this.accountType.set(type);
-    if (type === RegistrationType.Individual) {
-      this.registerForm.patchValue({
-        role: UserRole.Instructor,
-        tenantName: 'Individual Workspace',
-        tenantIdentifier: 'default-individual'
-      });
-      this.registerForm.get('tenantName')?.clearValidators();
-      this.registerForm.get('tenantIdentifier')?.clearValidators();
-    } else {
-      this.registerForm.patchValue({
-        role: UserRole.TenantAdmin,
-        tenantName: '',
-        tenantIdentifier: ''
-      });
-      this.registerForm.get('tenantName')?.setValidators([Validators.required]);
-      this.registerForm.get('tenantIdentifier')?.setValidators([Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]);
-    }
-    this.registerForm.get('tenantName')?.updateValueAndValidity();
-    this.registerForm.get('tenantIdentifier')?.updateValueAndValidity();
-  }
 
   onSubmit(): void {
     if (this.registerForm.invalid) {
@@ -349,15 +328,13 @@ export class RegisterComponent {
     this.errorMessage.set(null);
 
     const values = this.registerForm.value;
-    const isIndividual = this.accountType() === RegistrationType.Individual;
-
     const firstName = values.firstName!.trim();
     const lastName = values.lastName!.trim();
-    
-    const tenantName = isIndividual ? `${firstName}'s Personal Academy` : values.tenantName!;
-    const cleanSlug = firstName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const tenantName = `${firstName}'s Workspace`;
+    const cleanSlug = firstName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
     const randSuffix = Math.floor(1000 + Math.random() * 9000);
-    const tenantIdentifier = isIndividual ? `indiv-${cleanSlug}-${randSuffix}` : values.tenantIdentifier!.toLowerCase().trim();
+    const tenantIdentifier = `user-${cleanSlug}-${randSuffix}`;
 
     this.authService.register({
       firstName,
