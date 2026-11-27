@@ -576,12 +576,14 @@ interface FaqItem {
       gap: 3rem;
       align-items: center;
       width: 100%;
+      min-width: 0;
     }
     .hero-copy {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       text-align: left;
+      min-width: 0;
     }
     .hero-title {
       font-family: var(--font-display);
@@ -654,6 +656,7 @@ interface FaqItem {
     /* Signature Hero Visual: Live Assessment Folio Sheet */
     .hero-visual {
       width: 100%;
+      min-width: 0;
     }
     .exam-folio {
       background: var(--bg-surface);
@@ -661,6 +664,7 @@ interface FaqItem {
       border-radius: 14px;
       box-shadow: var(--shadow-lg);
       overflow: hidden;
+      max-width: 100%;
     }
     .folio-header {
       height: 40px;
@@ -1165,17 +1169,23 @@ interface FaqItem {
 
     @media (max-width: 640px) {
       .hide-xs { display: none; }
-      .landing-navbar .nav-container { padding-inline: 1rem; }
-      .hero-section { padding: 2.5rem 1rem 3rem; }
-      .hero-title { font-size: clamp(2rem, 8.5vw, 2.5rem); }
-      .hero-cta { width: 100%; }
-      .hero-cta a { flex: 1; min-width: 140px; justify-content: center; }
+      .landing-navbar .nav-container { padding-inline: 1rem; gap: 0.5rem; }
+      .hero-section { padding: 2rem 1rem 2.75rem; min-height: auto; }
+      .hero-title { font-size: clamp(1.85rem, 8vw, 2.35rem); }
+      .hero-cta { width: 100%; flex-direction: column; align-items: stretch; }
+      .hero-cta a { width: 100%; justify-content: center; }
+      .folio-header { height: auto; min-height: 40px; padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 0.35rem 0.75rem; }
+      .folio-body { padding: 1rem; }
+      .folio-opt { padding: 0.6rem 0.75rem; font-size: 0.84rem; }
       .folio-footer { flex-direction: column; align-items: stretch; }
       .folio-score-slip { align-items: flex-start; }
-      .section { padding: 3.25rem 1rem; }
+      .section { padding: 2.75rem 1rem; }
+      .section-header { margin-bottom: 1.75rem; }
       .features-grid, .steps-grid, .roles-grid { grid-template-columns: 1fr; gap: 1rem; }
-      .bottom-cta { padding: 0 1rem 3.5rem; }
-      .cta-inner { padding: 2rem 1.25rem; }
+      .bottom-cta { padding: 0 1rem 3rem; }
+      .cta-inner { padding: 1.75rem 1.15rem; }
+      .cta-buttons { width: 100%; flex-direction: column; align-items: stretch; }
+      .cta-buttons a { width: 100%; justify-content: center; }
       .footer-container { padding-inline: 1rem; }
     }
   `]

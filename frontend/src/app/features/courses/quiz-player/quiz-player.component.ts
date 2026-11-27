@@ -16,7 +16,9 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
     <div class="quiz-container">
       <header class="quiz-header">
         @if (!isPublicMode) {
-          <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+          <a [routerLink]="isEducatorOwner() ? '/my-quizzes' : '/dashboard'" class="back-link">
+            {{ isEducatorOwner() ? '← Back to My Quizzes' : '← Back to Dashboard' }}
+          </a>
         }
       </header>
 
@@ -327,12 +329,17 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
 
           <div class="result-actions margin-top print-hide">
             @if (quiz()?.showResultsAfterSubmission !== false && result()?.reviews?.length) {
-              <button type="button" (click)="openExplanationModal(0)" class="btn btn-ai">💡 View Answer Explanations</button>
+              <button type="button" (click)="openExplanationModal(0)" class="btn btn-ai">View Answer Explanations</button>
             }
-            <button onclick="window.print()" class="btn btn-outline">🖨️ Download / Print Scorecard</button>
+            <button onclick="window.print()" class="btn btn-outline">Print Scorecard</button>
             @if (!isPublicMode) {
-              <button (click)="retakeQuiz()" class="btn btn-primary">🔄 Retest / Retake Quiz</button>
-              <a routerLink="/dashboard" class="btn btn-outline">Return to Dashboard →</a>
+              <button (click)="retakeQuiz()" class="btn btn-primary">{{ isEducatorOwner() ? 'Retake Preview' : 'Retake Quiz' }}</button>
+              @if (isEducatorOwner()) {
+                <a [routerLink]="['/quiz', quiz()?.id, 'edit']" class="btn btn-secondary">Edit Quiz</a>
+                <a routerLink="/my-quizzes" class="btn btn-outline">Back to My Quizzes →</a>
+              } @else {
+                <a routerLink="/dashboard" class="btn btn-outline">Return to Dashboard →</a>
+              }
             } @else {
               <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 1rem;">Your response has been recorded. You may now close this window.</p>
               <a href="/" class="btn btn-primary">Go to Homepage →</a>
@@ -451,13 +458,22 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
 
           <!-- Start Action Button -->
           <div class="start-action-row margin-top">
-            @if (!isPublicMode && quiz()?.createdByUserId && authService.currentUser()?.id === quiz()?.createdByUserId && authService.userRole() !== 3) {
-              <div class="creator-preview-alert mb-3" style="text-align: center; color: var(--text-secondary); font-weight: 500;">
-                <p>You are the creator of this assessment.</p>
+            @if (isEducatorOwner()) {
+              <div class="creator-preview-alert mb-3">
+                <strong>Creator preview mode</strong>
+                <p>Play through this quiz to test the learner experience. Your test run will not count toward the student seat limit or appear on the class leaderboard.</p>
               </div>
-              <button [routerLink]="['/quiz', quiz()?.id, 'edit']" class="btn btn-outline btn-lg width-full">
-                ✏️ Edit Assessment / View Answers
-              </button>
+              <div class="preview-action-buttons">
+                <button
+                  (click)="startQuiz()"
+                  class="btn btn-primary btn-lg start-btn"
+                >
+                  Start &amp; Play Preview
+                </button>
+                <a [routerLink]="['/quiz', quiz()?.id, 'edit']" class="btn btn-outline btn-lg">
+                  Edit Questions &amp; Settings
+                </a>
+              </div>
             } @else {
               <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
                 <button
@@ -467,11 +483,11 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
                   [disabled]="emailAlreadyUsed()"
                   [class.btn-disabled]="emailAlreadyUsed()"
                 >
-                  🚀 {{ authService.userRole() === 3 && quiz()?.createdByUserId === authService.currentUser()?.id ? 'Start Practice Test' : 'Start Assessment Now' }}
+                  {{ authService.userRole() === 3 && quiz()?.createdByUserId === authService.currentUser()?.id ? 'Start Practice Test' : 'Start Assessment Now' }}
                 </button>
                 @if (!isPublicMode && authService.userRole() === 3 && quiz()?.createdByUserId === authService.currentUser()?.id) {
                   <a [routerLink]="['/quiz', quiz()?.id, 'edit']" class="btn btn-outline btn-lg">
-                    ✏️ Edit Questions
+                    Edit Questions
                   </a>
                 }
               </div>
@@ -670,6 +686,7 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
     .modal-backdrop {
       position: fixed;
       inset: 0;
+      padding: 1rem;
       background: rgba(0, 0, 0, 0.45);
       backdrop-filter: blur(4px);
       z-index: 1200;
@@ -677,7 +694,23 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
       align-items: center;
       justify-content: center;
     }
-    .modal-content { width: 100%; max-width: 400px; padding: 1.75rem; text-align: center; }
+    .modal-content { width: 100%; max-width: 420px; max-height: 90dvh; overflow-y: auto; padding: 1.5rem; text-align: center; }
+    .creator-preview-alert {
+      padding: 0.9rem 1.1rem;
+      border-radius: var(--radius-md);
+      background: var(--surface-tint-blue);
+      border: 1px solid var(--color-primary-200);
+      border-left: 3px solid var(--color-primary-600);
+      text-align: left;
+      strong { display: block; font-size: 0.875rem; color: var(--color-primary-700); margin-bottom: 0.2rem; }
+      p { margin: 0; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.45; }
+    }
+    .preview-action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      .start-btn { flex: 1 1 220px; }
+    }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; h3 { font-size: 1.1rem; margin: 0; } }
     .close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
     .qr-frame { width: 190px; height: 190px; margin: 0 auto 1rem auto; padding: 0.5rem; background: #ffffff; border: 1.5px solid var(--border-hairline); border-radius: 0.75rem; img { width: 100%; height: 100%; } }
@@ -909,29 +942,33 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
     }
     
     @media (max-width: 600px) {
-      .quiz-container { padding: 1rem 0.875rem 2rem 0.875rem; }
-      .overview-card { padding: 1.25rem 1.1rem; }
-      .quiz-card { padding: 1.25rem 1.1rem; }
-      .result-card { padding: 1.25rem 1.1rem; }
-      .overview-title { font-size: 1.6rem !important; }
+      .quiz-container { padding: 1rem 0.75rem 2.25rem; }
+      .overview-card, .quiz-card, .result-card { padding: 1.1rem 1rem; }
+      .overview-title { font-size: 1.5rem !important; }
       .specs-grid { grid-template-columns: 1fr; }
       .form-grid-2 { grid-template-columns: 1fr; gap: 0.6rem; }
-      .share-btns { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+      .header-right-meta { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+      .share-btns { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
       .share-btns .btn { width: 100%; text-align: center; justify-content: center; }
-      .share-info { width: 100%; flex-direction: column; align-items: flex-start; }
-      .share-url-box { width: 100%; }
+      .share-info { width: 100%; flex-direction: column; align-items: stretch; }
+      .share-url-box { width: 100%; min-width: 0; }
+      .preview-action-buttons { flex-direction: column; }
+      .preview-action-buttons .btn { width: 100%; justify-content: center; }
       .result-actions { flex-direction: column; align-items: stretch; }
-      .result-actions .btn { width: 100%; margin: 0; text-align: center; justify-content: center; }
+      .result-actions .btn, .result-actions a { width: 100%; margin: 0; text-align: center; justify-content: center; }
       .quiz-footer { flex-direction: column; gap: 0.75rem; }
       .quiz-footer button { width: 100%; text-align: center; justify-content: center; }
+      .option-item { padding: 0.85rem 1rem; gap: 0.75rem; }
+      .q-nav-tab { width: 34px; height: 34px; font-size: 0.85rem; }
+      .detailed-results { padding: 1rem; }
       .cert-award-banner { padding: 1rem; }
-      .cert-award-banner .btn { width: 100%; justify-content: center; text-align: center; }
+      .cert-award-banner .btn, .cert-award-banner a { width: 100%; justify-content: center; text-align: center; }
       .student-id-box { padding: 1rem !important; }
       .email-field-wrap { grid-column: 1 / -1; }
       .start-btn { font-size: 0.95rem !important; padding: 0.875rem 1rem !important; }
-      .modal-content { padding: 1.25rem 1rem !important; max-width: 96vw !important; }
+      .modal-content { padding: 1.15rem 1rem !important; max-width: calc(100vw - 1.5rem) !important; }
       .badge-row { gap: 0.35rem; }
-      .overview-card { padding: 1.1rem 1rem; }
+      .exp-modal-footer .btn { flex: 1; }
     }
 
     /* Disqualified Overlay */
@@ -1189,6 +1226,12 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
         this.loadQuiz(this.quizId);
       }
     }, 1000);
+  }
+
+  isEducatorOwner(): boolean {
+    const q = this.quiz();
+    const user = this.authService.currentUser();
+    return !this.isPublicMode && !!q?.createdByUserId && !!user?.id && q.createdByUserId === user.id && this.authService.userRole() !== 3;
   }
 
   retryLoad(): void {

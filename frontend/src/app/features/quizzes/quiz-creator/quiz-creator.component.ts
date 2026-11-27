@@ -1270,7 +1270,11 @@ export interface GovtExamCategory {
     }
     .topic-chip {
       display: inline-flex;
-      align-items: center;
+      align-items: flex-start;
+      text-align: left;
+      max-width: 100%;
+      white-space: normal;
+      line-height: 1.35;
       gap: 0.45rem;
       padding: 0.45rem 0.85rem;
       border-radius: var(--radius-md);
@@ -1295,6 +1299,7 @@ export interface GovtExamCategory {
     .topic-dot {
       width: 5px;
       height: 5px;
+      margin-top: 0.42rem;
       border-radius: 50%;
       background: var(--color-primary-600);
       flex-shrink: 0;
@@ -1600,6 +1605,9 @@ export interface GovtExamCategory {
     }
     
     @media (max-width: 768px) {
+      .form-grid-2, .form-grid-3 { grid-template-columns: minmax(0, 1fr); }
+      .quiz-preferences-grid { grid-template-columns: 1fr; }
+      .count-control-row { grid-template-columns: 1fr; align-items: start; }
       .quick-publish-bar {
         flex-direction: column;
         align-items: flex-start;
@@ -1620,23 +1628,24 @@ export interface GovtExamCategory {
     @media (max-width: 600px) {
       .tab-switch-bar { display: grid; grid-template-columns: 1fr; gap: 0.25rem; }
       .tab-btn { justify-content: flex-start; min-height: 44px; }
-      .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
-      .count-control-row { grid-template-columns: 1fr; align-items: start; }
-      .custom-count-field { justify-content: space-between; }
+      .custom-count-field { justify-content: space-between; width: 100%; }
       .qpb-actions {
         grid-template-columns: 1fr;
       }
-      .creator-container { padding: 1.25rem 1rem; }
-      .form-section { padding: 1.1rem; }
+      .creator-container { padding: 1rem 0.75rem 2.5rem; }
+      .generator-panel, .govt-panel, .form-section { padding: 1rem; }
+      .question-card { padding: 1rem; }
+      .govt-exams-grid { grid-template-columns: 1fr; }
       .advanced-settings summary { align-items: flex-start; flex-wrap: wrap; padding-block: 0.5rem; }
       .advanced-settings summary span { flex-basis: 100%; }
-      .quiz-preferences-grid { grid-template-columns: 1fr; }
       .q-header { flex-direction: row; align-items: center; gap: 0.5rem; }
+      .q-actions-group { width: 100%; }
+      .q-actions-group .btn { flex: 1; }
       .options-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
       .options-header .link-btn { align-self: flex-start; }
       .form-actions-bar { flex-direction: column-reverse; gap: 0.75rem; }
       .form-actions-bar .btn { width: 100%; justify-content: center; margin: 0; }
-      .header-title-row h1 { font-size: 1.55rem; }
+      .header-title-row h1 { font-size: 1.45rem; }
       .option-row { flex-direction: row; flex-wrap: nowrap; align-items: center; }
       .option-input { min-width: 0; }
       .btn-opt-delete { min-width: 38px; min-height: 38px; flex-shrink: 0; }

@@ -691,12 +691,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                   } @else {
+                    <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm flex-grow" title="Preview and Play Quiz as Learner">
+                      Preview
+                    </a>
                     @if (q.totalAttemptsCount > 0) {
-                      <button (click)="openLeaderboardModal(q)" class="btn btn-primary btn-sm flex-grow" title="View Student Leaderboard">
+                      <button (click)="openLeaderboardModal(q)" class="btn btn-secondary btn-sm flex-grow" title="View Student Leaderboard">
                         Leaderboard
                       </button>
                     }
-                    <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm flex-grow" title="Copy Direct Quiz Share Link">
+                    <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm" title="Edit Quiz">
+                      Edit
+                    </a>
+                    <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm" title="Copy Direct Quiz Share Link">
                       Copy link
                     </button>
                     <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm btn-icon" title="Delete Assessment" aria-label="Delete quiz">
@@ -724,7 +730,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <p class="section-subtitle">Compare your attempts, marks, and retest progress per quiz</p>
             }
           </div>
-          <a routerLink="/quizzes/new" class="link-action">{{ isStudent() ? '+ Create Practice Quiz' : '+ Create New Quiz' }}</a>
+          <a [routerLink]="isStudent() ? '/quizzes/new' : '/my-quizzes'" class="link-action">{{ isStudent() ? '+ Create Practice Quiz' : 'Manage all in My Quizzes →' }}</a>
         </div>
 
         @if (isLoading()) {
@@ -750,7 +756,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </div>
         } @else {
           <div class="quiz-table-wrapper">
-            <table class="qp-table">
+            <table class="qp-table responsive-table">
               <thead>
                 <tr>
                   <th>Quiz Title</th>
@@ -769,7 +775,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <tbody>
                 @for (q of getHistoryQuizzes(); track q.id) {
                   <tr>
-                    <td>
+                    <td data-label="Quiz">
                       <div class="quiz-row-item">
                         <div class="q-icon-circle" aria-hidden="true">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -780,21 +786,21 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                         </div>
                       </div>
                     </td>
-                    <td>{{ q.category }}</td>
-                    <td class="mono-num">{{ q.questionCount }}</td>
-                    <td>
+                    <td data-label="Category">{{ q.category }}</td>
+                    <td data-label="Questions" class="mono-num">{{ q.questionCount }}</td>
+                    <td [attr.data-label]="isStudent() ? 'Attempts' : 'Submissions'">
                       <strong class="text-dark mono-num">{{ q.totalAttemptsCount }}</strong> {{ isStudent() ? (q.totalAttemptsCount === 1 ? 'attempt' : 'attempts') : 'submissions' }}
                     </td>
-                    <td>
+                    <td data-label="Passed">
                       <strong class="text-dark mono-num">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }}</strong>
                       <small class="text-muted d-block mono-num">{{ q.passRatePercentage ?? 0 }}% pass rate</small>
                     </td>
-                    <td>
+                    <td data-label="Avg. Score">
                       <strong class="text-dark mono-num">{{ q.avgScorePercentage }}%</strong>
                     </td>
-                    <td class="mono-num">{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
+                    <td data-label="Avg. Time" class="mono-num">{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
                     @if (!isStudent()) {
-                      <td>
+                      <td data-label="Status">
                         @if (q.isPublished) {
                           <span class="badge badge-emerald">Published</span>
                         } @else {
@@ -802,10 +808,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                         }
                       </td>
                     }
-                    <td>
+                    <td data-label="Actions">
                       <div class="action-btns-row">
-                        <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm" [title]="isStudent() ? 'Retake Quiz' : 'Open Quiz'">
-                          {{ isStudent() ? 'Retake' : 'Open' }}
+                        <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm" [title]="isStudent() ? 'Retake Quiz' : 'Preview Quiz'">
+                          {{ isStudent() ? 'Retake' : 'Preview' }}
                         </a>
                         <button (click)="openLeaderboardModal(q)" class="btn btn-outline btn-sm" [title]="isStudent() ? 'View All Attempt Marks' : 'View Student Submissions & Leaderboard'">
                           {{ isStudent() ? 'Attempts' : 'Leaderboard' }}
@@ -867,7 +873,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </div>
         } @else {
           <div class="quiz-table-wrapper">
-            <table class="qp-table">
+            <table class="qp-table responsive-table">
               <thead>
                 <tr>
                   <th>Quiz Title</th>
@@ -881,22 +887,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <tbody>
                 @for (a of summary()?.myAttempts; track a.id) {
                   <tr>
-                    <td><strong class="text-dark">{{ a.quizTitle }}</strong></td>
-                    <td>{{ a.submittedAtUtc | date:'mediumDate' }}</td>
-                    <td>
+                    <td data-label="Quiz"><strong class="text-dark">{{ a.quizTitle }}</strong></td>
+                    <td data-label="Submitted">{{ a.submittedAtUtc | date:'mediumDate' }}</td>
+                    <td data-label="Score">
                       <span class="score-pill" [class.score-high]="a.isPassed" [class.score-medium]="!a.isPassed">
                         {{ a.scorePercentage }}%
                       </span>
                     </td>
-                    <td>{{ formatDuration(a.timeTakenSeconds) }}</td>
-                    <td>
+                    <td data-label="Time" class="mono-num">{{ formatDuration(a.timeTakenSeconds) }}</td>
+                    <td data-label="Outcome">
                       @if (a.isPassed) {
                         <span class="badge badge-emerald">Passed</span>
                       } @else {
                         <span class="badge badge-slate">Needs Review</span>
                       }
                     </td>
-                    <td>
+                    <td data-label="Action">
                       <div class="action-btns-row">
                         <a [routerLink]="['/quiz', a.quizId]" class="btn btn-primary btn-sm">
                           Retake quiz
@@ -1537,7 +1543,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .running-quizzes-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
       gap: 1rem;
     }
     .running-quiz-item-card {
@@ -1548,6 +1554,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: flex;
       flex-direction: column;
       gap: 0.65rem;
+      min-width: 0;
+      max-width: 100%;
       transition: border-color 150ms var(--ease-out);
       &:hover {
         border-color: var(--border-strong);
@@ -1587,6 +1595,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .rq-actions-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
       margin-top: 0.35rem;
     }
@@ -1956,12 +1965,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     @media (max-width: 900px) {
       .dashboard-layout { padding: 1.25rem 1rem 3rem 1rem; }
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
       .dashboard-hero {
         flex-direction: column;
         align-items: flex-start;
-        padding: 1.5rem;
-        gap: 1.25rem;
+        padding: 1.35rem;
+        gap: 1.1rem;
       }
       .hero-content h1 { font-size: 1.55rem; }
       .hero-actions { width: 100%; }
@@ -1974,49 +1983,94 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       .scorecard-summary-grid { grid-template-columns: 1fr; }
       .section-title-row { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       .link-action { align-self: flex-start; }
-      .running-quizzes-grid { grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+      .running-quizzes-grid { grid-template-columns: 1fr; gap: 0.9rem; }
     }
 
     @media (max-width: 640px) {
       .dashboard-layout { padding: 1rem 0.75rem 2.5rem 0.75rem; }
-      .dashboard-hero { padding: 1.25rem; gap: 1rem; border-radius: var(--radius-lg); }
-      .hero-content h1 { font-size: 1.4rem; line-height: 1.3; }
+      .dashboard-hero { padding: 1.15rem; gap: 0.9rem; border-radius: var(--radius-lg); }
+      .hero-content h1 { font-size: 1.35rem; line-height: 1.3; }
       .hero-desc { font-size: 0.875rem !important; }
       .hero-actions { flex-direction: column; }
       .hero-btn { width: 100%; }
 
-      .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.75rem !important; }
-      .stat-card { min-width: 0 !important; padding: 0.9rem !important; }
+      .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.65rem !important; }
+      .stat-card { min-width: 0 !important; padding: 0.85rem !important; }
       .stat-card-top { min-width: 0; margin-bottom: 0.35rem !important; }
-      .stat-value { font-size: 1.5rem !important; line-height: 1.1 !important; margin-bottom: 0.2rem !important; }
+      .stat-value { font-size: 1.45rem !important; line-height: 1.1 !important; margin-bottom: 0.2rem !important; }
       .stat-subtext { margin-top: 0.2rem !important; font-size: 0.72rem !important; line-height: 1.25 !important; }
       .stat-title { min-width: 0; font-size: 0.75rem !important; overflow-wrap: anywhere; }
 
-      .suggestion-toolbar, .govt-dashboard-hub { padding: 1.1rem; border-radius: var(--radius-lg); }
+      .suggestion-toolbar, .govt-dashboard-hub { padding: 1rem; border-radius: var(--radius-lg); }
+      .btn-govt-explore { width: 100%; text-align: center; justify-content: center; }
       .topic-pills-row, .govt-stream-pills-row {
         display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-        gap: 0.5rem;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+        flex-wrap: wrap;
+        gap: 0.45rem;
       }
-      .topic-pills-row::-webkit-scrollbar, .govt-stream-pills-row::-webkit-scrollbar { display: none; }
-      .topic-pill, .stream-pill { flex-shrink: 0; padding: 0.45rem 0.85rem; }
+      .topic-pill, .stream-pill {
+        max-width: 100%;
+        white-space: normal;
+        text-align: left;
+        padding: 0.42rem 0.78rem;
+      }
 
       .running-quizzes-grid { grid-template-columns: 1fr; gap: 0.875rem; }
-      .quiz-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md); border: 1px solid var(--border-hairline); }
-      .qp-table { min-width: 680px; }
+      .cap-reached-banner { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      .cap-extend-btn { width: 100%; justify-content: center; }
 
-      .content-card { padding: 1.15rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem; }
-      .running-quiz-item-card { padding: 1.15rem !important; }
+      .content-card { padding: 1rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem; }
+      .running-quiz-item-card { padding: 1rem !important; }
 
       .rq-actions-row { flex-direction: column; gap: 0.5rem; width: 100%; }
       .rq-actions-row .btn, .rq-actions-row a { width: 100%; justify-content: center; text-align: center; }
 
-      .action-btns-row { flex-wrap: wrap; gap: 0.35rem; }
-      .modal-content { padding: 1.25rem 1rem !important; max-width: 96% !important; }
+      /* Mobile stacked table cards for history & attempts */
+      .responsive-table thead { display: none; }
+      .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td {
+        display: block;
+        width: 100%;
+      }
+      .responsive-table tr {
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-md);
+        padding: 0.75rem;
+        margin-bottom: 0.7rem;
+        background: var(--bg-app);
+      }
+      .responsive-table td {
+        border-bottom: none;
+        padding: 0.25rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: right;
+      }
+      .responsive-table td::before {
+        content: attr(data-label);
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-align: left;
+        flex-shrink: 0;
+      }
+      .responsive-table .quiz-row-item { justify-content: flex-end; text-align: right; }
+      .responsive-table .q-icon-circle { display: none; }
+      .responsive-table .action-btns-row { justify-content: flex-end; flex-wrap: wrap; gap: 0.35rem; }
+
+      .quiz-table-wrapper:has(> table:not(.responsive-table)) {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-hairline);
+      }
+      table:not(.responsive-table).qp-table { min-width: 580px; }
+
+      .leaderboard-meta-banner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modal-header { flex-wrap: wrap; gap: 0.5rem; }
+      .modal-content { padding: 1.1rem 0.95rem !important; max-width: calc(100vw - 1.5rem) !important; max-height: 90dvh; overflow-y: auto; }
     }
   `]
 })

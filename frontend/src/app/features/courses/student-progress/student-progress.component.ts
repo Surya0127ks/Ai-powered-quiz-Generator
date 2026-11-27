@@ -666,16 +666,21 @@ import { UserRole } from '../../../core/models/auth.model';
     }
     
     @media (max-width: 600px) {
-      .stats-grid { grid-template-columns: 1fr; }
-      .header-actions { width: 100%; flex-direction: column; align-items: stretch; gap: 0.75rem; }
+      .analytics-container { padding: 1rem 0.75rem 2.5rem; }
+      .page-header { padding: 1.1rem; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+      .stat-card { padding: 0.95rem; }
+      .stat-value { font-size: 1.45rem; }
+      .header-actions { width: 100%; flex-direction: column; align-items: stretch; gap: 0.65rem; }
       .header-actions .btn { width: 100%; text-align: center; justify-content: center; }
       .view-tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
       .view-tabs::-webkit-scrollbar { display: none; }
       .tab-btn { flex-shrink: 0; white-space: nowrap; }
       .accordion-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; padding: 1rem; }
-      .accordion-stats-col { width: 100%; justify-content: space-between; }
-      .quiz-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .qp-table { min-width: 600px; }
+      .accordion-stats-col { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 0.4rem; }
+      .accordion-badge { font-size: 0.75rem; padding: 0.25rem 0.6rem; }
+      .quiz-table-wrapper { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .qp-table { min-width: 560px; }
       .report-stats-grid { grid-template-columns: 1fr; }
     }
   `]

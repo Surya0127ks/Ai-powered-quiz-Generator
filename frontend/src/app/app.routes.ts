@@ -55,6 +55,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'my-quizzes',
+    loadComponent: () =>
+      import('./features/quizzes/my-quizzes/my-quizzes.component').then((m) => m.MyQuizzesComponent),
+    title: 'Quizzy AI - My Quizzes',
+    canActivate: [authGuard, roleGuard(quizCreatorRoles)],
+  },
+  {
     path: 'verify-certificate',
     loadComponent: () =>
       import('./features/courses/certificate-verify/certificate-verify.component').then((m) => m.CertificateVerifyComponent),

@@ -547,7 +547,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
       .creator-container { padding: 1.25rem 1rem 2rem; }
       .header-title-row h1 { font-size: 1.6rem; }
       .form-section, .question-card { padding: 1rem; }
-      .form-grid-2, .form-grid-3 { grid-template-columns: minmax(0, 1fr); gap: 0.25rem; }
+      .form-grid-2, .form-grid-3 { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
       .section-header-row { flex-direction: column; gap: 0.75rem; }
       .quick-publish-bar { align-items: stretch; flex-direction: column; gap: 0.75rem; }
       .qpb-actions { display: grid; grid-template-columns: 1fr; width: 100%; gap: 0.5rem; }

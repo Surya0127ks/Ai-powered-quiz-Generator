@@ -56,12 +56,24 @@ import { UserRole } from './core/models/auth.model';
               </a>
               }
 
-              <a routerLink="/student/progress" routerLinkActive="active" class="nav-link">
-                <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 20v-6M6 20V10M18 20V4"></path>
-                </svg>
-                <span>My Progress</span>
-              </a>
+              @if (isEducator()) {
+                <a routerLink="/my-quizzes" routerLinkActive="active" class="nav-link">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                  <span>My Quizzes</span>
+                </a>
+              } @else {
+                <a routerLink="/student/progress" routerLinkActive="active" class="nav-link">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20v-6M6 20V10M18 20V4"></path>
+                  </svg>
+                  <span>My Progress</span>
+                </a>
+              }
 
               <a routerLink="/certificate/generator" routerLinkActive="active" class="nav-link">
                 <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -155,10 +167,17 @@ import { UserRole } from './core/models/auth.model';
                 <span>Create Quiz</span>
               </a>
               }
-              <a routerLink="/student/progress" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
-                <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
-                <span>My Progress</span>
-              </a>
+              @if (isEducator()) {
+                <a routerLink="/my-quizzes" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
+                  <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                  <span>My Quizzes</span>
+                </a>
+              } @else {
+                <a routerLink="/student/progress" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
+                  <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                  <span>My Progress</span>
+                </a>
+              }
               <a routerLink="/certificate/generator" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
                 <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M8.5 13.5 7 22l5-2.5L17 22l-1.5-8.5"></path></svg>
                 <span>Certificates</span>
@@ -205,7 +224,11 @@ import { UserRole } from './core/models/auth.model';
             </div>
             <div class="footer-bottom-links">
               <a routerLink="/dashboard">Dashboard</a>
-              <a routerLink="/student/progress">My Progress</a>
+              @if (isEducator()) {
+                <a routerLink="/my-quizzes">My Quizzes</a>
+              } @else {
+                <a routerLink="/student/progress">My Progress</a>
+              }
               <a routerLink="/verify-certificate">Verify Certificate</a>
               <span class="footer-copy">© 2026 Quizzy AI</span>
             </div>
@@ -610,6 +633,11 @@ export class AppComponent implements OnInit {
       case UserRole.Student: return 'Student';
       default: return 'User';
     }
+  }
+
+  isEducator(): boolean {
+    const role = this.authService.userRole();
+    return role === UserRole.Instructor || role === UserRole.TenantAdmin || role === UserRole.SuperAdmin;
   }
 
   canManageQuizzes(): boolean {
