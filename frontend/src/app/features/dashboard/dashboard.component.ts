@@ -14,35 +14,35 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
   imports: [CommonModule, RouterLink],
   template: `
     <div class="dashboard-layout">
-      <!-- Adaptive Hero Welcome Banner -->
+      <!-- Overview Header -->
       <header class="dashboard-hero saas-card mb-4 print-hide">
         <div class="hero-content">
           <div class="hero-badge-row mb-2">
-            <span class="hero-badge">⚡ QUIZZY AI ASSESSMENT PLATFORM</span>
-          </div>
-          <h1>
-            Welcome back, {{ authService.currentUser()?.firstName || 'User' }}
+            <span class="hero-badge">{{ isStudent() ? 'Student workspace' : 'Assessment workspace' }}</span>
             @if (canManageQuizzes()) {
-              <span class="role-chip">Teacher / Tutor</span>
+              <span class="role-chip">Teacher</span>
             } @else if (authService.userRole() === UserRole.Student) {
               <span class="role-chip">Student</span>
             }
-          </h1>
+          </div>
+          <h1>{{ authService.currentUser()?.firstName || 'Workspace' }}</h1>
           <p class="hero-desc">
             @if (canManageQuizzes()) {
-              Create assessments, share them with learners, and review results from one place.
+              Create assessments, share class links, and review submitted scorecards.
             } @else {
-              Create private AI study quizzes or government exam mock tests, retest anytime, and track your attempt marks.
+              Build private AI or exam-pattern practice tests, retake anytime, and track your attempt marks.
             }
           </p>
         </div>
         @if (canCreateQuizzes()) {
           <div class="hero-actions">
-            <a routerLink="/quizzes/new" class="hero-btn">
-              {{ isStudent() ? '✨ Create Practice Quiz' : '✨ Create Quiz with AI' }}
+            <a routerLink="/quizzes/new" class="btn btn-primary hero-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              {{ isStudent() ? 'New practice quiz' : 'New AI quiz' }}
             </a>
-            <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="hero-btn hero-btn-govt">
-              🏛️ Govt Exams Hub
+            <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt' }" class="btn btn-secondary hero-btn hero-btn-govt">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M4 18h16M6 18V9m4 9V9m4 9V9m4 9V9M2 9l10-5 10 5H2z"/></svg>
+              Exam hub
             </a>
           </div>
         }
@@ -51,7 +51,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       <!-- Toast Notification -->
       @if (showToast()) {
         <div class="toast-notification print-hide" role="status" aria-live="polite">
-          ✨ Shareable Quiz Link copied to clipboard!
+          Shareable quiz link copied to clipboard
         </div>
       }
       @if (shareCopyFailed()) {
@@ -74,10 +74,13 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               </div>
             } @else if (selectedAttemptDetails()) {
               <div class="modal-header print-hide">
-                <h3>📋 Assessment Scorecard Review</h3>
-                <div style="display: flex; gap: 1rem;">
-                  <button (click)="printScorecard()" class="btn btn-outline btn-sm">🖨️ Print Scorecard</button>
-                  <button (click)="closeScorecardModal()" class="close-btn">✕</button>
+                <h3>Assessment scorecard</h3>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                  <button (click)="printScorecard()" class="btn btn-outline btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Print scorecard
+                  </button>
+                  <button (click)="closeScorecardModal()" class="close-btn" aria-label="Close">✕</button>
                 </div>
               </div>
               <div class="modal-body scorecard-body">
@@ -98,9 +101,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     <div class="sc-info-box">
                       <strong>Result Overview</strong>
                       <div>Submitted: {{ selectedAttemptDetails()?.submittedAtUtc | date:'medium' }}</div>
-                      <div>Status: <span [style.color]="selectedAttemptDetails()?.isPassed ? 'green' : 'red'">{{ selectedAttemptDetails()?.isPassed ? 'PASSED' : 'NEEDS REVIEW' }}</span></div>
+                      <div>Status: <span [class.text-success]="selectedAttemptDetails()?.isPassed" [class.text-danger]="!selectedAttemptDetails()?.isPassed">{{ selectedAttemptDetails()?.isPassed ? 'Passed' : 'Needs review' }}</span></div>
                       <div>Time Taken: <strong>{{ formatDuration(selectedAttemptDetails()?.timeTakenSeconds) }}</strong></div>
-                      <div>Focus Lost Flags: <strong style="color: red;">{{ selectedAttemptDetails()?.focusLostCount }}</strong></div>
+                      <div>Focus Lost Flags: <strong class="text-danger">{{ selectedAttemptDetails()?.focusLostCount }}</strong></div>
                     </div>
                     <div class="sc-score-box">
                       <div class="sc-score-label">Final Score</div>
@@ -118,7 +121,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                       <div class="sc-q-header">
                         <span class="sc-q-num">Q{{ i + 1 }}</span>
                         @if (q.tag) {
-                          <span class="sc-q-tag">🏷️ {{ q.tag }}</span>
+                          <span class="sc-q-tag">{{ q.tag }}</span>
                         }
                         <span class="sc-q-text">{{ q.questionText }}</span>
                         <span class="sc-q-points">{{ q.pointsEarned }} / {{ q.points }} pts</span>
@@ -129,13 +132,13 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                           <div class="sc-option" 
                                [class.is-correct]="opt.isCorrect" 
                                [class.is-selected]="q.selectedOptionIds.includes(opt.optionId)">
-                            <div class="sc-opt-indicator">
+                            <div class="sc-opt-indicator" aria-hidden="true">
                               @if (opt.isCorrect) {
-                                ✓
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                               } @else if (q.selectedOptionIds.includes(opt.optionId) && !opt.isCorrect) {
-                                ❌
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                               } @else {
-                                ◯
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/></svg>
                               }
                             </div>
                             <div class="sc-opt-text">{{ opt.optionText }}</div>
@@ -167,16 +170,16 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         <div class="modal-backdrop" (click)="selectedReportAttempt.set(null)">
           <div class="modal-content saas-card" (click)="$event.stopPropagation()">
             <div class="modal-header">
-              <h3>📊 Assessment Performance Summary</h3>
-              <button (click)="selectedReportAttempt.set(null)" class="close-btn">✕</button>
+              <h3>Performance summary</h3>
+              <button (click)="selectedReportAttempt.set(null)" class="close-btn" aria-label="Close">✕</button>
             </div>
             <div class="report-modal-body">
               <div class="report-title-box mb-3">
                 <span class="badge" [class.badge-emerald]="selectedReportAttempt()?.isPassed" [class.badge-slate]="!selectedReportAttempt()?.isPassed">
-                  {{ selectedReportAttempt()?.isPassed ? '🏆 PASSED ASSESSMENT' : '⚠️ NEEDS IMPROVEMENT' }}
+                  {{ selectedReportAttempt()?.isPassed ? 'Passed' : 'Needs review' }}
                 </span>
                 <h2>{{ selectedReportAttempt()?.quizTitle }}</h2>
-                <p class="text-muted font-sm">Submitted on {{ selectedReportAttempt()?.submittedAtUtc | date:'medium' }}</p>
+                <p class="text-muted font-sm">Submitted {{ selectedReportAttempt()?.submittedAtUtc | date:'medium' }}</p>
               </div>
 
               <!-- Show only values available in this attempt summary. -->
@@ -204,13 +207,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     [queryParams]="{ student: (authService.currentUser()?.firstName || 'Student') + ' ' + (authService.currentUser()?.lastName || ''), title: selectedReportAttempt()?.quizTitle, score: selectedReportAttempt()?.scorePercentage }"
                     class="btn btn-ai width-full mb-2 print-hide"
                   >
-                    📜 Generate & Issue Official Certificate
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                    Issue certificate
                   </a>
                 }
                 <button onclick="window.print()" class="btn btn-outline width-full mb-2 print-hide">
-                  📥 Save Result PDF
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Save result PDF
                 </button>
-                <button (click)="selectedReportAttempt.set(null)" class="btn btn-secondary width-full print-hide">Close Report</button>
+                <button (click)="selectedReportAttempt.set(null)" class="btn btn-secondary width-full print-hide">Close</button>
               </div>
             </div>
           </div>
@@ -223,12 +228,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           <div class="modal-content modal-lg saas-card" (click)="$event.stopPropagation()">
             <div class="modal-header">
               <div class="modal-header-title">
-                <span class="badge badge-ai mb-1">
-                  {{ isStudent() ? '📈 MY ATTEMPT PROGRESSION' : '🏆 ADMIN ASSESSMENT LEADERBOARD' }}
+                <span class="modal-eyebrow mb-1">
+                  {{ isStudent() ? 'My attempt progression' : 'Assessment leaderboard' }}
                 </span>
                 <h3>{{ selectedLeaderboardQuiz()?.title }}</h3>
               </div>
-              <button (click)="selectedLeaderboardQuiz.set(null)" class="close-btn">✕</button>
+              <button (click)="selectedLeaderboardQuiz.set(null)" class="close-btn" aria-label="Close">✕</button>
             </div>
             <div class="leaderboard-modal-body">
               <div class="leaderboard-meta-banner mb-3">
@@ -262,17 +267,23 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 </div>
               } @else if (leaderboardItems().length === 0) {
                 <div class="empty-state-box">
-                  <div class="empty-icon-wrapper">{{ isStudent() ? '📈' : '🏆' }}</div>
+                  <div class="empty-icon-wrapper">
+                    @if (isStudent()) {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    } @else {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    }
+                  </div>
                   <h4>{{ isStudent() ? 'No attempts recorded yet' : 'No student submissions yet' }}</h4>
                   @if (isStudent()) {
-                    <p>Take this practice quiz to track your marks, time taken, and answer explanations across every retest.</p>
+                    <p>Take this practice quiz to track your marks, time taken, and answer explanations across every retake.</p>
                     <a [routerLink]="['/quiz', selectedLeaderboardQuiz()?.id]" (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-primary btn-sm">
-                      ▶️ Start Practice Test
+                      Start practice test
                     </a>
                   } @else {
-                    <p>Share this quiz link with your students. Once students type their name and complete the quiz, their scores and rank will appear here live.</p>
+                    <p>Share this quiz link with your students. Submissions and rankings appear here once students complete the quiz.</p>
                     <button (click)="copyShareLink(selectedLeaderboardQuiz()!.shortId!)" class="btn btn-primary btn-sm">
-                      📋 Copy Share Link for Students
+                      Copy share link
                     </button>
                   }
                 </div>
@@ -318,27 +329,27 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                             <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
                             <td>
                               @if (item.isPassed) {
-                                <span class="badge badge-emerald">🏆 Passed</span>
+                                <span class="badge badge-emerald">Passed</span>
                               } @else {
-                                <span class="badge badge-slate">Needs Review</span>
+                                <span class="badge badge-slate">Needs review</span>
                               }
                             </td>
                             <td>{{ item.submittedAtUtc | date:'short' }}</td>
                             <td>
                               <button (click)="viewAttemptScorecard(item)" class="btn btn-outline btn-sm" title="View Answers & Explanations">
-                                📊 Scorecard
+                                Scorecard
                               </button>
                             </td>
                           } @else {
                             <td>
                               <span class="rank-badge" [class.rank-1]="item.rank === 1" [class.rank-2]="item.rank === 2" [class.rank-3]="item.rank === 3">
-                                {{ item.rank === 1 ? '🥇 1st' : item.rank === 2 ? '🥈 2nd' : item.rank === 3 ? '🥉 3rd' : '#' + item.rank }}
+                                #{{ item.rank }}
                               </span>
                             </td>
                             <td>
                               <strong class="text-dark font-weight-bold">{{ item.studentName }}</strong>
                               @if (item.isDisqualified) {
-                                <span class="cheat-badge">🚫 DISQUALIFIED</span>
+                                <span class="cheat-badge">Disqualified</span>
                               }
                             </td>
                             <td class="text-muted">{{ item.studentEmail }}</td>
@@ -349,21 +360,21 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                             <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
                             <td>
                               @if (item.isDisqualified) {
-                                <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border);">🚫 Cheating</span>
+                                <span class="badge badge-danger">Flagged</span>
                               } @else if (item.isPassed) {
-                                <span class="badge badge-emerald">🏆 Passed</span>
+                                <span class="badge badge-emerald">Passed</span>
                               } @else {
-                                <span class="badge badge-slate">Needs Review</span>
+                                <span class="badge badge-slate">Needs review</span>
                               }
                               @if ((item.focusLostCount ?? 0) > 0 && !item.isDisqualified) {
-                                <small class="text-muted d-block" style="color: var(--color-warning) !important;">⚠️ {{ item.focusLostCount }} tab switch(es)</small>
+                                <small class="text-muted d-block" style="color: var(--color-warning-text) !important;">{{ item.focusLostCount }} tab switch(es)</small>
                               }
                             </td>
                             <td>{{ item.submittedAtUtc | date:'short' }}</td>
                             <td>
                               <div style="display: flex; gap: 0.5rem; align-items: center;">
                                 <button (click)="viewAttemptScorecard(item)" class="btn btn-outline btn-sm" title="View Detailed Scorecard">
-                                  📊 Scorecard
+                                  Scorecard
                                 </button>
                                 @if (item.isPassed && !item.isDisqualified) {
                                   <a
@@ -372,7 +383,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                                     class="btn btn-ai btn-sm"
                                     title="Generate Certificate"
                                   >
-                                    📜 Cert
+                                    Certificate
                                   </a>
                                 }
                               </div>
@@ -388,11 +399,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <div class="modal-footer-row margin-top">
                 @if (isStudent() && selectedLeaderboardQuiz()) {
                   <a [routerLink]="['/quiz', selectedLeaderboardQuiz()?.id]" (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-primary">
-                    🔄 Retest This Quiz
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    Retake quiz
                   </a>
                 }
                 <button (click)="selectedLeaderboardQuiz.set(null)" class="btn btn-secondary">
-                  {{ isStudent() ? 'Close' : 'Close Leaderboard' }}
+                  Close
                 </button>
               </div>
             </div>
@@ -405,44 +417,38 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       <div class="suggestion-toolbar saas-card mb-4 print-hide">
         <div class="suggestion-header mb-2">
           <div class="suggestion-title-group">
-            <div class="ai-spark-circle">✨</div>
-            <div>
-              <span class="suggestion-title">Quick topic starters</span>
-              <p class="suggestion-desc">Choose a topic to open a prefilled quiz draft.</p>
-            </div>
+            <span class="suggestion-title">Quick topic starters</span>
+            <p class="suggestion-desc">Choose a subject to open a prefilled quiz draft.</p>
           </div>
         </div>
         <div class="topic-pills-row">
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM', auto: 'true'}" class="topic-pill pill-ai">
-            🤖 Artificial Intelligence & LLMs
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM', auto: 'true'}" class="topic-pill">
+            Artificial Intelligence & LLMs
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development', auto: 'true'}" class="topic-pill pill-indigo">
-            💻 Web Development
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development', auto: 'true'}" class="topic-pill">
+            Web Development
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Python & Data Science', auto: 'true'}" class="topic-pill pill-emerald">
-            🐍 Python & Data Science
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Python & Data Science', auto: 'true'}" class="topic-pill">
+            Python & Data Science
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud', auto: 'true'}" class="topic-pill pill-slate">
-            🛡️ Cyber Security
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud', auto: 'true'}" class="topic-pill">
+            Cyber Security
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'General Science & Tech', auto: 'true'}" class="topic-pill pill-indigo">
-            💡 General Science
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'General Science & Tech', auto: 'true'}" class="topic-pill">
+            General Science
           </a>
         </div>
       </div>
 
       <!-- Government & Competitive Exam Preparation Hub Launcher -->
       <div class="govt-dashboard-hub saas-card mb-4 print-hide">
-        <div class="govt-hub-header mb-2">
+        <div class="govt-hub-header">
           <div class="govt-hub-title-group">
-            <div class="govt-emblem-circle">🏛️</div>
-            <div>
-              <div class="govt-hub-title-row">
-                <span class="govt-hub-title">Government & Competitive Exam Preparation Hub</span>
-                <span class="govt-badge-cbt">EXAM PRACTICE</span>
-              </div>
-              <p class="govt-hub-desc">Build exam-style practice quizzes with configurable scoring and time limits.</p>
+            <div class="govt-hub-title-row">
+              <span class="govt-hub-title">Competitive exam preparation hub</span>
+              <span class="govt-badge-cbt">7 exam streams</span>
             </div>
+            <p class="govt-hub-desc">Build exam-pattern practice quizzes with configurable negative marking and section timers.</p>
           </div>
           <button
             type="button"
@@ -450,31 +456,31 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
             [attr.aria-expanded]="showGovernmentExamStreams()"
             (click)="toggleGovernmentExamStreams()"
           >
-            {{ showGovernmentExamStreams() ? 'Hide exam streams' : 'Browse 7 exam streams' }}
+            {{ showGovernmentExamStreams() ? 'Hide streams' : 'Browse streams' }}
           </button>
         </div>
         @if (showGovernmentExamStreams()) {
           <div class="govt-stream-pills-row">
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'upsc' }" class="stream-pill pill-upsc" title="UPSC Civil Services Prelims GS & CSAT">
-            🏛️ UPSC Civil Services (IAS/IPS)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'upsc' }" class="stream-pill" title="UPSC Civil Services Prelims GS & CSAT">
+            UPSC Civil Services (IAS / IPS)
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'ssc' }" class="stream-pill pill-ssc" title="Staff Selection Commission CGL & CHSL">
-            📋 SSC CGL & CHSL (Tier 1 & 2)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'ssc' }" class="stream-pill" title="Staff Selection Commission CGL & CHSL">
+            SSC CGL & CHSL (Tier 1 & 2)
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'banking' }" class="stream-pill pill-banking" title="IBPS & SBI Probationary Officer & Clerk">
-            🏦 Banking (IBPS / SBI PO)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'banking' }" class="stream-pill" title="IBPS & SBI Probationary Officer & Clerk">
+            Banking (IBPS / SBI PO)
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'railways' }" class="stream-pill pill-railways" title="Railway Recruitment Board NTPC & Group D">
-            🚆 Railways (RRB NTPC)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'railways' }" class="stream-pill" title="Railway Recruitment Board NTPC & Group D">
+            Railways (RRB NTPC)
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'defence' }" class="stream-pill pill-defence" title="National Defence Academy, Combined Defence Services">
-            🛡️ Defence (NDA / CDS / AFCAT)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'defence' }" class="stream-pill" title="National Defence Academy, Combined Defence Services">
+            Defence (NDA / CDS / AFCAT)
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'teaching' }" class="stream-pill pill-teaching" title="Central Teacher Eligibility Test & State PSC">
-            📚 Teaching & State PSC (CTET)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'teaching' }" class="stream-pill" title="Central Teacher Eligibility Test & State PSC">
+            Teaching & State PSC (CTET)
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'entrance' }" class="stream-pill pill-entrance" title="Pre-Medical & Pre-Engineering Entrance Exams">
-            🔬 Entrance (NEET UG & JEE)
+          <a routerLink="/quizzes/new" [queryParams]="{ mode: 'govt', exam: 'entrance' }" class="stream-pill" title="Pre-Medical & Pre-Engineering Entrance Exams">
+            Entrance (NEET UG & JEE)
           </a>
           </div>
         }
@@ -485,107 +491,82 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       <!-- Key Performance Metrics Cards -->
       <div class="metrics-grid mb-4 print-hide">
         @if (canCreateQuizzes()) {
-        <div class="stat-card card-indigo saas-card">
+        <div class="stat-card saas-card">
           <div class="stat-card-top">
-            <div class="stat-icon-box icon-indigo">
-              <svg class="stat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-              </svg>
-            </div>
-            <span class="stat-title">{{ isStudent() ? 'Practice Quizzes' : 'Quizzes Created' }}</span>
+            <span class="stat-title">{{ isStudent() ? 'Practice quizzes' : 'Quizzes created' }}</span>
           </div>
-          <div class="stat-value">{{ summary()?.quizzesCreatedCount ?? 0 }}</div>
+          <div class="stat-value mono-num">{{ summary()?.quizzesCreatedCount ?? 0 }}</div>
           <span class="stat-subtext">
-            {{ isStudent() ? 'Private self-study sets' : (summary()?.publishedCount ?? 0) + ' Published · ' + (summary()?.draftsCount ?? 0) + ' Drafts' }}
+            {{ isStudent() ? 'Private self-study sets' : (summary()?.publishedCount ?? 0) + ' published · ' + (summary()?.draftsCount ?? 0) + ' drafts' }}
           </span>
         </div>
         }
 
-        <div class="stat-card card-purple saas-card">
+        <div class="stat-card saas-card">
           <div class="stat-card-top">
-            <div class="stat-icon-box icon-purple">
-              <svg class="stat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <circle cx="12" cy="12" r="6"></circle>
-                <circle cx="12" cy="12" r="2"></circle>
-              </svg>
-            </div>
-            <span class="stat-title">Total Attempts</span>
+            <span class="stat-title">Total attempts</span>
           </div>
-          <div class="stat-value">{{ getTotalAttempts() }}</div>
+          <div class="stat-value mono-num">{{ getTotalAttempts() }}</div>
           <span class="stat-subtext">Across your assessments</span>
         </div>
 
-        <div class="stat-card card-emerald saas-card">
+        <div class="stat-card saas-card">
           <div class="stat-card-top">
-            <div class="stat-icon-box icon-emerald">
-              <svg class="stat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 20V10M12 20V4M6 20v-6"></path>
-              </svg>
-            </div>
-            <span class="stat-title">Avg. Score</span>
+            <span class="stat-title">Average score</span>
           </div>
-          <div class="stat-value">{{ getAvgScore() }}%</div>
+          <div class="stat-value mono-num">{{ getAvgScore() }}%</div>
           <span class="stat-subtext">Overall performance average</span>
         </div>
 
-        <div class="stat-card card-amber saas-card">
+        <div class="stat-card saas-card">
           <div class="stat-card-top">
-            <div class="stat-icon-box icon-amber">
-              <svg class="stat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="8" r="7"></circle>
-                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-              </svg>
-            </div>
             <span class="stat-title">Certificates</span>
           </div>
-          <div class="stat-value">{{ summary()?.certificatesEarnedCount ?? 0 }}</div>
+          <div class="stat-value mono-num">{{ summary()?.certificatesEarnedCount ?? 0 }}</div>
           <span class="stat-subtext">Passed completions</span>
         </div>
       </div>
 
-      <!-- 🔥 Live Running Assessments / Student Practice Quizzes & Ongoing Active Attempt -->
+      <!-- Active Assessments / Student Practice Quizzes -->
       @if (canCreateQuizzes()) {
         <div class="content-card mb-4 running-quizzes-card print-hide">
         <div class="section-title-row">
           <div class="title-with-live-dot">
             @if (isStudent()) {
-              <span class="live-status-pill"><span class="pulsing-dot"></span> SELF-STUDY &amp; MOCK TESTS</span>
-              <h3>📝 My Practice Quizzes</h3>
-              <p class="section-subtitle">Private AI &amp; Govt Exam mock tests for your preparation (no public sharing · unlimited retests · auto-cleans after 24 hours)</p>
+              <span class="live-status-pill"><span class="live-dot"></span> Self-study &amp; mock tests</span>
+              <h3>My practice quizzes</h3>
+              <p class="section-subtitle">Private AI &amp; exam mock tests for preparation (unlisted · unlimited retakes · auto-cleans after 24 hours)</p>
             } @else {
-              <span class="live-status-pill"><span class="pulsing-dot"></span> LIVE ASSESSMENTS</span>
-              <h3>🔥 Active Running Quizzes</h3>
+              <span class="live-status-pill"><span class="live-dot"></span> Live assessments</span>
+              <h3>Active running quizzes</h3>
               <p class="section-subtitle">Live assessments (max 50 students per quiz · quiz &amp; attempt data auto-cleans after 24 hours)</p>
             }
           </div>
-          <a routerLink="/quizzes/new" class="link-action">{{ isStudent() ? '+ Create Practice Quiz' : '+ Launch New Assessment' }}</a>
+          <a routerLink="/quizzes/new" class="link-action">{{ isStudent() ? '+ New practice quiz' : '+ New assessment' }}</a>
         </div>
 
-        <!-- ONGOING IN-PROGRESS ATTEMPT BANNER (Persists until user clicks Submit) -->
+        <!-- Ongoing In-Progress Attempt Banner -->
         @if (ongoingAttempt()) {
           <div class="ongoing-attempt-alert saas-card mb-4">
             <div class="ongoing-alert-content">
               <div class="ongoing-badge-row mb-1">
-                <span class="badge badge-warning">⚠️ ATTEMPT IN PROGRESS</span>
-                <span class="ongoing-category-badge">{{ ongoingAttempt()?.category || 'Active Test' }}</span>
+                <span class="badge badge-warning">Attempt in progress</span>
+                <span class="ongoing-category-badge">{{ ongoingAttempt()?.category || 'Active test' }}</span>
               </div>
               <h4 class="ongoing-title">{{ ongoingAttempt()?.quizTitle }}</h4>
-              <p class="ongoing-desc">Your assessment session is running in the background. Tap below to resume before time expires.</p>
+              <p class="ongoing-desc">Your session is open. Resume before the timer expires.</p>
             </div>
             <div class="ongoing-right-box">
               <div class="ongoing-timer-display">
-                <span class="timer-label">Time Remaining</span>
-                <span class="timer-value">⏱️ {{ ongoingTimerText() }}</span>
+                <span class="timer-label">Time remaining</span>
+                <span class="timer-value">{{ ongoingTimerText() }}</span>
               </div>
               <div class="ongoing-btn-row">
-                <a [routerLink]="['/quiz', ongoingAttempt()?.quizId]" class="btn btn-ai btn-sm">
-                  ➡️ Resume Quiz Attempt
+                <a [routerLink]="['/quiz', ongoingAttempt()?.quizId]" class="btn btn-primary btn-sm">
+                  Resume quiz
                 </a>
                 <button (click)="cancelOngoingAttempt()" class="btn btn-outline btn-sm">
-                  ✕ Dismiss
+                  Dismiss
                 </button>
               </div>
             </div>
@@ -600,15 +581,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         } @else if (getLiveQuizzes().length === 0) {
           <div class="running-quiz-empty-banner">
             <div class="empty-banner-content">
-              <h4>{{ isStudent() ? '🚀 No Practice Quizzes Yet' : '🚀 No Live Assessments' }}</h4>
+              <h4>{{ isStudent() ? 'No practice quizzes yet' : 'No live assessments yet' }}</h4>
               <p>
                 {{ isStudent()
-                  ? 'Generate a private AI study quiz or Govt Exam mock test above, take it anytime, and retest to improve your marks.'
-                  : 'Create a quiz using AI, publish it, and it will show up here live for students to take.' }}
+                  ? 'Generate a private AI study quiz or exam mock test above, attempt it anytime, and retake to raise your score.'
+                  : 'Create a quiz using AI, publish it, and share the link for students to attempt.' }}
               </p>
             </div>
             <a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development', auto: 'true'}" class="btn btn-primary">
-              {{ isStudent() ? '✨ Quick Generate Practice Quiz' : '✨ Quick Launch Web Assessment' }}
+              {{ isStudent() ? 'Quick generate practice quiz' : 'Quick launch web quiz' }}
             </a>
           </div>
         } @else {
@@ -617,25 +598,25 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <div class="running-quiz-item-card saas-card">
                 <div class="rq-header">
                   @if (isStudent()) {
-                    <span class="badge badge-slate">🔒 PRIVATE PRACTICE</span>
+                    <span class="badge badge-slate">Private practice</span>
                   } @else {
-                    <span class="badge badge-emerald">🟢 ACTIVE LIVE</span>
+                    <span class="badge badge-emerald"><span class="live-dot"></span> Live</span>
                   }
                   <span class="rq-category">{{ q.category }}</span>
                 </div>
                 <h4 class="rq-title">{{ q.title }}</h4>
                 <div class="rq-meta-row">
-                  <span class="rq-meta-chip">📝 {{ q.questionCount }} Questions</span>
-                  <span class="rq-meta-chip">⏱️ {{ q.timeLimitMinutes || 15 }} Mins</span>
+                  <span class="rq-meta-chip mono-num">{{ q.questionCount }} Qs</span>
+                  <span class="rq-meta-chip mono-num">{{ q.timeLimitMinutes || 15 }} min</span>
                   @if (!isStudent()) {
-                    <span class="rq-meta-chip">👥 {{ q.totalAttemptsCount }}/{{ q.maxStudents ?? 15 }} Seats</span>
+                    <span class="rq-meta-chip mono-num">{{ q.totalAttemptsCount }}/{{ q.maxStudents ?? 15 }} seats</span>
                   }
                 </div>
 
                 <!-- Joined Students & Quiz Analytics / Self-Attempt Summary -->
                 <div class="rq-join-status" [class.has-joins]="q.totalAttemptsCount > 0">
                   <div class="join-count-row">
-                    <svg class="join-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="join-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                       <circle cx="9" cy="7" r="4"></circle>
                       <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -643,23 +624,23 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     </svg>
                     @if (q.totalAttemptsCount === 0) {
                       <span class="join-text waiting">
-                        {{ isStudent() ? 'Ready for practice — start Attempt #1' : 'Waiting for students...' }}
+                        {{ isStudent() ? 'Ready for practice — start Attempt #1' : 'Waiting for submissions' }}
                       </span>
                     } @else {
                       <span class="join-text joined">
                         @if (isStudent()) {
-                          <strong>{{ q.totalAttemptsCount }}</strong> attempt{{ q.totalAttemptsCount > 1 ? 's' : '' }} completed
+                          <strong class="mono-num">{{ q.totalAttemptsCount }}</strong> attempt{{ q.totalAttemptsCount > 1 ? 's' : '' }} completed
                         } @else {
-                          <strong>{{ q.totalAttemptsCount }}</strong> student{{ q.totalAttemptsCount > 1 ? 's' : '' }} attempted
+                          <strong class="mono-num">{{ q.totalAttemptsCount }}</strong> student{{ q.totalAttemptsCount > 1 ? 's' : '' }} attempted
                         }
                       </span>
-                      <span class="join-avg">Avg: {{ q.avgScorePercentage }}%</span>
+                      <span class="join-avg mono-num">Avg {{ q.avgScorePercentage }}%</span>
                     }
                   </div>
                   @if (q.totalAttemptsCount > 0) {
                     <div class="rq-analytics-pills">
-                      <span class="rq-analytics-pill">✅ {{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }} passed ({{ q.passRatePercentage ?? 0 }}%)</span>
-                      <span class="rq-analytics-pill">⏱️ Avg time: {{ formatDuration(q.avgTimeTakenSeconds) }}</span>
+                      <span class="rq-analytics-pill mono-num">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }} passed ({{ q.passRatePercentage ?? 0 }}%)</span>
+                      <span class="rq-analytics-pill mono-num">Avg time {{ formatDuration(q.avgTimeTakenSeconds) }}</span>
                     </div>
                   }
                 </div>
@@ -668,20 +649,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 @if (!isStudent() && q.isCapReached) {
                   <div class="cap-reached-banner">
                     <div class="cap-banner-text">
-                      <span class="cap-icon">🔒</span>
+                      <span class="cap-icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      </span>
                       <div>
-                        <strong>Student limit reached!</strong>
-                        <span class="cap-count">{{ q.totalAttemptsCount }}/{{ q.maxStudents }} students completed</span>
+                        <strong>Student limit reached</strong>
+                        <span class="cap-count mono-num">{{ q.totalAttemptsCount }}/{{ q.maxStudents }} students completed</span>
                       </div>
                     </div>
                     @if ((q.maxStudents ?? 15) < 50 && (q.limitExtensionCount || 0) < 2) {
                       <button (click)="extendQuizLimit(q)" class="btn btn-primary btn-sm cap-extend-btn">
-                        ➕ Extend (+15) 
+                        Extend (+15)
                         <span class="ext-count">{{ 2 - (q.limitExtensionCount || 0) }} left</span>
                       </button>
                     } @else {
                       <span class="cap-final-badge">
-                        {{ (q.maxStudents ?? 15) >= 50 ? '🚫 Max 50 seats reached' : '🚫 Max extensions used' }}
+                        {{ (q.maxStudents ?? 15) >= 50 ? 'Max 50 seats reached' : 'Max extensions used' }}
                       </span>
                     }
                   </div>
@@ -689,31 +672,31 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
                 <div class="rq-actions-row">
                   @if (isStudent()) {
-                    <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm flex-grow" title="Practice or Retest Quiz" style="text-align: center; justify-content: center;">
-                      {{ q.totalAttemptsCount > 0 ? '🔄 Retest Quiz' : '▶️ Start Practice' }}
+                    <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm flex-grow" title="Practice or Retake Quiz" style="text-align: center; justify-content: center;">
+                      {{ q.totalAttemptsCount > 0 ? 'Retake quiz' : 'Start practice' }}
                     </a>
                     @if (q.totalAttemptsCount > 0) {
-                      <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm flex-grow" title="View all your attempt marks for this quiz">
-                        📈 My Attempts ({{ q.totalAttemptsCount }})
+                      <button (click)="openLeaderboardModal(q)" class="btn btn-secondary btn-sm flex-grow" title="View all your attempt marks for this quiz">
+                        Attempts ({{ q.totalAttemptsCount }})
                       </button>
                     }
-                    <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm" title="Edit Questions">
-                      ✏️
+                    <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm btn-icon" title="Edit Questions" aria-label="Edit quiz">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     </a>
-                    <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Practice Quiz">
-                      🗑️
+                    <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm btn-icon" title="Delete Practice Quiz" aria-label="Delete quiz">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                   } @else {
                     @if (q.totalAttemptsCount > 0) {
-                      <button (click)="openLeaderboardModal(q)" class="btn btn-ai btn-sm flex-grow" title="View Student Leaderboard">
-                        🏆 Leaderboard
+                      <button (click)="openLeaderboardModal(q)" class="btn btn-primary btn-sm flex-grow" title="View Student Leaderboard">
+                        Leaderboard
                       </button>
                     }
                     <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm flex-grow" title="Copy Direct Quiz Share Link">
-                      📋 Share Link
+                      Copy link
                     </button>
-                    <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Assessment">
-                      🗑️
+                    <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm btn-icon" title="Delete Assessment" aria-label="Delete quiz">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </button>
                   }
                 </div>
@@ -784,7 +767,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <tr>
                     <td>
                       <div class="quiz-row-item">
-                        <div class="q-icon-circle">📝</div>
+                        <div class="q-icon-circle" aria-hidden="true">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </div>
                         <div class="q-info">
                           <span class="q-name">{{ q.title }}</span>
                           <span class="q-time">Created {{ q.createdAtUtc | date:'mediumDate' }}</span>
@@ -792,18 +777,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                       </div>
                     </td>
                     <td>{{ q.category }}</td>
-                    <td>{{ q.questionCount }} Items</td>
+                    <td class="mono-num">{{ q.questionCount }}</td>
                     <td>
-                      <strong class="text-dark">{{ q.totalAttemptsCount }} {{ isStudent() ? (q.totalAttemptsCount === 1 ? 'Attempt' : 'Attempts') : 'Submissions' }}</strong>
+                      <strong class="text-dark mono-num">{{ q.totalAttemptsCount }}</strong> {{ isStudent() ? (q.totalAttemptsCount === 1 ? 'attempt' : 'attempts') : 'submissions' }}
                     </td>
                     <td>
-                      <strong class="text-dark">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }}</strong>
-                      <small class="text-muted d-block">{{ q.passRatePercentage ?? 0 }}% pass rate</small>
+                      <strong class="text-dark mono-num">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }}</strong>
+                      <small class="text-muted d-block mono-num">{{ q.passRatePercentage ?? 0 }}% pass rate</small>
                     </td>
                     <td>
-                      <strong class="text-dark">{{ q.avgScorePercentage }}%</strong>
+                      <strong class="text-dark mono-num">{{ q.avgScorePercentage }}%</strong>
                     </td>
-                    <td>{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
+                    <td class="mono-num">{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
                     @if (!isStudent()) {
                       <td>
                         @if (q.isPublished) {
@@ -815,22 +800,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     }
                     <td>
                       <div class="action-btns-row">
-                        <a [routerLink]="['/quiz', q.id]" class="btn btn-ai btn-sm" [title]="isStudent() ? 'Retest Quiz' : 'Open Quiz'">
-                          {{ isStudent() ? '🔄 Retest' : '▶️ Open' }}
+                        <a [routerLink]="['/quiz', q.id]" class="btn btn-primary btn-sm" [title]="isStudent() ? 'Retake Quiz' : 'Open Quiz'">
+                          {{ isStudent() ? 'Retake' : 'Open' }}
                         </a>
                         <button (click)="openLeaderboardModal(q)" class="btn btn-outline btn-sm" [title]="isStudent() ? 'View All Attempt Marks' : 'View Student Submissions & Leaderboard'">
-                          {{ isStudent() ? '📈 My Attempts' : '🏆 Leaderboard' }}
+                          {{ isStudent() ? 'Attempts' : 'Leaderboard' }}
                         </button>
                         @if (!isStudent() && q.isPublished) {
                           <button (click)="copyShareLink(q.shortId!)" class="btn btn-outline btn-sm">
-                            📋 Link
+                            Link
                           </button>
                         }
                         <a [routerLink]="['/quiz', q.id, 'edit']" class="btn btn-outline btn-sm">
                           Edit
                         </a>
-                        <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm" title="Delete Assessment">
-                          🗑️
+                        <button (click)="deleteQuiz(q.id)" class="btn btn-outline btn-sm btn-icon" title="Delete Assessment" aria-label="Delete assessment">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         </button>
                       </div>
                     </td>
@@ -910,18 +895,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     <td>
                       <div class="action-btns-row">
                         <a [routerLink]="['/quiz', a.quizId]" class="btn btn-primary btn-sm">
-                          🔄 Retake Quiz
+                          Retake quiz
                         </a>
                         <button (click)="selectedReportAttempt.set(a)" class="btn btn-outline btn-sm">
-                          📊 View Report
+                          Report
                         </button>
                         @if (a.isPassed) {
                           <a
                             [routerLink]="['/certificate/generator']"
                             [queryParams]="{ student: (authService.currentUser()?.firstName || 'Student') + ' ' + (authService.currentUser()?.lastName || ''), title: a.quizTitle, score: a.scorePercentage }"
-                            class="btn btn-ai btn-sm"
+                            class="btn btn-secondary btn-sm"
                           >
-                            📜 Certificate
+                            Certificate
                           </a>
                         }
                       </div>
@@ -948,22 +933,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .mb-4 { margin-bottom: 2.0rem; }
     .font-sm { font-size: 0.85rem; }
     .d-block { display: block; }
-    .font-weight-bold { font-weight: 800; }
+    .font-weight-bold { font-weight: 500; }
     .width-full { width: 100%; }
     .margin-top { margin-top: 1.25rem; }
+    .mono-num { font-variant-numeric: tabular-nums; }
+    .btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; flex-shrink: 0; }
 
-    /* Adaptive Hero Banner */
+    /* Overview Header */
     .dashboard-hero {
-      padding: 1.75rem 2rem;
+      padding: 1.5rem 1.75rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-left: 4px solid var(--color-primary-600);
-      border-radius: var(--radius-xl);
+      border-radius: var(--radius-lg);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 1.5rem;
-      box-shadow: var(--shadow-sm);
       position: relative;
     }
     .hero-content {
@@ -971,41 +956,44 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       min-width: 0;
       z-index: 1;
       h1 {
-        font-size: clamp(1.7rem, 3vw, 2.25rem);
-        font-weight: 800;
+        font-size: clamp(1.5rem, 2.6vw, 1.875rem);
+        font-weight: 500;
         color: var(--text-primary) !important;
         letter-spacing: -0.025em;
-        margin: 0 0 0.5rem 0;
+        margin: 0 0 0.35rem 0;
         line-height: 1.2;
       }
       .hero-desc {
-        font-size: 0.95rem;
+        font-size: 0.9375rem;
         color: var(--text-secondary) !important;
-        line-height: 1.6;
+        line-height: 1.55;
         margin: 0;
       }
     }
+    .hero-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
     .role-chip {
       display: inline-flex;
-      vertical-align: middle;
-      margin-left: 0.5rem;
-      padding: 0.25rem 0.6rem;
-      border: 1px solid var(--color-primary-200);
-      border-radius: var(--radius-full);
-      background: var(--color-primary-50);
-      color: var(--color-primary-700);
+      align-items: center;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
       font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0;
+      font-weight: 500;
     }
     .hero-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
       font-size: 0.75rem;
-      font-weight: 800;
-      padding: 0.35rem 0.7rem;
-      border-radius: var(--radius-full);
+      font-weight: 500;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
       background: var(--color-primary-50);
       color: var(--color-primary-700) !important;
       border: 1px solid var(--color-primary-200);
@@ -1015,58 +1003,33 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       z-index: 1;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.65rem;
+      gap: 0.625rem;
       .hero-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        min-height: 44px;
-        padding: 0.7rem 1rem;
-        background: var(--color-primary-600);
-        color: #ffffff !important;
-        font-weight: 800;
-        font-size: 0.9rem;
-        border-radius: var(--radius-md);
-        text-decoration: none !important;
-        box-shadow: none;
-        transition: background-color var(--transition-fast), transform var(--transition-fast);
-        &:hover {
-          transform: translateY(-1px);
-          background: var(--color-primary-700);
-          text-decoration: none !important;
-        }
-      }
-      .hero-btn-govt {
-        background: var(--bg-surface) !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-strong);
-        &:hover {
-          background: var(--bg-hover) !important;
-          color: var(--text-primary) !important;
-          border-color: var(--color-primary-400);
-        }
+        min-height: 40px;
       }
     }
 
     .toast-notification {
       position: fixed;
-      top: 80px;
+      top: 76px;
       right: 24px;
       z-index: 1100;
       background: var(--text-primary);
       color: var(--bg-surface);
-      padding: 0.75rem 1.25rem;
+      padding: 0.65rem 1.1rem;
       border-radius: var(--radius-md);
       font-size: 0.875rem;
-      font-weight: 700;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
     }
 
-    /* Suggestion Command Toolbar */
-    .suggestion-toolbar {
-      padding: 1.5rem 2rem;
-      border-left: 5px solid var(--color-ai-purple) !important;
-      border-radius: 1.25rem;
+    /* Quick Topic & Exam Hub */
+    .suggestion-toolbar,
+    .govt-dashboard-hub {
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
       display: flex;
       flex-direction: column;
     }
@@ -1079,63 +1042,48 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .suggestion-title-group {
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      flex-direction: column;
     }
-    .ai-spark-circle {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-md);
-      background: var(--color-ai-bg);
-      border: 1px solid var(--color-ai-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.0rem;
-    }
-    .suggestion-title {
-      font-size: 0.925rem;
-      font-weight: 800;
+    .suggestion-title,
+    .govt-hub-title {
+      font-size: 0.9375rem;
+      font-weight: 500;
       color: var(--text-primary) !important;
     }
-    .suggestion-desc {
-      font-size: 0.8rem;
+    .suggestion-desc,
+    .govt-hub-desc {
+      font-size: 0.8125rem;
       color: var(--text-muted) !important;
-      margin: 0.1rem 0 0 0;
+      margin: 0.15rem 0 0 0;
     }
-    .topic-pills-row {
+    .topic-pills-row,
+    .govt-stream-pills-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.65rem;
+      gap: 0.5rem;
       margin-top: 0.75rem;
     }
-    .topic-pill {
-      font-size: 0.825rem;
-      font-weight: 700;
-      padding: 0.6rem 1.25rem;
-      border-radius: 9999px;
+    .topic-pill,
+    .stream-pill {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 0.45rem 0.875rem;
+      border-radius: var(--radius-md);
       text-decoration: none !important;
       border: 1px solid var(--border-hairline);
-      background: var(--bg-surface);
+      background: var(--bg-app);
       color: var(--text-primary) !important;
-      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
       &:hover {
         background: var(--color-primary-50);
-        border-color: var(--color-primary-400);
-        color: var(--color-primary-600) !important;
+        border-color: var(--color-primary-300);
+        color: var(--color-primary-700) !important;
       }
     }
 
-    /* Government & Competitive Examination Hub Launcher */
-    .govt-dashboard-hub {
-      padding: 1.25rem 1.5rem;
-      border-left: 3px solid var(--color-primary-600) !important;
-      border-radius: var(--radius-xl);
-      background: var(--bg-surface);
-      display: flex;
-      flex-direction: column;
-    }
     .govt-hub-header {
       display: flex;
       justify-content: space-between;
@@ -1145,89 +1093,38 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .govt-hub-title-group {
       display: flex;
-      align-items: center;
-      gap: 0.85rem;
-    }
-    .govt-emblem-circle {
-      width: 38px;
-      height: 38px;
-      border-radius: var(--radius-md);
-      background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-      flex-shrink: 0;
+      flex-direction: column;
     }
     .govt-hub-title-row {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
     }
-    .govt-hub-title {
-      font-size: 0.975rem;
-      font-weight: 800;
-      color: var(--text-primary) !important;
-    }
     .govt-badge-cbt {
-      font-size: 0.675rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      background: var(--color-primary-50);
-      color: var(--color-primary-700) !important;
-      border: 1px solid var(--color-primary-200);
-      padding: 0.15rem 0.55rem;
-      border-radius: 9999px;
-    }
-    .govt-hub-desc {
-      font-size: 0.825rem;
-      color: var(--text-muted) !important;
-      margin: 0.15rem 0 0 0;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: var(--bg-muted);
+      color: var(--text-secondary) !important;
+      border: 1px solid var(--border-hairline);
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
     }
     .btn-govt-explore {
-      font-size: 0.825rem;
-      font-weight: 700;
+      font-size: 0.8125rem;
+      font-weight: 500;
       color: var(--color-primary-700) !important;
-      text-decoration: none !important;
       font-family: inherit;
       cursor: pointer;
-      padding: 0.45rem 1rem;
-      border-radius: 9999px;
+      padding: 0.45rem 0.875rem;
+      border-radius: var(--radius-md);
       background: var(--color-primary-50);
       border: 1px solid var(--color-primary-200);
-      transition: background-color var(--transition-fast), border-color var(--transition-fast);
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
       white-space: nowrap;
       &:hover {
         background: var(--color-primary-100);
-        border-color: var(--color-primary-400);
-      }
-    }
-    .govt-stream-pills-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-top: 0.85rem;
-    }
-    .stream-pill {
-      font-size: 0.825rem;
-      font-weight: 700;
-      padding: 0.6rem 1.15rem;
-      border-radius: 9999px;
-      text-decoration: none !important;
-      border: 1px solid var(--border-hairline);
-      background: var(--bg-surface);
-      color: var(--text-primary) !important;
-      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      &:hover {
-        border-color: var(--color-primary-400);
-        background: var(--color-primary-50);
-        color: var(--color-primary-700) !important;
+        border-color: var(--color-primary-300);
       }
     }
 
@@ -1235,104 +1132,48 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
+      gap: 1rem;
     }
     .stat-card {
-      padding: 1.75rem;
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
-      border-radius: 1.25rem;
+      border-radius: var(--radius-lg);
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: border-color 150ms var(--ease-out);
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+        border-color: var(--border-strong);
       }
     }
-    .card-indigo  { border-left: 3px solid var(--color-primary-600) !important; }
-    .card-purple  { border-left: 3px solid var(--color-ai-purple) !important; }
-    .card-emerald { border-left: 3px solid var(--color-success-text) !important; }
-    .card-amber   { border-left: 3px solid var(--color-warning-text) !important; }
-
     .stat-card-top {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.65rem;
     }
-    .stat-icon-box {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      .stat-svg { width: 20px; height: 20px; }
-    }
-    .icon-indigo { background: var(--color-primary-50); color: var(--color-primary-600); }
-    .icon-purple { background: var(--color-ai-bg); color: var(--color-ai-purple); }
-    .icon-emerald { background: var(--color-success-bg); color: var(--color-success-text); }
-    .icon-amber  { background: var(--color-warning-bg); color: var(--color-warning-text); }
-
     .stat-title {
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-size: 0.8125rem;
+      font-weight: 500;
       color: var(--text-secondary) !important;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
     .stat-value {
-      font-size: 2.5rem;
-      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.875rem;
+      font-weight: 500;
       color: var(--text-primary) !important;
       line-height: 1.1;
-      letter-spacing: -1px;
+      letter-spacing: -0.02em;
     }
     .stat-subtext {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-muted) !important;
       margin-top: 0.5rem;
-      font-weight: 500;
+      font-weight: 400;
     }
 
-    @media (max-width: 1024px) {
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-      .dashboard-hero { flex-direction: column; align-items: flex-start; text-align: left; padding: 2rem; gap: 1.5rem; }
-      .hero-actions { width: 100%; }
-      .hero-actions .hero-btn { width: 100%; justify-content: center; }
-    }
-    
-    @media (max-width: 640px) {
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      .stat-card { padding: 1.25rem; border-radius: 1rem; }
-      .stat-value { font-size: 1.75rem; }
-      .stat-title { font-size: 0.75rem; }
-      .stat-icon-box { width: 32px; height: 32px; }
-      .stat-icon-box .stat-svg { width: 16px; height: 16px; }
-      
-      .dashboard-layout { padding: 1rem 1rem 4rem 1rem; }
-      .dashboard-hero { padding: 1.5rem; border-radius: 1rem; gap: 1.25rem; }
-      .hero-content h1 { font-size: 1.5rem; line-height: 1.25; }
-      .hero-content .hero-desc { font-size: 0.85rem; }
-      .hero-actions .hero-btn { padding: 0.85rem 1.25rem; font-size: 0.95rem; }
-      
-      .section-title-row { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-      .section-title-row h3 { font-size: 1.05rem; line-height: 1.3; }
-      .section-title-row .link-action { align-self: flex-start; font-size: 0.85rem; padding: 0.4rem 0.85rem; background: var(--bg-hover); border-radius: var(--radius-md); border: 1px solid var(--border-hairline); }
-      .content-card { padding: 1.25rem; }
-      
-      .empty-state-box { padding: 2rem 1.25rem; }
-      .empty-state-box h4 { font-size: 1.05rem; }
-      .empty-state-box p { font-size: 0.85rem; }
-      .empty-icon-wrapper { width: 48px; height: 48px; margin-bottom: 1rem; svg { width: 24px; height: 24px; } }
-    }
-
-    /* Running Live Quizzes Grid Section */
+    /* Active Quizzes Grid Section */
     .running-quizzes-card {
-      border-top: 3px solid var(--color-success-text) !important;
+      background: var(--bg-surface);
     }
     .title-with-live-dot {
       display: flex;
@@ -1343,27 +1184,17 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.7rem;
-      font-weight: 800;
+      font-size: 0.75rem;
+      font-weight: 500;
       color: var(--color-success-text) !important;
-      letter-spacing: 0.6px;
     }
-    @keyframes pulseDot {
-      0% { transform: scale(0.95); opacity: 1; }
-      50% { transform: scale(1.3); opacity: 0.5; }
-      100% { transform: scale(0.95); opacity: 1; }
-    }
-    .pulsing-dot {
-      width: 8px;
-      height: 8px;
+    .live-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--color-success-text);
       display: inline-block;
-      animation: pulseDot 1.8s infinite ease-in-out;
-    }
-    .ai-loading-sparkles {
-      font-size: 1.5rem;
-      animation: pulse-glow 1.5s infinite alternate;
+      flex-shrink: 0;
     }
 
     /* Scorecard specific styles */
@@ -1384,11 +1215,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .scorecard-brand h2 {
       margin: 0;
       color: var(--color-primary-600);
-      font-weight: 800;
+      font-weight: 600;
     }
     .scorecard-brand h3 {
       margin: 0.5rem 0 1.25rem 0;
       color: var(--text-heading);
+      font-weight: 500;
     }
     .scorecard-summary-grid {
       display: grid;
@@ -1405,9 +1237,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: block;
       margin-bottom: 0.35rem;
       color: var(--text-primary);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
+      font-size: 0.8rem;
+      font-weight: 600;
       border-bottom: 1px solid var(--border-hairline);
       padding-bottom: 0.25rem;
     }
@@ -1423,14 +1254,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .sc-score-label {
       font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
+      font-weight: 500;
       color: var(--text-muted);
       margin-bottom: 0.35rem;
     }
     .sc-score-val {
-      font-size: 2.25rem;
-      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
       color: var(--color-danger-text);
       line-height: 1;
       margin: 0.35rem 0;
@@ -1441,9 +1273,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .sc-score-sub {
       color: var(--text-muted);
       font-size: 0.85rem;
-      font-weight: 700;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
     }
-    .scorecard-questions h4 { font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-heading); }
+    .scorecard-questions h4 { font-size: 1.05rem; font-weight: 500; margin-bottom: 1rem; color: var(--text-heading); }
     .sc-question-item {
       background: var(--bg-app);
       border: 1px solid var(--border-hairline);
@@ -1453,11 +1286,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .sc-question-item.correct {
       border-color: var(--color-success-border);
-      border-left: 4px solid var(--color-success-text);
+      border-left: 2px solid var(--color-success-text);
     }
     .sc-question-item.incorrect {
       border-color: var(--color-danger-border);
-      border-left: 4px solid var(--color-danger-text);
+      border-left: 2px solid var(--color-danger-text);
     }
     .sc-q-header {
       display: flex;
@@ -1467,25 +1300,37 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       margin-bottom: 0.9rem;
     }
     .sc-q-num {
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: var(--color-primary-600);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--color-primary-700);
       background: var(--color-primary-50);
       padding: 0.2rem 0.55rem;
-      border-radius: var(--radius-sm);
+      border-radius: 6px;
     }
-    .sc-q-tag { font-size: 0.75rem; font-weight: 700; color: var(--color-ai-purple); background: var(--color-ai-bg); border: 1px solid var(--color-ai-border); border-radius: 9999px; padding: 0.15rem 0.5rem; white-space: nowrap; }
+    .sc-q-tag {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg-muted);
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      padding: 0.15rem 0.5rem;
+      white-space: nowrap;
+    }
     .sc-q-text {
       flex: 1;
       min-width: 180px;
-      font-weight: 700;
-      font-size: 1rem;
+      font-weight: 500;
+      font-size: 0.96rem;
       line-height: 1.45;
       color: var(--text-heading);
     }
     .sc-q-points {
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
       color: var(--text-muted);
       white-space: nowrap;
     }
@@ -1514,40 +1359,39 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .sc-opt-indicator {
       width: 22px;
-      text-align: center;
-      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+    }
+    .sc-option.is-correct .sc-opt-indicator {
+      color: var(--color-success-text);
+    }
+    .sc-option.is-selected:not(.is-correct) .sc-opt-indicator {
+      color: var(--color-danger-text);
     }
     .sc-opt-text {
       flex: 1;
       font-size: 0.92rem;
       color: var(--text-body);
     }
-    .sc-opt-badge { font-size: 0.7rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); text-transform: uppercase; letter-spacing: 0.4px; }
-    .student-choice { background: var(--color-primary-600); color: white; }
-    .correct-choice { background: var(--color-success-text); color: white; }
-    .sc-q-explanation { margin-top: 1rem; padding: 0.85rem 1rem; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); font-size: 0.88rem; color: var(--text-body); border-left: 3px solid var(--color-primary-600); }
     .sc-opt-badge {
       font-size: 0.7rem;
-      font-weight: 800;
-      padding: 0.2rem 0.4rem;
-      border-radius: var(--radius-sm);
+      font-weight: 500;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
     }
-    .sc-opt-badge.student-choice {
-      background: var(--color-primary);
-      color: white;
-    }
-    .sc-opt-badge.correct-choice {
-      background: var(--color-success);
-      color: white;
-    }
+    .student-choice { background: var(--color-primary-600); color: #ffffff; }
+    .correct-choice { background: var(--color-success-text); color: #ffffff; }
     .sc-q-explanation {
-      margin-top: 1rem;
-      margin-left: 2.5rem;
-      padding: 0.75rem;
-      background: rgba(245, 158, 11, 0.1);
-      border-left: 3px solid var(--color-warning);
-      color: var(--text-secondary);
-      font-size: 0.95rem;
+      margin-top: 0.85rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-left: 2px solid var(--color-primary-600);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      color: var(--text-body);
     }
 
     .print-show-inline {
@@ -1591,9 +1435,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Ongoing In-Progress Attempt Alert Card */
     .ongoing-attempt-alert {
-      padding: 1.35rem 1.6rem;
+      padding: 1.25rem 1.5rem;
       background: var(--color-warning-bg);
-      border: 1.5px solid var(--color-warning-border) !important;
+      border: 1px solid var(--color-warning-border) !important;
+      border-radius: var(--radius-md);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1606,12 +1451,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .ongoing-category-badge {
       font-size: 0.75rem;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--color-warning-text) !important;
     }
     .ongoing-title {
-      font-size: 1.15rem;
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 500;
       color: var(--text-primary) !important;
       margin: 0.2rem 0;
     }
@@ -1631,8 +1476,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      .timer-label { font-size: 0.7rem; font-weight: 700; color: var(--color-warning-text) !important; text-transform: uppercase; }
-      .timer-value { font-size: 1.25rem; font-weight: 800; color: var(--color-warning-text) !important; font-family: monospace; }
+      .timer-label { font-size: 0.75rem; font-weight: 500; color: var(--color-warning-text) !important; }
+      .timer-value { font-size: 1.2rem; font-weight: 500; color: var(--color-warning-text) !important; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
     }
     .ongoing-btn-row {
       display: flex;
@@ -1644,46 +1489,46 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.5rem;
-      background: var(--color-success-bg);
-      border: 1px solid var(--color-success-border);
-      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-app);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
       gap: 1.0rem;
-      h4 { font-size: 1.0rem; font-weight: 800; color: var(--color-success-text) !important; margin-bottom: 0.2rem; }
-      p { font-size: 0.85rem; color: var(--text-body); margin: 0; }
+      h4 { font-size: 0.95rem; font-weight: 500; color: var(--text-primary) !important; margin-bottom: 0.2rem; }
+      p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
     }
     .running-quizzes-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1rem;
     }
     .running-quiz-item-card {
-      padding: 1.5rem;
+      padding: 1.25rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: 1.25rem;
+      border-radius: var(--radius-lg);
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      gap: 0.65rem;
+      transition: border-color 150ms var(--ease-out);
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        border-color: var(--border-strong);
       }
     }
     .rq-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 0.5rem;
     }
     .rq-category {
       font-size: 0.75rem;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--text-muted) !important;
     }
     .rq-title {
-      font-size: 1.05rem;
-      font-weight: 800;
+      font-size: 1rem;
+      font-weight: 500;
       color: var(--text-primary) !important;
       margin: 0;
       line-height: 1.35;
@@ -1694,10 +1539,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       gap: 0.4rem;
     }
     .rq-meta-chip {
-      font-size: 0.725rem;
-      font-weight: 700;
-      padding: 0.2rem 0.5rem;
-      background: var(--bg-hover);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      background: var(--bg-muted);
       color: var(--text-secondary) !important;
       border: 1px solid var(--border-hairline);
     }
@@ -1713,11 +1559,11 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: flex;
       flex-direction: column;
       gap: 0.45rem;
-      padding: 0.65rem 0.85rem;
-      background: var(--bg-hover);
+      padding: 0.6rem 0.75rem;
+      background: var(--bg-app);
       border: 1px solid var(--border-hairline);
-      border-radius: 0.5rem;
-      transition: all 0.2s ease;
+      border-radius: var(--radius-md);
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
     }
     .rq-analytics-pills {
       display: flex;
@@ -1725,13 +1571,13 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       gap: 0.4rem;
     }
     .rq-analytics-pill {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-body) !important;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--text-secondary) !important;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       padding: 0.15rem 0.5rem;
-      border-radius: 9999px;
+      border-radius: 6px;
     }
     .rq-join-status.has-joins {
       background: var(--color-success-bg);
@@ -1744,34 +1590,33 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       width: 100%;
     }
     .join-icon {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       stroke: var(--text-muted);
       flex-shrink: 0;
     }
     .rq-join-status.has-joins .join-icon {
-      stroke: var(--color-success);
+      stroke: var(--color-success-text);
     }
     .join-text {
-      font-size: 0.825rem;
-      font-weight: 600;
+      font-size: 0.8125rem;
+      font-weight: 500;
       flex: 1;
     }
     .join-text.waiting {
       color: var(--text-muted) !important;
-      font-style: italic;
     }
     .join-text.joined {
-      color: var(--color-success) !important;
+      color: var(--color-success-text) !important;
     }
     .join-avg {
       font-size: 0.75rem;
-      font-weight: 700;
-      background: white;
+      font-weight: 500;
+      background: var(--bg-surface);
       border: 1px solid var(--color-success-border);
-      color: var(--color-success) !important;
-      padding: 0.1rem 0.45rem;
-      border-radius: 99px;
+      color: var(--color-success-text) !important;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
     }
 
     /* Cap Reached Banner */
@@ -1780,37 +1625,32 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       justify-content: space-between;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: #fff8ed;
-      border: 1px solid #f59e0b;
-      border-radius: 1rem;
-      animation: pulse-warn 2s infinite;
-    }
-    @keyframes pulse-warn {
-      0%, 100% { border-color: #f59e0b; }
-      50% { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+      padding: 0.65rem 0.85rem;
+      background: var(--color-warning-bg);
+      border: 1px solid var(--color-warning-border);
+      border-radius: var(--radius-md);
     }
     .cap-banner-text {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
       flex: 1;
     }
-    .cap-icon { font-size: 1.25rem; flex-shrink: 0; }
-    .cap-banner-text strong { display: block; font-size: 0.875rem; color: #92400e !important; }
-    .cap-count { font-size: 0.775rem; color: #92400e !important; opacity: 0.8; }
+    .cap-icon { display: inline-flex; color: var(--color-warning-text); flex-shrink: 0; }
+    .cap-banner-text strong { display: block; font-size: 0.8125rem; font-weight: 500; color: var(--color-warning-text) !important; }
+    .cap-count { font-size: 0.75rem; color: var(--color-warning-text) !important; opacity: 0.85; }
     .cap-extend-btn { white-space: nowrap; flex-shrink: 0; }
     .ext-count {
       font-size: 0.7rem;
-      background: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.2);
       padding: 0.1rem 0.35rem;
-      border-radius: 99px;
+      border-radius: 4px;
       margin-left: 0.3rem;
     }
     .cap-final-badge {
-      font-size: 0.775rem;
-      font-weight: 700;
-      color: var(--color-danger) !important;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-danger-text) !important;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -1824,26 +1664,26 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
 
     /* Content Cards */
     .content-card {
-      padding: 2rem;
+      padding: 1.5rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: 1.25rem;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+      border-radius: var(--radius-lg);
     }
     .section-title-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 1.5rem;
-      h3 { font-size: 1.15rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; }
-      .section-subtitle { font-size: 0.85rem; color: var(--text-muted) !important; margin-top: 0.2rem; font-weight: 400; }
+      margin-bottom: 1.25rem;
+      h3 { font-size: 1.125rem; font-weight: 500; color: var(--text-primary) !important; margin: 0; letter-spacing: -0.015em; }
+      .section-subtitle { font-size: 0.8125rem; color: var(--text-muted) !important; margin-top: 0.25rem; font-weight: 400; }
     }
     .link-action {
-      font-size: 0.825rem;
-      font-weight: 700;
+      font-size: 0.8125rem;
+      font-weight: 500;
       color: var(--color-primary-600) !important;
       text-decoration: none !important;
-      transition: color 0.15s ease;
+      transition: color 150ms var(--ease-out);
+      white-space: nowrap;
       &:hover {
         text-decoration: none !important;
         color: var(--color-primary-700) !important;
@@ -1856,35 +1696,35 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 4rem 2rem;
-      background: var(--bg-hover);
-      border: 2px dashed var(--border-hairline);
-      border-radius: 1.25rem;
-      margin-top: 1rem;
+      padding: 3rem 1.5rem;
+      background: var(--bg-app);
+      border: 1px dashed var(--border-hairline);
+      border-radius: var(--radius-lg);
+      margin-top: 0.75rem;
     }
     .empty-icon-wrapper {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
       background: var(--color-primary-50);
       color: var(--color-primary-600);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 1.5rem;
-      svg { width: 32px; height: 32px; stroke-width: 1.5; }
+      margin-bottom: 1rem;
+      svg { width: 22px; height: 22px; stroke-width: 1.5; }
     }
     .empty-state-box h4 {
-      font-size: 1.25rem;
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 500;
       color: var(--text-primary) !important;
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 0.4rem 0;
     }
     .empty-state-box p {
-      font-size: 0.95rem;
+      font-size: 0.875rem;
       color: var(--text-muted) !important;
       max-width: 400px;
-      margin: 0;
+      margin: 0 0 1rem 0;
       line-height: 1.5;
     }
 
@@ -1892,21 +1732,22 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .quiz-table-wrapper { overflow-x: auto; }
     .quiz-row-item { display: flex; align-items: center; gap: 0.75rem; }
     .q-icon-circle {
-      width: 34px;
-      height: 34px;
-      border-radius: var(--radius-sm);
-      background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      background: var(--bg-muted);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-secondary);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .q-info { display: flex; flex-direction: column; .q-name { font-weight: 700; color: var(--text-primary) !important; } .q-time { font-size: 0.75rem; color: var(--text-muted) !important; font-weight: 400; } }
+    .q-info { display: flex; flex-direction: column; .q-name { font-weight: 500; color: var(--text-primary) !important; } .q-time { font-size: 0.75rem; color: var(--text-muted) !important; font-weight: 400; } }
     .text-dark { color: var(--text-primary) !important; }
     .action-btns-row { display: flex; gap: 0.4rem; align-items: center; }
 
-    .score-pill { font-size: 0.8rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); }
+    .score-pill { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 0.8rem; font-weight: 500; padding: 0.15rem 0.5rem; border-radius: 6px; }
     .score-high { background: var(--color-success-bg); color: var(--color-success-text) !important; border: 1px solid var(--color-success-border); }
     .score-medium { background: var(--color-warning-bg); color: var(--color-warning-text) !important; border: 1px solid var(--color-warning-border); }
 
@@ -1916,7 +1757,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .cheat-badge {
       display: inline-block;
       font-size: 0.7rem;
-      font-weight: 800;
+      font-weight: 500;
       padding: 0.1rem 0.45rem;
       border-radius: 4px;
       background: var(--color-danger-bg);
@@ -1924,13 +1765,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       border: 1px solid var(--color-danger-border);
       margin-left: 0.4rem;
       vertical-align: middle;
-      letter-spacing: 0.3px;
     }
 
     /* Admin Leaderboard Modal */
     .modal-lg { max-width: 820px !important; }
+    .modal-eyebrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-primary-600);
+    }
     .modal-header-title {
-      h3 { font-size: 1.35rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; }
+      h3 { font-size: 1.25rem; font-weight: 500; color: var(--text-primary) !important; margin: 0; }
     }
     .leaderboard-modal-body {
       max-height: 65vh;
@@ -1947,33 +1793,36 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       border: 1px solid var(--border-hairline);
       border-radius: var(--radius-md);
       .meta-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
-      .meta-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted) !important; text-transform: uppercase; letter-spacing: 0.4px; }
-      .meta-val { font-size: 1.08rem; font-weight: 800; margin-top: 0.2rem; }
+      .meta-label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted) !important; }
+      .meta-val { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 1.05rem; font-weight: 500; margin-top: 0.2rem; }
     }
 
     .rank-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 3px 8px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
       font-size: 0.75rem;
-      font-weight: 800;
-      background: var(--bg-hover);
+      font-weight: 500;
+      background: var(--bg-muted);
       color: var(--text-secondary);
       border: 1px solid var(--border-hairline);
     }
-    .rank-1 { background: #fef3c7; color: #b45309 !important; border-color: #fde68a; }
-    .rank-2 { background: #f1f5f9; color: #475569 !important; border-color: #cbd5e1; }
-    .rank-3 { background: #ffedd5; color: #c2410c !important; border-color: #fed7aa; }
-    .score-num-text { font-size: 1.05rem; color: var(--color-primary-600) !important; }
-    .modal-footer-row { display: flex; justify-content: flex-end; }
+    .rank-1 { background: var(--color-primary-50); color: var(--color-primary-700) !important; border-color: var(--color-primary-200); }
+    .rank-2 { background: var(--bg-muted); color: var(--text-primary) !important; border-color: var(--border-strong); }
+    .rank-3 { background: var(--bg-app); color: var(--text-secondary) !important; border-color: var(--border-hairline); }
+    .score-num-text { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 0.95rem; font-weight: 500; color: var(--color-primary-600) !important; }
+    .modal-footer-row { display: flex; justify-content: flex-end; gap: 0.5rem; }
 
     /* Modal Backdrop & Report Dialog */
     .modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 1200;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
@@ -1983,19 +1832,19 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .modal-content {
       width: 100%;
       max-width: 480px;
-      border-radius: var(--radius-lg);
-      padding: 1.75rem;
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
     }
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.25rem;
-      h3 { font-size: 1.15rem; font-weight: 800; margin: 0; }
-      .close-btn { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+      h3 { font-size: 1.125rem; font-weight: 500; margin: 0; }
+      .close-btn { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); padding: 0.25rem; }
     }
     .report-modal-body {
-      h2 { font-size: 1.35rem; font-weight: 800; margin: 0.5rem 0 0.2rem 0; color: var(--text-primary) !important; }
+      h2 { font-size: 1.25rem; font-weight: 500; margin: 0.5rem 0 0.2rem 0; color: var(--text-primary) !important; }
     }
     .report-stats-grid {
       display: grid;
@@ -2012,8 +1861,8 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       display: flex;
       flex-direction: column;
       gap: 0.2rem;
-      .stat-label { font-size: 0.725rem; font-weight: 700; color: var(--text-muted) !important; text-transform: uppercase; }
-      .stat-num { font-size: 1.35rem; font-weight: 800; }
+      .stat-label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted) !important; }
+      .stat-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 1.25rem; font-weight: 500; }
     }
     .text-primary { color: var(--color-primary-600) !important; }
     .text-success { color: var(--color-success-text) !important; }
@@ -2067,19 +1916,16 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
 
 
-    @media (max-width: 1024px) {
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
-    }
-
     @media (max-width: 900px) {
       .dashboard-layout { padding: 1.25rem 1rem 3rem 1rem; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
       .dashboard-hero {
         flex-direction: column;
         align-items: flex-start;
         padding: 1.5rem;
         gap: 1.25rem;
       }
-      .hero-content h1 { font-size: 1.65rem; }
+      .hero-content h1 { font-size: 1.55rem; }
       .hero-actions { width: 100%; }
       .hero-btn { flex: 1; justify-content: center; text-align: center; }
       .running-quiz-empty-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
@@ -2096,19 +1942,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     @media (max-width: 640px) {
       .dashboard-layout { padding: 1rem 0.75rem 2.5rem 0.75rem; }
       .dashboard-hero { padding: 1.25rem; gap: 1rem; border-radius: var(--radius-lg); }
-      .hero-content h1 { font-size: 1.45rem; line-height: 1.3; }
-      .hero-desc { font-size: 0.88rem !important; }
+      .hero-content h1 { font-size: 1.4rem; line-height: 1.3; }
+      .hero-desc { font-size: 0.875rem !important; }
       .hero-actions { flex-direction: column; }
       .hero-btn { width: 100%; }
-      
+
       .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.75rem !important; }
-      .stat-card { min-width: 0 !important; padding: 0.9rem !important; display: flex !important; align-items: flex-start !important; justify-content: center !important; flex-direction: column !important; }
-      .stat-card-top { min-width: 0; margin-bottom: 0.45rem !important; align-items: flex-start; flex-direction: column; gap: 0.35rem; }
-      .stat-value { font-size: 1.5rem !important; text-align: left !important; line-height: 1.1 !important; margin-bottom: 0.2rem !important; }
-      .stat-subtext { text-align: left !important; margin-top: 0 !important; font-size: 0.7rem !important; line-height: 1.25 !important; }
-      .stat-title { min-width: 0; font-size: 0.72rem !important; letter-spacing: 0 !important; overflow-wrap: anywhere; }
-      .stat-icon-box { width: 32px; height: 32px; }
-      
+      .stat-card { min-width: 0 !important; padding: 0.9rem !important; }
+      .stat-card-top { min-width: 0; margin-bottom: 0.35rem !important; }
+      .stat-value { font-size: 1.5rem !important; line-height: 1.1 !important; margin-bottom: 0.2rem !important; }
+      .stat-subtext { margin-top: 0.2rem !important; font-size: 0.72rem !important; line-height: 1.25 !important; }
+      .stat-title { min-width: 0; font-size: 0.75rem !important; overflow-wrap: anywhere; }
+
       .suggestion-toolbar, .govt-dashboard-hub { padding: 1.1rem; border-radius: var(--radius-lg); }
       .topic-pills-row, .govt-stream-pills-row {
         display: flex;
@@ -2120,18 +1965,18 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         scrollbar-width: none;
       }
       .topic-pills-row::-webkit-scrollbar, .govt-stream-pills-row::-webkit-scrollbar { display: none; }
-      .topic-pill, .stream-pill { flex-shrink: 0; padding: 0.45rem 0.9rem; }
-      
-      .running-quizzes-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .topic-pill, .stream-pill { flex-shrink: 0; padding: 0.45rem 0.85rem; }
+
+      .running-quizzes-grid { grid-template-columns: 1fr; gap: 0.875rem; }
       .quiz-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md); border: 1px solid var(--border-hairline); }
       .qp-table { min-width: 680px; }
-      
+
       .content-card { padding: 1.15rem; border-radius: var(--radius-lg); margin-bottom: 1.25rem; }
       .running-quiz-item-card { padding: 1.15rem !important; }
-      
+
       .rq-actions-row { flex-direction: column; gap: 0.5rem; width: 100%; }
       .rq-actions-row .btn, .rq-actions-row a { width: 100%; justify-content: center; text-align: center; }
-      
+
       .action-btns-row { flex-wrap: wrap; gap: 0.35rem; }
       .modal-content { padding: 1.25rem 1rem !important; max-width: 96% !important; }
     }
@@ -2395,10 +2240,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.quizService.extendQuizLimit(quiz.id).subscribe({
       next: (res) => {
         this.fetchDashboardSummary();
-        alert(`✅ ${res.message}`);
+        alert(res.message);
       },
       error: (err) => {
-        alert(`❌ Failed to extend limit: ${err.error?.message || 'Unknown error'}`);
+        alert(`Failed to extend limit: ${err.error?.message || 'Unknown error'}`);
       }
     });
   }

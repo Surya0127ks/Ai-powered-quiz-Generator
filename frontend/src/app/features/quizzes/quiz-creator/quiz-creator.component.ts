@@ -30,42 +30,45 @@ export interface GovtExamCategory {
   template: `
     <div class="creator-container">
       <header class="creator-header">
-        <a routerLink="/dashboard" class="back-link">← Back to Dashboard</a>
+        <a routerLink="/dashboard" class="back-link">← Back to dashboard</a>
         <div class="header-title-row">
           <div>
-            <h1>{{ authService.userRole() === 3 ? 'Create Practice Quiz' : 'Create Assessment Quiz' }}</h1>
+            <h1>{{ authService.userRole() === 3 ? 'Create practice quiz' : 'Create assessment' }}</h1>
             <p>
               @if (authService.userRole() === 3) {
-                Generate custom AI study quizzes or government exam mock tests for private self-practice and unlimited retests (not shared publicly).
+                Generate private AI study sets or competitive exam mock tests with unlimited retakes.
               } @else {
-                Generate high-quality assessment questions using live Groq AI or compose questions manually.
+                Generate quiz questions with Groq AI or compose questions manually.
               }
             </p>
           </div>
         </div>
       </header>
 
-      <!-- Primary vs Secondary Mode Switch Bar -->
+      <!-- Mode Switcher -->
       <div class="tab-switch-bar">
         <button
           type="button"
           [class.active]="creationMode() === 'smart'"
           (click)="setMode('smart')"
-          class="tab-btn tab-btn-ai"
+          class="tab-btn"
         >
-          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
           </svg>
-          <span>✨ AI Study Generator</span>
+          <span>AI generator</span>
         </button>
 
         <button
           type="button"
           [class.active]="creationMode() === 'govt'"
           (click)="setMode('govt')"
-          class="tab-btn tab-btn-govt"
+          class="tab-btn"
         >
-          <span>🏛️ Competitive Exams Hub</span>
+          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 21h18M4 18h16M6 18V9m4 9V9m4 9V9m4 9V9M2 9l10-5 10 5H2z"></path>
+          </svg>
+          <span>Exam hub</span>
         </button>
 
         <button
@@ -74,11 +77,11 @@ export interface GovtExamCategory {
           (click)="setMode('manual')"
           class="tab-btn"
         >
-          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span>Manual Builder</span>
+          <span>Manual builder</span>
         </button>
       </div>
 
@@ -86,7 +89,7 @@ export interface GovtExamCategory {
       @if (errorMessage()) {
         <div class="alert alert-danger margin-bottom">
           <div class="alert-content">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -97,11 +100,11 @@ export interface GovtExamCategory {
             <div class="error-actions margin-top-xs">
               @if (!showApiKeyInput() && canOfferCustomApiKey()) {
                 <button type="button" (click)="showApiKeyInput.set(true)" class="btn btn-outline btn-sm">
-                  🔑 Enter Custom Groq API Key
+                  Enter custom Groq API key
                 </button>
               }
               <button (click)="generateSmartQuestions(creationMode() === 'govt')" [disabled]="isGenerating()" class="btn btn-outline btn-sm">
-                🔄 Retry AI Generation
+                Retry generation
               </button>
             </div>
           }
@@ -114,32 +117,32 @@ export interface GovtExamCategory {
         </div>
       }
 
-      <!-- AI Question Generation Panel (Primary Flow) -->
+      <!-- AI Question Generation Panel -->
       @if (creationMode() === 'smart') {
         <div class="saas-card generator-panel margin-bottom">
           <div class="panel-header">
-            <div class="badge badge-ai mb-2">✨ RECOMMENDED · LIVE GROQ AI</div>
-            <h3>AI Quiz Prompt & Generator</h3>
-            <p class="panel-desc">Enter any topic prompt or choose a domain category. Groq LLM will generate fresh, custom questions live.</p>
+            <span class="panel-eyebrow">Live Groq AI</span>
+            <h3>AI quiz prompt</h3>
+            <p class="panel-desc">Enter any subject or choose a domain category to draft custom questions live.</p>
           </div>
 
           <div class="form-group">
-            <label>Topic / Prompt *</label>
+            <label>Topic prompt *</label>
             <input
               type="text"
               [(ngModel)]="customTopic"
               [ngModelOptions]="{standalone: true}"
-              placeholder="e.g. Quantum Computing, React Server Components, Python Data Structures, World History"
+              placeholder="e.g. Quantum Computing, React Server Components, Python Data Structures"
               class="input-control"
               [disabled]="isGenerating()"
             />
             <!-- Quick Topic Suggestion Chips -->
             @if (!customTopic.trim() && !isGenerating()) {
               <div class="topic-suggestion-chips margin-top-xs">
-                <span class="suggestion-label">💡 Popular picks:</span>
+                <span class="suggestion-label">Popular topics</span>
                 @for (s of topicSuggestions; track s.topic) {
                   <button type="button" class="topic-suggestion-chip" (click)="applyTopicSuggestion(s)">
-                    {{ s.icon }} {{ s.label }}
+                    {{ s.label }}
                   </button>
                 }
               </div>
@@ -236,10 +239,10 @@ export interface GovtExamCategory {
             </div>
           </div>
 
-          <!-- Hidden by default, collapsible toggle or auto-shown on API failure -->
+          <!-- Optional custom Groq key -->
           <div class="key-toggle-row margin-top-sm">
             <button type="button" (click)="showApiKeyInput.set(!showApiKeyInput())" class="toggle-key-link">
-              ⚙️ {{ showApiKeyInput() ? 'Hide Custom API Key' : 'Use Custom Groq API Key' }}
+              {{ showApiKeyInput() ? 'Hide custom API key' : 'Use custom Groq API key' }}
             </button>
           </div>
 
@@ -262,34 +265,34 @@ export interface GovtExamCategory {
               type="button"
               (click)="generateSmartQuestions()"
               [disabled]="isGenerating()"
-              class="btn btn-ai width-full"
+              class="btn btn-primary width-full"
             >
               @if (isGenerating()) {
                 <span class="ai-spinner-row">
-                  <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
                   </svg>
-                  <span>Generating {{ requestedQuestionCount }} questions. Larger quizzes may take longer.</span>
+                  <span>Generating {{ requestedQuestionCount }} questions. Larger sets take longer.</span>
                 </span>
               } @else {
-                <span>✨ Generate & Pre-Fill Quiz Builder with Groq AI</span>
+                <span>Generate questions with AI</span>
               }
             </button>
           </div>
         </div>
 
-        <!-- Animated AI Generation Banner & Shimmer Skeletons while generating -->
+        <!-- Generation Status & Shimmer Skeletons -->
         @if (isGenerating()) {
           <div class="ai-generating-loader margin-bottom">
             <div class="loader-header">
               <div class="ai-pulsing-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
                 </svg>
               </div>
               <div>
-                <h4>Groq AI is crafting your quiz questions...</h4>
-                <p>Questions are generated in small batches. Larger quizzes may take longer because of provider limits.</p>
+                <h4>Generating quiz questions</h4>
+                <p>Questions are drafted in compact batches to stay reliable on free-tier rate limits.</p>
               </div>
             </div>
 
@@ -312,30 +315,30 @@ export interface GovtExamCategory {
       @if (creationMode() === 'govt') {
         <div class="saas-card govt-panel margin-bottom">
           <div class="panel-header">
-            <div class="badge badge-govt mb-2">🏛️ EXAM PREPARATION ENGINE · UPSC, SSC, BANKING, RAILWAYS & DEFENCE</div>
-            <h3>Government & Competitive Examination Hub</h3>
+            <span class="panel-eyebrow">Exam pattern engine</span>
+            <h3>Competitive exam hub</h3>
             <p class="panel-desc">
-              Generate authentic previous-year pattern mock questions with strict time limits, automated negative marking, and detailed official answer explanations.
+              Generate exam-pattern mock questions with section timers, negative marking, and detailed explanations.
             </p>
           </div>
 
           <!-- Exam Stream Cards -->
           <div class="govt-streams-label">
-            <span>Select Target Examination Stream:</span>
+            <span>Target examination stream</span>
           </div>
           <div class="govt-exams-grid">
             @for (exam of govtExamCategories; track exam.id) {
-              <div
+              <button
+                type="button"
                 class="govt-exam-card"
                 [class.active]="selectedGovtExamId === exam.id"
                 (click)="selectGovtExam(exam)"
               >
-                <div class="exam-icon">{{ exam.icon }}</div>
                 <div class="exam-meta">
                   <h4 class="exam-name">{{ exam.name }}</h4>
                   <p class="exam-sub">{{ exam.tagline }}</p>
                 </div>
-              </div>
+              </button>
             }
           </div>
 
@@ -343,8 +346,8 @@ export interface GovtExamCategory {
           @if (currentGovtExam()) {
             <div class="active-exam-module margin-top">
               <div class="module-label-row">
-                <span class="module-label-title">Select {{ currentGovtExam()?.name }} Syllabus Topic:</span>
-                <span class="module-tag">PYQ Pattern Ready</span>
+                <span class="module-label-title">{{ currentGovtExam()?.name }} syllabus topics</span>
+                <span class="module-tag">PYQ pattern</span>
               </div>
               <div class="topics-chips-cloud">
                 @for (topic of currentGovtExam()?.topics || []; track topic.title) {
@@ -485,7 +488,7 @@ export interface GovtExamCategory {
               <!-- Hidden API Key Option -->
               <div class="key-toggle-row margin-top-sm">
                 <button type="button" (click)="showApiKeyInput.set(!showApiKeyInput())" class="toggle-key-link">
-                  ⚙️ {{ showApiKeyInput() ? 'Hide Custom API Key' : 'Use Custom Groq API Key' }}
+                  {{ showApiKeyInput() ? 'Hide custom API key' : 'Use custom Groq API key' }}
                 </button>
               </div>
 
@@ -508,17 +511,17 @@ export interface GovtExamCategory {
                   type="button"
                   (click)="generateSmartQuestions(true)"
                   [disabled]="isGenerating()"
-                  class="btn btn-govt-generate width-full"
+                  class="btn btn-primary width-full"
                 >
                   @if (isGenerating()) {
                     <span class="ai-spinner-row">
-                      <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle>
                       </svg>
-                      <span>Generating {{ requestedQuestionCount }} {{ currentGovtExam()?.name }} Questions with Groq AI...</span>
+                      <span>Generating {{ requestedQuestionCount }} {{ currentGovtExam()?.name }} questions</span>
                     </span>
                   } @else {
-                    <span>🏛️ Generate {{ currentGovtExam()?.name }} Mock Questions with AI</span>
+                    <span>Generate {{ currentGovtExam()?.name }} mock questions</span>
                   }
                 </button>
               </div>
@@ -529,12 +532,14 @@ export interface GovtExamCategory {
         @if (isGenerating()) {
           <div class="ai-generating-loader margin-bottom">
             <div class="loader-header">
-              <div class="ai-pulsing-icon govt-pulsing">
-                <span style="font-size: 1.5rem;">🏛️</span>
+              <div class="ai-pulsing-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 21h18M4 18h16M6 18V9m4 9V9m4 9V9m4 9V9M2 9l10-5 10 5H2z"></path>
+                </svg>
               </div>
               <div>
-                <h4>Groq AI is crafting {{ currentGovtExam()?.name }} questions...</h4>
-                <p>Questions are generated in small batches. Larger quizzes may take longer because of provider limits.</p>
+                <h4>Generating {{ currentGovtExam()?.name }} questions</h4>
+                <p>Questions are drafted in compact batches to stay reliable on free-tier rate limits.</p>
               </div>
             </div>
 
@@ -603,7 +608,7 @@ export interface GovtExamCategory {
               id="welcomeMessage"
               formControlName="welcomeMessage"
               rows="2"
-              placeholder="e.g. Welcome to the midterm assessment. Good luck!"
+              placeholder="e.g. Welcome to the midterm assessment"
               class="input-control"
             ></textarea>
           </div>
@@ -730,7 +735,7 @@ export interface GovtExamCategory {
             @if (authService.userRole() !== 3) {
             <div class="form-group">
               <label>
-                👥 Max Students Allowed
+                Max Students Allowed
                 <span class="label-hint">Max 50 students per quiz. Closes automatically when seats fill up. Quizzes &amp; data auto-clean after 24 hours.</span>
               </label>
               <!-- Preset Chips -->
@@ -738,7 +743,7 @@ export interface GovtExamCategory {
                 @for (preset of studentPresets; track preset) {
                   <button
                     type="button"
-                    class="preset-chip"
+                    class="preset-chip mono-num"
                     [class.selected]="selectedStudentPreset() === preset"
                     (click)="selectStudentPreset(preset)"
                   >{{ preset }}</button>
@@ -748,7 +753,7 @@ export interface GovtExamCategory {
                   class="preset-chip"
                   [class.selected]="selectedStudentPreset() === 0"
                   (click)="selectStudentPreset(0)"
-                >✏️ Custom</button>
+                >Custom</button>
               </div>
               <!-- Manual input shown only when Custom is selected -->
               @if (selectedStudentPreset() === 0) {
@@ -807,13 +812,12 @@ export interface GovtExamCategory {
           </details>
         </div>
 
-        <!-- Quick Publish Action Bar (Top) — appears once questions are loaded -->
+        <!-- Quick Publish Action Bar (Top) -->
         @if (questionsArray.length > 0) {
           <div class="quick-publish-bar margin-top">
             <div class="qpb-left">
-              <span class="qpb-icon">⚡</span>
               <div>
-                <span class="qpb-title">{{ authService.userRole() === 3 ? 'Ready to practice?' : 'Ready to publish?' }}</span>
+                <span class="qpb-title">{{ authService.userRole() === 3 ? 'Ready to practice' : 'Ready to publish' }}</span>
                 <span class="qpb-desc">
                   {{ questionsArray.length }} questions loaded —
                   {{ authService.userRole() === 3 ? 'start your private practice test now or edit below first.' : 'publish now or review below first.' }}
@@ -824,17 +828,17 @@ export interface GovtExamCategory {
               @if (authService.userRole() !== 3) {
                 <button type="button" (click)="onSubmit(false)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-outline btn-sm">
                   @if (isSavingDraft()) {
-                    <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Saving...</span></span>
+                    <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Saving</span></span>
                   } @else {
-                    <span>Save Draft</span>
+                    <span>Save draft</span>
                   }
                 </button>
               }
-              <button type="button" (click)="onSubmit(true)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-ai btn-sm">
+              <button type="button" (click)="onSubmit(true)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-primary btn-sm">
                 @if (isPublishing()) {
-                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Publishing...</span></span>
+                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>{{ authService.userRole() === 3 ? 'Starting' : 'Publishing' }}</span></span>
                 } @else {
-                  <span>🚀 {{ authService.userRole() === 3 ? 'Save & Play Quiz' : 'Publish & Generate Link' }}</span>
+                  <span>{{ authService.userRole() === 3 ? 'Save & start quiz' : 'Publish & get link' }}</span>
                 }
               </button>
             </div>
@@ -845,12 +849,12 @@ export interface GovtExamCategory {
         <div class="saas-card form-section margin-top">
           <div class="section-header-row">
             <div>
-              <h3>❓ Questions ({{ questionsArray.length }})</h3>
-              <p class="section-desc">Review, edit, add, or delete individual questions before publishing.</p>
+              <h3>Questions (<span class="mono-num">{{ questionsArray.length }}</span>)</h3>
+              <p class="section-desc">Review, edit, add, or remove questions before saving.</p>
             </div>
             <div class="q-actions-group">
-              <button type="button" (click)="addQuestion()" class="btn btn-outline btn-sm">➕ Add Question</button>
-              <button type="button" (click)="addMultipleQuestions(5)" class="btn btn-outline btn-sm">➕ Add 5 Questions</button>
+              <button type="button" (click)="addQuestion()" class="btn btn-outline btn-sm">+ Add question</button>
+              <button type="button" (click)="addMultipleQuestions(5)" class="btn btn-outline btn-sm">+ Add 5</button>
             </div>
           </div>
 
@@ -865,9 +869,9 @@ export interface GovtExamCategory {
               <div [formGroupName]="qIdx" class="question-card">
                 <div class="q-header">
                   <div class="q-header-left">
-                    <span class="q-badge">Question #{{ qIdx + 1 }}</span>
+                    <span class="q-badge">Q{{ qIdx + 1 }}</span>
                     @if (qGroup.get('tag')?.value) {
-                      <span class="q-tag-pill">🏷️ {{ qGroup.get('tag')?.value }}</span>
+                      <span class="q-tag-pill">{{ qGroup.get('tag')?.value }}</span>
                     }
                   </div>
                   @if (questionsArray.length > 1) {
@@ -986,7 +990,7 @@ export interface GovtExamCategory {
                 <span>{{ authService.userRole() === 3 ? 'Starting...' : 'Publishing...' }}</span>
               </span>
             } @else {
-              <span>🚀 {{ authService.userRole() === 3 ? 'Play Quiz' : 'Publish' }}</span>
+              <span>{{ authService.userRole() === 3 ? 'Start quiz' : 'Publish' }}</span>
             }
           </button>
         </div>
@@ -996,18 +1000,19 @@ export interface GovtExamCategory {
   styles: [`
     .creator-container { max-width: 1040px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
     .creator-header { margin-bottom: 1.25rem; }
-    .back-link { color: var(--color-primary) !important; font-weight: 600; text-decoration: none; font-size: 0.875rem; margin-bottom: 0.5rem; display: inline-block; }
-    .header-title-row h1 { font-size: 2.0rem; font-weight: 800; color: var(--text-primary) !important; margin: 0.25rem 0; letter-spacing: -0.02em; }
-    .header-title-row p { font-size: 0.95rem; color: var(--text-secondary) !important; margin: 0; }
+    .back-link { color: var(--color-primary-600) !important; font-weight: 500; text-decoration: none; font-size: 0.875rem; margin-bottom: 0.5rem; display: inline-block; }
+    .header-title-row h1 { font-size: clamp(1.5rem, 2.5vw, 1.875rem); font-weight: 500; color: var(--text-primary) !important; margin: 0.25rem 0; letter-spacing: -0.025em; }
+    .header-title-row p { font-size: 0.9375rem; color: var(--text-secondary) !important; margin: 0; }
+    .mono-num { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; }
 
     /* Mode Switcher */
     .tab-switch-bar {
       display: flex;
-      gap: 0.5rem;
-      background: var(--bg-surface);
+      gap: 0.35rem;
+      background: var(--bg-muted);
       border: 1px solid var(--border-hairline);
-      padding: 0.35rem;
-      border-radius: 0.5rem;
+      padding: 0.25rem;
+      border-radius: var(--radius-md);
       margin-bottom: 1.25rem;
     }
     .tab-btn {
@@ -1016,59 +1021,47 @@ export interface GovtExamCategory {
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      padding: 0.75rem 1.0rem;
-      border-radius: 0.375rem;
+      padding: 0.65rem 1rem;
+      border-radius: 6px;
       border: none;
       background: transparent;
-      font-size: 0.9rem;
-      font-weight: 700;
+      font-size: 0.875rem;
+      font-weight: 500;
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.15s ease;
-      .tab-svg { width: 18px; height: 18px; stroke: var(--text-secondary); }
+      transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+      .tab-svg { width: 16px; height: 16px; stroke: currentColor; flex-shrink: 0; }
+      &:hover {
+        color: var(--text-primary);
+      }
       &.active {
-        background: var(--color-primary-50);
-        color: var(--color-primary) !important;
-        .tab-svg { stroke: var(--color-primary); }
-      }
-      &.tab-btn-ai.active {
-        background: var(--color-primary-50);
-        color: var(--color-primary-600) !important;
+        background: var(--bg-surface);
+        color: var(--text-primary) !important;
+        box-shadow: var(--shadow-sm);
         .tab-svg { stroke: var(--color-primary-600); }
-      }
-      &.tab-btn-govt.active {
-        background: var(--color-primary-50);
-        color: var(--color-primary-600) !important;
       }
     }
 
     /* Generator Panel & Govt Exam Hub */
-    .generator-panel {
-      padding: 1.5rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-top: 3px solid var(--color-primary-600);
-      border-radius: var(--radius-xl);
-      .panel-desc { font-size: 0.9rem; color: var(--text-secondary) !important; margin: 0.35rem 0 1.25rem 0; }
-    }
-
+    .generator-panel,
     .govt-panel {
       padding: 1.5rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-top: 3px solid var(--color-primary-600);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-sm);
-      .panel-desc { font-size: 0.9rem; color: var(--text-secondary) !important; margin: 0.35rem 0 1.25rem 0; }
+      border-radius: var(--radius-lg);
+      .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
     }
-
-    .badge-govt {
-      background: var(--color-warning-bg);
-      color: var(--color-warning-text) !important;
-      border: 1px solid var(--color-warning-border);
-      font-weight: 800;
-      font-size: 0.72rem;
-      letter-spacing: 0.04em;
+    .panel-header h3 {
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: var(--text-primary) !important;
+      margin: 0.25rem 0 0 0;
+    }
+    .panel-eyebrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-primary-600);
     }
 
     /* Compact question-count controls */
@@ -1077,16 +1070,18 @@ export interface GovtExamCategory {
       align-items: center;
       justify-content: space-between;
       margin-bottom: 0.35rem;
-      label { margin: 0; font-weight: 700; color: var(--text-primary) !important; font-size: 0.85rem; }
+      label { margin: 0; font-weight: 500; color: var(--text-primary) !important; font-size: 0.85rem; }
     }
     .count-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
       font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--color-primary-600);
+      font-weight: 500;
+      color: var(--color-primary-700);
       background: var(--color-primary-50);
       border: 1px solid var(--color-primary-200);
       padding: 0.15rem 0.5rem;
-      border-radius: 9999px;
+      border-radius: 6px;
     }
 
     .count-control-row {
@@ -1102,16 +1097,18 @@ export interface GovtExamCategory {
     }
     .chip-btn {
       min-width: 44px;
-      min-height: 42px;
-      padding: 0.45rem 0.75rem;
+      min-height: 40px;
+      padding: 0.4rem 0.75rem;
       border-radius: var(--radius-md);
       border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
       color: var(--text-body);
-      font-size: 0.875rem;
-      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.85rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
       &:hover {
         border-color: var(--color-primary-600);
         color: var(--color-primary-600);
@@ -1128,10 +1125,16 @@ export interface GovtExamCategory {
       gap: 0.5rem;
       color: var(--text-muted);
       font-size: 0.8rem;
-      font-weight: 700;
+      font-weight: 500;
       white-space: nowrap;
     }
-    .custom-count-input { width: 96px !important; min-height: 42px; padding: 0.5rem !important; }
+    .custom-count-input {
+      width: 88px !important;
+      min-height: 40px;
+      padding: 0.45rem !important;
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
     .count-help { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.78rem; line-height: 1.45; }
 
     /* AI Topic Suggestions */
@@ -1144,23 +1147,22 @@ export interface GovtExamCategory {
     }
     .suggestion-label {
       font-size: 0.78rem;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--text-muted);
-      margin-right: 0.2rem;
+      margin-right: 0.25rem;
     }
     .topic-suggestion-chip {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.38rem 0.75rem;
-      border-radius: 9999px;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-hairline);
       background: var(--bg-app);
       color: var(--text-body);
-      font-size: 0.78rem;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
       &:hover {
         background: var(--color-primary-50);
         border-color: var(--color-primary-400);
@@ -1171,7 +1173,7 @@ export interface GovtExamCategory {
     /* Govt Exam Streams & Topic Cards */
     .govt-streams-label {
       font-size: 0.85rem;
-      font-weight: 800;
+      font-weight: 500;
       color: var(--text-heading);
       margin: 1rem 0 0.5rem 0;
     }
@@ -1183,53 +1185,52 @@ export interface GovtExamCategory {
     }
     .govt-exam-card {
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      border: 1.5px solid var(--border-hairline);
+      align-items: flex-start;
+      text-align: left;
+      width: 100%;
+      font-family: inherit;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: border-color 150ms var(--ease-out), background-color 150ms var(--ease-out);
       &:hover {
-        border-color: #f59e0b;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+        border-color: var(--color-primary-400);
+        background: var(--bg-app);
       }
       &.active {
-        border-color: #b45309;
-        background: rgba(245, 158, 11, 0.08);
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.18);
+        border-color: var(--color-primary-600);
+        background: var(--color-primary-50);
       }
     }
-    .exam-icon { font-size: 1.5rem; flex-shrink: 0; }
     .exam-meta { display: flex; flex-direction: column; }
-    .exam-name { font-size: 0.825rem; font-weight: 800; color: var(--text-heading) !important; margin: 0; }
-    .exam-sub { font-size: 0.7rem; color: var(--text-muted) !important; margin: 0.15rem 0 0 0; line-height: 1.3; }
+    .exam-name { font-size: 0.85rem; font-weight: 500; color: var(--text-heading) !important; margin: 0; }
+    .exam-sub { font-size: 0.75rem; color: var(--text-muted) !important; margin: 0.2rem 0 0 0; line-height: 1.35; }
 
     .active-exam-module {
-      border-top: 1px dashed var(--border-hairline);
+      border-top: 1px solid var(--border-hairline);
       padding-top: 1.25rem;
     }
     .module-label-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.6rem;
     }
     .module-label-title {
       font-size: 0.85rem;
-      font-weight: 800;
+      font-weight: 500;
       color: var(--text-heading);
     }
     .module-tag {
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #b45309;
-      background: rgba(245, 158, 11, 0.15);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg-muted);
+      border: 1px solid var(--border-hairline);
       padding: 0.15rem 0.5rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
+      border-radius: 6px;
     }
     .topics-chips-cloud {
       display: flex;
@@ -1240,32 +1241,32 @@ export interface GovtExamCategory {
     .topic-chip {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.45rem;
       padding: 0.45rem 0.85rem;
-      border-radius: 9999px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.8125rem;
+      font-weight: 500;
       color: var(--text-body);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
       &:hover {
-        border-color: #b45309;
-        color: #b45309;
+        border-color: var(--color-primary-400);
+        color: var(--color-primary-700);
       }
       &.active {
-        background: #b45309;
-        border-color: #b45309;
+        background: var(--color-primary-600);
+        border-color: var(--color-primary-600);
         color: #ffffff;
         .topic-dot { background: #ffffff; }
       }
     }
     .topic-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: #b45309;
+      background: var(--color-primary-600);
       flex-shrink: 0;
     }
 
@@ -1278,15 +1279,15 @@ export interface GovtExamCategory {
     }
     .margin-bottom-xs { margin-bottom: 0.4rem; }
     .neg-pill {
-      padding: 0.35rem 0.75rem;
-      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-hairline);
       background: var(--bg-surface);
       font-size: 0.78rem;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--text-body);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
       &:hover {
         border-color: var(--color-danger);
         color: var(--color-danger);
@@ -1298,26 +1299,6 @@ export interface GovtExamCategory {
       }
     }
 
-    .btn-govt-generate {
-      background: var(--gradient-ai);
-      color: #ffffff !important;
-      font-weight: 800;
-      padding: 0.85rem;
-      border-radius: var(--radius-md);
-      font-size: 0.95rem;
-      border: none;
-      cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: filter 0.2s ease, transform 0.15s ease;
-      &:hover:not(:disabled) {
-        transform: translateY(-1px);
-        filter: brightness(1.06);
-      }
-    }
-    .govt-pulsing {
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
     .margin-top-sm { margin-top: 0.85rem; }
     .margin-top-xs { margin-top: 0.5rem; }
     .margin-top { margin-top: 1.5rem; }
@@ -1332,12 +1313,12 @@ export interface GovtExamCategory {
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 1rem 1.35rem;
-      background: linear-gradient(135deg, var(--color-ai-bg), var(--color-primary-50));
-      border: 1.5px solid var(--color-ai-border);
-      border-left: 4px solid var(--color-ai-purple);
-      border-radius: 0.5rem;
-      animation: fadein 0.3s ease;
+      padding: 1rem 1.25rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-left: 2px solid var(--color-primary-600);
+      border-radius: var(--radius-md);
+      animation: fadein 180ms var(--ease-out);
     }
     @keyframes fadein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .qpb-left {
@@ -1347,15 +1328,11 @@ export interface GovtExamCategory {
       flex: 1;
       min-width: 0;
     }
-    .qpb-icon {
-      font-size: 1.4rem;
-      flex-shrink: 0;
-    }
     .qpb-title {
       display: block;
       font-size: 0.9rem;
-      font-weight: 800;
-      color: var(--color-ai-purple) !important;
+      font-weight: 500;
+      color: var(--text-primary) !important;
     }
     .qpb-desc {
       display: block;
@@ -1378,15 +1355,15 @@ export interface GovtExamCategory {
       margin-top: 0.5rem;
     }
     .preset-chip {
-      padding: 0.45rem 1.1rem;
-      border-radius: 9999px;
-      border: 1.5px solid var(--border-strong);
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
       background: var(--bg-surface);
       color: var(--text-body);
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-size: 0.825rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
       &:hover {
         border-color: var(--color-primary-600);
         color: var(--color-primary-600);
@@ -1396,7 +1373,6 @@ export interface GovtExamCategory {
         background: var(--color-primary-600);
         border-color: var(--color-primary-600);
         color: #ffffff;
-        box-shadow: var(--shadow-sm);
       }
     }
 
@@ -1406,10 +1382,10 @@ export interface GovtExamCategory {
       border: none;
       color: var(--text-muted) !important;
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       text-decoration: underline;
-      &:hover { color: var(--color-primary) !important; }
+      &:hover { color: var(--color-primary-600) !important; }
     }
 
     .error-actions { display: flex; gap: 0.5rem; align-items: center; }
@@ -1433,58 +1409,54 @@ export interface GovtExamCategory {
     .ai-generating-loader {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-left: 3px solid var(--color-primary-600);
-      border-radius: var(--radius-xl);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-sm);
+      border-left: 2px solid var(--color-primary-600);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
     }
 
     .loader-header {
       display: flex;
       align-items: center;
-      gap: 1.0rem;
-      margin-bottom: 1.25rem;
-      h4 { font-size: 1.05rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; }
-      p { font-size: 0.85rem; color: var(--text-muted) !important; margin-top: 0.15rem; }
+      gap: 0.85rem;
+      margin-bottom: 1.1rem;
+      h4 { font-size: 1rem; font-weight: 500; color: var(--text-primary) !important; margin: 0; }
+      p { font-size: 0.825rem; color: var(--text-muted) !important; margin: 0.15rem 0 0 0; }
     }
     .ai-pulsing-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-lg);
-      background: var(--color-ai-bg);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary-50);
+      color: var(--color-primary-600);
+      border: 1px solid var(--color-primary-200);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      animation: scalePulse 1.5s ease-in-out infinite;
-    }
-    @keyframes scalePulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
     }
 
     .shimmer-card-list {
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
+      gap: 0.75rem;
     }
     .shimmer-item {
       background: var(--bg-app);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-lg);
-      padding: 1.0rem;
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
     .shimmer-line {
-      height: 12px;
+      height: 11px;
       border-radius: 4px;
       background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-hairline) 50%, var(--bg-hover) 75%);
       background-size: 200% 100%;
       animation: shimmerMove 1.5s infinite;
     }
-    .line-title { width: 70%; height: 14px; }
+    .line-title { width: 70%; height: 13px; }
     .line-option { width: 90%; }
     .line-option.short { width: 50%; }
 
@@ -1493,7 +1465,12 @@ export interface GovtExamCategory {
       100% { background-position: -200% 0; }
     }
 
-    .form-section { padding: 1.5rem; h3 { font-size: 1.15rem; font-weight: 800; color: var(--text-primary) !important; margin: 0; } .section-desc { font-size: 0.85rem; color: var(--text-muted) !important; margin: 0.25rem 0 1.25rem 0; } }
+    .form-section {
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      h3 { font-size: 1.125rem; font-weight: 500; color: var(--text-primary) !important; margin: 0; }
+      .section-desc { font-size: 0.85rem; color: var(--text-muted) !important; margin: 0.25rem 0 1.25rem 0; }
+    }
     .advanced-settings { border-top: 1px solid var(--border-hairline); }
     .advanced-settings summary {
       min-height: 48px;
@@ -1502,26 +1479,26 @@ export interface GovtExamCategory {
       gap: 0.75rem;
       color: var(--text-primary);
       font-size: 0.9rem;
-      font-weight: 700;
+      font-weight: 500;
       list-style: none;
       cursor: pointer;
     }
     .advanced-settings summary::-webkit-details-marker { display: none; }
-    .advanced-settings summary::after { content: '+'; margin-left: auto; color: var(--color-primary-600); font-size: 1.25rem; }
+    .advanced-settings summary::after { content: '+'; margin-left: auto; color: var(--color-primary-600); font-size: 1.2rem; }
     .advanced-settings[open] summary::after { content: '−'; }
-    .advanced-settings summary span { color: var(--text-muted); font-size: 0.78rem; font-weight: 500; }
+    .advanced-settings summary span { color: var(--text-muted); font-size: 0.78rem; font-weight: 400; }
     .advanced-settings-content { padding: 0.25rem 0 0.5rem; }
     .quiz-preferences-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
       padding: 1rem;
-      background: var(--bg-hover);
+      background: var(--bg-app);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
     }
     .preference-group { display: grid; gap: 0.35rem; align-content: start; }
-    .setting-option { display: flex; align-items: center; gap: 0.6rem; min-height: 40px; color: var(--text-body); font-size: 0.875rem; font-weight: 600; }
+    .setting-option { display: flex; align-items: center; gap: 0.6rem; min-height: 38px; color: var(--text-body); font-size: 0.875rem; font-weight: 500; }
     .setting-option-nested { margin-left: 1.5rem; color: var(--text-muted); }
     .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.0rem; }
     .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.0rem; }
@@ -1531,36 +1508,54 @@ export interface GovtExamCategory {
     .section-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
     .q-actions-group { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
-    .questions-list { display: flex; flex-direction: column; gap: 1.25rem; }
-    .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
+    .questions-list { display: flex; flex-direction: column; gap: 1rem; }
+    .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.25rem; border-radius: var(--radius-lg); }
     .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
     .q-header-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-    .q-badge { font-size: 0.75rem; font-weight: 700; background: var(--color-primary-50); color: var(--color-primary) !important; padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid var(--color-primary-200); }
-    .q-tag-pill { font-size: 0.72rem; font-weight: 700; background: var(--color-ai-bg); color: var(--color-ai-purple) !important; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid var(--color-ai-border); }
-    .btn-remove { background: none; border: none; color: var(--color-danger) !important; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .q-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: var(--color-primary-50);
+      color: var(--color-primary-700) !important;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--color-primary-200);
+    }
+    .q-tag-pill {
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: var(--bg-muted);
+      color: var(--text-secondary) !important;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-hairline);
+    }
+    .btn-remove { background: none; border: none; color: var(--color-danger) !important; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
 
-    .options-wrapper { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--border-input); }
-    .options-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; label { font-size: 0.825rem; font-weight: 700; color: var(--text-primary) !important; } }
-    .link-btn { background: none; border: none; color: var(--color-primary) !important; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+    .options-wrapper { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border-hairline); }
+    .options-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; label { font-size: 0.825rem; font-weight: 500; color: var(--text-primary) !important; } }
+    .link-btn { background: none; border: none; color: var(--color-primary-600) !important; font-weight: 500; font-size: 0.8rem; cursor: pointer; }
 
     .option-row { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.5rem; }
-    .check-control { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+    .check-control { width: 18px; height: 18px; accent-color: var(--color-primary-600); cursor: pointer; }
     .option-input { flex-grow: 1; }
-    .btn-opt-delete { background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); color: var(--color-danger); border-radius: 4px; padding: 0.35rem 0.6rem; font-weight: 700; cursor: pointer; }
+    .btn-opt-delete { background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); color: var(--color-danger); border-radius: 6px; padding: 0.35rem 0.6rem; font-weight: 500; cursor: pointer; }
 
     .form-actions-bar { display: flex; justify-content: flex-end; gap: 0.85rem; }
     .toast-notification {
       position: fixed;
-      top: 80px;
+      top: 76px;
       right: 24px;
       z-index: 1100;
       background: var(--text-primary);
-      color: #ffffff;
-      padding: 0.75rem 1.25rem;
+      color: var(--bg-surface);
+      padding: 0.65rem 1.1rem;
       border-radius: var(--radius-md);
       font-size: 0.875rem;
-      font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
     }
 
     .alert-danger {
@@ -1652,12 +1647,12 @@ export class QuizCreatorComponent implements OnInit {
   readonly questionPresets = [10, 15, 20, 30];
 
   readonly topicSuggestions = [
-    { icon: '🐍', label: 'Python & DSA', topic: 'Python Programming & Data Structures' },
-    { icon: '⚛️', label: 'JavaScript & React', topic: 'JavaScript ES6+ & React Fundamentals' },
-    { icon: '🗄️', label: 'SQL & Databases', topic: 'SQL Queries, Joins & Relational Databases' },
-    { icon: '🧩', label: 'OOP & Design', topic: 'Object-Oriented Programming & SOLID Principles' },
-    { icon: '🅰️', label: 'Angular & TypeScript', topic: 'Angular Signals & TypeScript Architecture' },
-    { icon: '🐳', label: 'Git & Docker', topic: 'Git Workflows, Docker & DevOps Basics' }
+    { label: 'Python & DSA', topic: 'Python Programming & Data Structures' },
+    { label: 'JavaScript & React', topic: 'JavaScript ES6+ & React Fundamentals' },
+    { label: 'SQL & Databases', topic: 'SQL Queries, Joins & Relational Databases' },
+    { label: 'OOP & Design', topic: 'Object-Oriented Programming & SOLID Principles' },
+    { label: 'Angular & TypeScript', topic: 'Angular Signals & TypeScript Architecture' },
+    { label: 'Git & Docker', topic: 'Git Workflows, Docker & DevOps Basics' }
   ];
 
   readonly commonQuestionTags = [

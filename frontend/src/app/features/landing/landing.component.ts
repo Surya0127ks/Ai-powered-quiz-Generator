@@ -17,31 +17,30 @@ interface FaqItem {
   imports: [CommonModule, RouterLink],
   template: `
     <div class="landing-page">
-      <!-- Navbar -->
-      <nav class="landing-navbar">
+      <!-- Quiet Single-Row Navigation -->
+      <nav class="landing-navbar" aria-label="Main navigation">
         <div class="nav-container">
           <a routerLink="/" class="brand-logo">
-            <div class="logo-box">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <span class="logo-box" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
               </svg>
-            </div>
-            <div class="brand-name-group">
-              <span class="brand-title">Quizzy AI</span>
-            </div>
+            </span>
+            <span class="brand-title">Quizzy AI</span>
           </a>
 
           <div class="nav-actions">
-            <!-- Theme Toggle Button -->
+            <a routerLink="/verify-certificate" class="nav-text-link hide-xs">Verify certificate</a>
             <button
+              type="button"
               (click)="themeService.toggleTheme()"
               class="theme-toggle-btn"
               [attr.aria-label]="themeService.isDarkMode() ? 'Switch to light theme' : 'Switch to dark theme'"
               [attr.aria-pressed]="themeService.isDarkMode()"
-              [title]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+              [title]="themeService.isDarkMode() ? 'Light mode' : 'Dark mode'"
             >
               @if (themeService.isDarkMode()) {
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="5"></circle>
                   <line x1="12" y1="1" x2="12" y2="3"></line>
                   <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -53,155 +52,122 @@ interface FaqItem {
                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                 </svg>
               } @else {
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
               }
             </button>
 
             @if (authService.isAuthenticated()) {
-              <a routerLink="/dashboard" class="btn-dashboard">
-                <span>Go to Dashboard</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              <a routerLink="/dashboard" class="btn-primary-nav">
+                <span>Open dashboard</span>
               </a>
             } @else {
-              <a routerLink="/auth/login" class="btn-ghost">Sign In</a>
-              <a routerLink="/auth/register" class="btn-primary">Get Started Free</a>
+              <a routerLink="/auth/login" class="nav-text-link">Sign in</a>
+              <a routerLink="/auth/register" class="btn-primary-nav">Get started</a>
             }
           </div>
         </div>
       </nav>
 
-      <!-- Hero Section -->
+      <!-- Asymmetric Split Hero: Calm Paper Copy + Live Assessment Sheet Visual -->
       <header class="hero-section">
-        <div class="hero-glow"></div>
-        <div class="hero-content">
-          <div class="badge-pill">
-            <span class="pulse-dot"></span>
-            <span>Powered by Groq High-Speed LLMs</span>
-          </div>
+        <div class="hero-split">
+          <div class="hero-copy">
+            <h1 class="hero-title">Structured quizzes for focused teaching and exam prep</h1>
 
-          <h1 class="hero-title">
-            Create AI-Powered Quizzes.<br>
-            <span class="text-gradient">Assess, Track & Certify.</span>
-          </h1>
+            <p class="hero-subtitle">
+              Draft 1 to 30 questions with Groq LLMs across programming, academic subjects, and Indian competitive exams. Share one link for up to 50 students or run private timed self-retests with explanations and certificates.
+            </p>
 
-          <p class="hero-subtitle">
-            Generate focused study quizzes on programming, CS, or competitive exams (1 to 30 questions per quiz), share one link for up to 50 students, and review explanations and analytics instantly.
-          </p>
-
-          <div class="hero-cta">
-            @if (authService.isAuthenticated()) {
-              <a routerLink="/dashboard" class="btn-hero-primary">
-                <span>{{ authService.userRole() === UserRole.Student ? 'Open Student Dashboard' : 'Open Educator Dashboard' }}</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </a>
-              @if (canManageQuizzes()) {
-                <a routerLink="/quizzes/new" class="btn-hero-secondary">
-                  <span>✨ Create Quiz Now</span>
+            <div class="hero-cta">
+              @if (authService.isAuthenticated()) {
+                <a routerLink="/dashboard" class="btn-hero-primary">
+                  <span>{{ authService.userRole() === UserRole.Student ? 'Open student dashboard' : 'Open educator dashboard' }}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
                 </a>
+                @if (canManageQuizzes()) {
+                  <a routerLink="/quizzes/new" class="btn-hero-secondary">Create quiz</a>
+                }
+              } @else {
+                <a routerLink="/auth/register" class="btn-hero-primary">
+                  <span>Start creating free</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </a>
+                <a routerLink="/auth/login" class="btn-hero-secondary">Sign in</a>
               }
-            } @else {
-              <a routerLink="/auth/register" class="btn-hero-primary">
-                <span>Start Creating for Free</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </a>
-              <a routerLink="/auth/login" class="btn-hero-secondary">
-                <span>Sign In to Account</span>
-              </a>
-            }
+            </div>
+
+            <p class="hero-spec-strip">
+              <span>1–30 questions per quiz</span>
+              <span class="spec-sep" aria-hidden="true">·</span>
+              <span>Up to 50 learner seats</span>
+              <span class="spec-sep" aria-hidden="true">·</span>
+              <span>Private student retests</span>
+              <span class="spec-sep" aria-hidden="true">·</span>
+              <span>24h auto-cleanup</span>
+            </p>
           </div>
 
-          <!-- Trust Badges -->
-          <div class="trust-row">
-            <div class="trust-item">
-              <span class="trust-icon">⚡</span>
-              <span>Questions from any topic</span>
-            </div>
-            <div class="trust-item">
-              <span class="trust-icon">👥</span>
-              <span>Configurable quiz limits</span>
-            </div>
-            <div class="trust-item">
-              <span class="trust-icon">📜</span>
-              <span>Verifiable certificates</span>
-            </div>
-            <div class="trust-item">
-              <span class="trust-icon">🔒</span>
-              <span>Review every submission</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Interactive Hero Product Mockup -->
-        <div class="hero-visual">
-          <div class="glass-mockup">
-            <div class="mockup-header">
-              <div class="window-controls">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
-              </div>
-              <div class="mockup-url">quizzy-ai.app/q/ai-prompt-eng</div>
-              <div class="live-indicator">
-                <span class="live-dot"></span> LIVE TEST
-              </div>
-            </div>
-
-            <div class="mockup-body">
-              <div class="quiz-top-bar">
-                <div>
-                  <span class="quiz-topic-badge">⚡ AI & Prompt Engineering</span>
-                  <h3 class="quiz-preview-title">Few-Shot Prompting & LLM Architecture</h3>
-                </div>
-                <div class="quiz-timer">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  <span>14:20 Remaining</span>
-                </div>
+          <!-- Signature Product Moment: Live Exam Folio Sheet -->
+          <div class="hero-visual">
+            <div class="exam-folio">
+              <div class="folio-header">
+                <span class="folio-url">quizzy-ai.app/q/cs-systems-04</span>
+                <span class="folio-meta">Q05 / 20 · 14:20 left</span>
               </div>
 
-              <!-- Progress bar -->
-              <div class="progress-wrap">
-                <div class="progress-bar">
-                  <div class="progress-fill"></div>
-                </div>
-                <span class="progress-text">Question 5 of 20 · Medium Difficulty</span>
+              <div class="folio-progress-track" aria-hidden="true">
+                <div class="folio-progress-fill"></div>
               </div>
 
-              <!-- Question Box -->
-              <div class="question-box">
-                <span class="q-label">Q5.</span>
-                <p class="q-content">Which technique improves LLM reasoning consistency on multi-step arithmetic problems without fine-tuning weights?</p>
-              </div>
+              <div class="folio-body">
+                <div class="folio-question-block">
+                  <div class="folio-q-meta">
+                    <span class="folio-q-num">Q05</span>
+                    <span class="folio-q-tag">Systems · Medium</span>
+                  </div>
+                  <p class="folio-q-text">
+                    Which technique improves multi-step reasoning consistency in language models without updating weights?
+                  </p>
+                </div>
 
-              <!-- Options -->
-              <div class="options-container">
-                <div class="option-row">
-                  <span class="opt-key">A</span>
-                  <span class="opt-label">Zero-shot greedy decoding</span>
+                <div class="folio-options">
+                  <div class="folio-opt">
+                    <span class="folio-key">A</span>
+                    <span class="folio-opt-text">Zero-shot greedy token decoding</span>
+                  </div>
+                  <div class="folio-opt selected">
+                    <span class="folio-key active-key">B</span>
+                    <span class="folio-opt-text">Chain-of-thought prompting with worked exemplars</span>
+                    <svg class="folio-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                  <div class="folio-opt">
+                    <span class="folio-key">C</span>
+                    <span class="folio-opt-text">Increasing sampling temperature to 1.8</span>
+                  </div>
+                  <div class="folio-opt">
+                    <span class="folio-key">D</span>
+                    <span class="folio-opt-text">Truncating the prompt context window</span>
+                  </div>
                 </div>
-                <div class="option-row selected-correct">
-                  <span class="opt-key correct-key">B</span>
-                  <span class="opt-label">Chain-of-Thought (CoT) prompting with step-by-step exemplars</span>
-                  <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="option-row">
-                  <span class="opt-key">C</span>
-                  <span class="opt-label">Increasing token temperature to 1.8</span>
-                </div>
-                <div class="option-row">
-                  <span class="opt-key">D</span>
-                  <span class="opt-label">Truncating the context window limit</span>
-                </div>
-              </div>
 
-              <!-- Live Feedback Footer -->
-              <div class="mockup-footer">
-                <div class="score-chip green">
-                  <span>✓ Correct! Explanation: CoT prompts guide the model through intermediate steps.</span>
-                </div>
-                <div class="badge-chip">
-                  <span>📜 85% Score qualifies for Official Certificate</span>
+                <div class="folio-footer">
+                  <p class="folio-explanation">
+                    Explanation: Worked step-by-step exemplars guide intermediate reasoning before producing a final answer.
+                  </p>
+                  <div class="folio-score-slip">
+                    <span class="slip-label">Result preview</span>
+                    <span class="slip-figure">85% · 17/20 pts</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -209,146 +175,189 @@ interface FaqItem {
         </div>
       </header>
 
-      <!-- Key Capabilities Section -->
-      <section class="section features-section">
+      <!-- Capabilities -->
+      <section class="section">
         <div class="section-header">
-          <span class="section-tag">BUILT FOR EDUCATORS & LEARNERS</span>
-          <h2 class="section-heading">Everything You Need to <span class="text-gradient">Assess Knowledge</span></h2>
-          <p class="section-description">From instant prompt generation to verifiable digital certificates, Quizzy AI powers end-to-end knowledge evaluation.</p>
+          <span class="section-label">Capabilities</span>
+          <h2 class="section-heading">Built for classroom tests and independent study</h2>
+          <p class="section-description">Authoring, timed test delivery, submission analytics, and certificate verification in one workspace.</p>
         </div>
 
         <div class="features-grid">
           <div class="feature-card">
-            <div class="feat-icon bg-indigo">⚡</div>
-            <h3>Ultra-Fast Groq AI</h3>
-            <p>Draft multiple-choice questions for a topic, then review and edit them before publishing your assessment.</p>
+            <div class="feat-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
+            <h3>Groq AI question drafting</h3>
+            <p>Generate multiple-choice and true-false questions for any topic or syllabus, then edit questions and explanations before saving.</p>
           </div>
 
           <div class="feature-card">
-            <div class="feat-icon bg-emerald">🎛️</div>
-            <h3>Custom Limits & Difficulty</h3>
-            <p>Choose 10, 15, 20, or 30 presets (or any custom count from 1 to 30) with strict Easy, Medium, or Hard difficulty control.</p>
+            <div class="feat-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            </div>
+            <h3>Controlled counts and difficulty</h3>
+            <p>Use 10, 15, 20, or 30 presets or any custom count from 1 to 30 with strict Easy, Medium, Hard, or Mixed difficulty rules.</p>
           </div>
 
           <div class="feature-card">
-            <div class="feat-icon bg-blue">🔗</div>
-            <h3>Zero-Friction Student Links</h3>
-            <p>Share a direct link (<code class="code-pill">/q/shortId</code>) with students. They can take tests instantly on mobile or PC with no account setup.</p>
+            <div class="feat-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            </div>
+            <h3>Zero-friction test links</h3>
+            <p>Teachers share a short URL (<code class="code-pill">/q/shortId</code>) or QR code so up to 50 learners can start without registration.</p>
           </div>
 
           <div class="feature-card">
-            <div class="feat-icon bg-purple">👥</div>
-            <h3>Track Learner Submissions</h3>
-            <p>Review submitted attempts, scores, pass status, and answer details from your dashboard.</p>
+            <div class="feat-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </div>
+            <h3>Private student practice and retests</h3>
+            <p>Student accounts can generate private study quizzes and competitive exam mocks, retake them unlimited times, and compare marks across attempts.</p>
           </div>
 
           <div class="feature-card">
-            <div class="feat-icon bg-amber">📜</div>
-            <h3>Verifiable Certificates</h3>
-            <p>When certificates are enabled, passing students receive a certificate with a unique ID and a verification link.</p>
+            <div class="feat-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M8.5 13.5 7 22l5-2.5L17 22l-1.5-8.5"></path></svg>
+            </div>
+            <h3>Verifiable certificates</h3>
+            <p>Issue completion certificates when learners pass, each carrying a unique certificate number and public verification lookup.</p>
           </div>
 
           <div class="feature-card">
-            <div class="feat-icon bg-rose">📊</div>
-            <h3>Assessment Analytics</h3>
-            <p>Review scores, pass status, submitted answers, and printable candidate scorecards.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feat-icon bg-amber">🏛️</div>
-            <h3>Govt & Competitive Exam Prep</h3>
-            <p>Syllabus-aligned mocks for UPSC, SSC, Banking, Railways, Defence, and NEET/JEE with authentic negative marking penalties.</p>
+            <div class="feat-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+            </div>
+            <h3>Scorecards and time analytics</h3>
+            <p>Review pass rates, average completion duration, per-question tags, answer explanations, and printable scorecards.</p>
           </div>
         </div>
       </section>
 
-      <!-- How It Works Section -->
-      <section class="section workflow-section">
+      <!-- Workflow -->
+      <section class="section section-border-top">
         <div class="section-header">
-          <span class="section-tag">SIMPLE 3-STEP PROCESS</span>
-          <h2 class="section-heading">How Quizzy AI Works</h2>
-          <p class="section-description">Create a draft, share one link with learners, then review their submissions.</p>
+          <span class="section-label">Workflow</span>
+          <h2 class="section-heading">How Quizzy AI works</h2>
+          <p class="section-description">Go from a topic prompt to a live classroom link or timed solo practice session in three steps.</p>
         </div>
 
         <div class="steps-grid">
           <div class="step-card">
-            <div class="step-number">01</div>
-            <h3>Type Prompt or Select Topic</h3>
-            <p>Input any topic (e.g. Python, Molecular Biology, World History) or choose from preset academic topics. Select question count and difficulty.</p>
+            <span class="step-number">01</span>
+            <h3>Enter topic or exam stream</h3>
+            <p>Type a programming subject or select UPSC, SSC, Banking, Railways, Defence, or entrance modules. Choose 1–30 questions and difficulty.</p>
           </div>
 
           <div class="step-card">
-            <div class="step-number">02</div>
-            <h3>AI Builds the Assessment</h3>
-            <p>AI drafts questions, answer options, and explanations. Review and edit the draft before you share it with learners.</p>
+            <span class="step-number">02</span>
+            <h3>Review questions and rules</h3>
+            <p>Inspect options, topic tags, explanations, time limits, and optional negative marking before saving or publishing.</p>
           </div>
 
           <div class="step-card">
-            <div class="step-number">03</div>
-            <h3>Share Link & Track Scores</h3>
-            <p>Send the test link to your classroom. View live submissions, auto-graded scorecards, and issued digital certificates.</p>
+            <span class="step-number">03</span>
+            <h3>Deliver and track attempts</h3>
+            <p>Educators review ranked submissions and scorecards; students retest privately and compare marks across every attempt.</p>
           </div>
         </div>
       </section>
 
-      <!-- Built For Roles Section -->
-      <section class="section roles-section">
+      <!-- Built For Roles -->
+      <section class="section section-border-top">
         <div class="section-header">
-          <span class="section-tag">WHO USES QUIZZY AI</span>
-          <h2 class="section-heading">Designed for Every Assessment Need</h2>
+          <span class="section-label">Who uses Quizzy AI</span>
+          <h2 class="section-heading">Built for classrooms and solo preparation</h2>
         </div>
 
         <div class="roles-grid">
           <div class="role-card">
-            <div class="role-badge">FOR TEACHERS & PROFESSORS</div>
-            <h3>Automate Weekly Assessments</h3>
-            <p>Stop spending hours writing quizzes by hand. Create practice sets, midterms, and chapter reviews in clicks with full curriculum alignment.</p>
+            <span class="role-label">Teachers and tutors</span>
+            <h3>Run class assessments without manual formatting</h3>
+            <p>Create chapter quizzes and timed tests, enforce student caps up to 50 learners, and inspect every answer sheet.</p>
             <ul class="role-bullets">
-              <li>✓ Clean 10, 15, 20, 30 question presets (max 30)</li>
-              <li>✓ Up to 50 students per quiz + auto-close when full</li>
-              <li>✓ Printable official student scorecards &amp; analytics</li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>10, 15, 20, 30 presets or custom 1–30 counts</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Auto-closes cleanly when 50 learner seats fill</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Printable scorecards and class leaderboard</span>
+              </li>
             </ul>
           </div>
 
-          <div class="role-card highlight-role">
-            <div class="role-badge">FOR STUDENTS & LEARNERS</div>
-            <h3>Master Any Subject</h3>
-            <p>Turn study sessions into engaging active-recall assessments. Get explanations for every mistake and earn verifiable certificates.</p>
+          <div class="role-card role-card-accent">
+            <span class="role-label">Students and self-learners</span>
+            <h3>Build private drills and retest until sharp</h3>
+            <p>Generate unlimited private practice quizzes or open a teacher's link. Review explanations after each submission and retest anytime.</p>
             <ul class="role-bullets">
-              <li>✓ No signup needed to take shared tests</li>
-              <li>✓ Mobile-friendly distraction-free player</li>
-              <li>✓ Instant scorecards & certificate downloads</li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Private quiz creation (never shared publicly)</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Compare Attempt #1, #2, #3 marks per quiz</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Question-by-question answer explanations</span>
+              </li>
             </ul>
           </div>
 
           <div class="role-card">
-            <div class="role-badge">FOR ACADEMIES & TRAINERS</div>
-            <h3>Professional Certification</h3>
-            <p>Issue branded completion certificates with unique verification links to validate course completion and employee onboarding.</p>
+            <span class="role-label">Competitive exam aspirants</span>
+            <h3>Simulate CBT negative marking and timing</h3>
+            <p>Prepare for UPSC, SSC CGL/CHSL, IBPS/SBI Banking, RRB NTPC, NDA/CDS, CTET, and NEET/JEE with official deduction rules.</p>
             <ul class="role-bullets">
-              <li>✓ QR-code verifiable certificates</li>
-              <li>✓ Organization branding studio</li>
-              <li>✓ Cohort attempt tracking</li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Preset -0.25, -0.33, -0.50, and -1.0 penalties</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Strict countdown timer with auto-submit option</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Multi-statement and conceptual reasoning prompts</span>
+              </li>
             </ul>
           </div>
 
-          <div class="role-card govt-role-card">
-            <div class="role-badge badge-amber">FOR GOVT & COMPETITIVE EXAM ASPIRANTS</div>
-            <h3>Crack Govt Exams with AI Mocks</h3>
-            <p>Simulate official computer-based tests (CBT) with authentic negative marking schemes, timers, and rigorous PYQ patterns.</p>
+          <div class="role-card">
+            <span class="role-label">Academies and cohorts</span>
+            <h3>Issue verifiable completion credentials</h3>
+            <p>Customize organization certificates and let employers or institutions verify every issued credential online.</p>
             <ul class="role-bullets">
-              <li>✓ UPSC, SSC CGL/CHSL, Banking, Railways & Defence</li>
-              <li>✓ Official negative marking (-0.25, -0.33, -0.50, -1.0)</li>
-              <li>✓ Multi-statement & assertion-reasoning questions with detailed solutions</li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Unique ID lookup via Verify Certificate</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>PDF scorecard and certificate studio export</span>
+              </li>
+              <li>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Automatic 24h quiz lifecycle keeps storage fast</span>
+              </li>
             </ul>
           </div>
         </div>
       </section>
 
-      <!-- FAQ Section -->
-      <section class="section faq-section">
+      <!-- FAQ -->
+      <section class="section section-border-top">
         <div class="section-header">
-          <span class="section-tag">FREQUENTLY ASKED QUESTIONS</span>
-          <h2 class="section-heading">Got Questions? We Have Answers</h2>
+          <span class="section-label">Questions</span>
+          <h2 class="section-heading">Frequently asked questions</h2>
         </div>
 
         <div class="faq-list">
@@ -379,17 +388,15 @@ interface FaqItem {
       <!-- Bottom Call To Action -->
       <section class="bottom-cta">
         <div class="cta-inner">
-          <span class="cta-pill">⚡ START CREATING YOUR FIRST QUIZ</span>
-          <h2>Transform How You Test Knowledge Today</h2>
-          <p>Join educators and self-learners building better, faster quizzes with Quizzy AI.</p>
+          <h2>Start authoring or practicing in under a minute</h2>
+          <p>Sign up as a teacher to run class quizzes or as a student to build private mock tests.</p>
           <div class="cta-buttons">
             @if (authService.isAuthenticated()) {
-              <a routerLink="/quizzes/new" class="btn-hero-primary">Create Practice Quiz →</a>
+              <a routerLink="/quizzes/new" class="btn-hero-primary">Create practice quiz</a>
+              <a routerLink="/dashboard" class="btn-hero-secondary">Go to dashboard</a>
             } @else {
-              <a routerLink="/auth/register" class="btn-hero-primary">Create Your First Quiz Free →</a>
-            }
-            @if (authService.isAuthenticated()) {
-              <a routerLink="/dashboard" class="btn-hero-secondary">Go to Dashboard</a>
+              <a routerLink="/auth/register" class="btn-hero-primary">Create free account</a>
+              <a routerLink="/auth/login" class="btn-hero-secondary">Sign in</a>
             }
           </div>
         </div>
@@ -398,31 +405,31 @@ interface FaqItem {
       <!-- Footer -->
       <footer class="landing-footer">
         <div class="footer-container">
-          <div class="footer-brand">
-            <div class="brand-logo">
-              <div class="logo-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
+          <div class="footer-top-row">
+            <div class="footer-brand">
+              <div class="brand-logo">
+                <span class="logo-box" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                </span>
+                <span class="brand-title">Quizzy AI</span>
               </div>
-              <span class="brand-title">Quizzy AI</span>
+              <p class="footer-tagline">Focused assessment and study platform powered by Groq LLMs.</p>
             </div>
-            <p class="footer-tagline">AI-Powered Assessment & Certification Platform.</p>
-          </div>
 
-          <div class="footer-links-group">
-            <a routerLink="/dashboard">Dashboard</a>
-            @if (!authService.isAuthenticated() || canManageQuizzes()) {
-              <a routerLink="/quizzes/new">Create Quiz</a>
-            }
-            <a routerLink="/verify-certificate">Verify Certificate</a>
-            <a routerLink="/auth/login">Sign In</a>
-            <a routerLink="/auth/register">Register</a>
+            <div class="footer-links-group">
+              <a routerLink="/dashboard">Dashboard</a>
+              <a routerLink="/quizzes/new">Create quiz</a>
+              <a routerLink="/verify-certificate">Verify certificate</a>
+              <a routerLink="/auth/login">Sign in</a>
+              <a routerLink="/auth/register">Register</a>
+            </div>
           </div>
 
           <div class="footer-bottom-line">
-            <p>© {{ currentYear }} Quizzy AI. All rights reserved.</p>
-            <p class="privacy-note">Quiz creators can review submitted attempts and the details learners provide.</p>
+            <p class="mono-meta">© {{ currentYear }} Quizzy AI</p>
+            <p class="privacy-note">Educators can review submitted class attempts; student-created quizzes remain private.</p>
           </div>
         </div>
       </footer>
@@ -444,7 +451,6 @@ interface FaqItem {
       flex-direction: column;
     }
 
-    /* Container */
     .nav-container, .footer-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -452,674 +458,505 @@ interface FaqItem {
       width: 100%;
     }
 
-    /* Navbar */
+    /* Quiet Navigation */
     .landing-navbar {
       position: sticky;
       top: 0;
       z-index: 100;
+      height: 60px;
       background: var(--nav-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border-hairline);
-      padding: 0.9rem 0;
-      transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
     }
     .landing-navbar .nav-container {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 1rem;
     }
 
     .brand-logo {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.625rem;
       text-decoration: none;
     }
     .logo-box {
-      width: 36px;
-      height: 36px;
-      background: var(--color-primary-600);
-      color: #ffffff;
-      border-radius: var(--radius-md);
-      display: flex;
+      width: 30px;
+      height: 30px;
+      background: var(--text-heading);
+      color: var(--bg-surface);
+      border-radius: 6px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.24);
-    }
-    .brand-name-group {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
+      flex-shrink: 0;
     }
     .brand-title {
       font-family: var(--font-heading);
-      font-size: 1.25rem;
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 600;
       color: var(--text-heading) !important;
-      letter-spacing: -0.02em;
-    }
-    .brand-tag {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--color-primary-600);
-      background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
-      padding: 0.15rem 0.4rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
+      letter-spacing: -0.015em;
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 0.5rem;
     }
-
-    .theme-toggle-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      display: flex;
+    .nav-text-link {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      cursor: pointer;
-      color: var(--text-heading);
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s ease;
+      height: 34px;
+      padding: 0 0.75rem;
+      border-radius: 8px;
+      color: var(--text-body) !important;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background-color var(--transition-fast), color var(--transition-fast);
       &:hover {
         background: var(--bg-hover);
-        transform: scale(1.05);
+        color: var(--text-heading) !important;
       }
     }
-
-    .btn-dashboard {
+    .theme-toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-body);
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      background: var(--color-primary-600);
-      color: #ffffff !important;
-      font-weight: 700;
-      font-size: 0.875rem;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s ease;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
       &:hover {
-        background: var(--color-primary-700);
-        transform: translateY(-1px);
+        background: var(--bg-hover);
+        border-color: var(--border-strong);
+        color: var(--text-heading);
       }
     }
-
-    .btn-ghost {
-      color: var(--text-heading) !important;
+    .btn-primary-nav {
+      display: inline-flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 1rem;
+      background: var(--text-heading);
+      color: var(--bg-surface) !important;
       font-size: 0.875rem;
-      font-weight: 600;
+      font-weight: 500;
+      border-radius: 8px;
       text-decoration: none;
-      padding: 0.5rem 0.85rem;
-      border-radius: var(--radius-md);
-      transition: background 0.2s ease;
-      &:hover { background: var(--bg-hover); }
+      transition: opacity var(--transition-fast), transform var(--transition-fast);
+      &:hover { opacity: 0.9; }
+      &:active { transform: scale(0.985); }
     }
 
-    .btn-primary {
-      background: var(--color-primary-600);
-      color: #ffffff !important;
-      font-size: 0.875rem;
-      font-weight: 700;
-      text-decoration: none;
-      padding: 0.5rem 1.15rem;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s ease;
-      &:hover {
-        background: var(--color-primary-700);
-        transform: translateY(-1px);
-      }
-    }
-
-    /* Hero Section */
+    /* Asymmetric Split Hero */
     .hero-section {
-      position: relative;
-      padding: 5rem 1.5rem 4rem 1.5rem;
       max-width: 1200px;
-      margin: 0 auto;
       width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    .hero-glow {
-      position: absolute;
-      top: -50px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 75vw;
-      height: 460px;
-      background: radial-gradient(ellipse at top, rgba(37, 99, 235, 0.10) 0%, rgba(79, 70, 229, 0.04) 48%, transparent 74%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      max-width: 860px;
       margin: 0 auto;
+      padding: 4.5rem 1.5rem 5rem;
+      min-height: calc(100svh - 60px);
+      display: flex;
+      align-items: center;
+    }
+    .hero-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.15fr);
+      gap: 3rem;
+      align-items: center;
+      width: 100%;
+    }
+    .hero-copy {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
+      text-align: left;
     }
-
-    .badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
-      color: var(--color-primary-700);
-      padding: 0.35rem 0.9rem;
-      border-radius: 9999px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      background: #10b981;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #10b981;
-    }
-
     .hero-title {
-      font-size: clamp(2.3rem, 5.5vw, 4rem);
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: clamp(2.25rem, 4.4vw, 3.625rem);
+      font-weight: 500;
       color: var(--text-heading) !important;
-      line-height: 1.15;
-      letter-spacing: -0.035em;
-      margin-bottom: 1.25rem;
+      line-height: 1.07;
+      letter-spacing: -0.025em;
+      margin: 0 0 1.25rem 0;
     }
-
-    .text-gradient {
-      background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-ai-purple) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
     .hero-subtitle {
-      font-size: clamp(1rem, 2vw, 1.15rem);
+      font-size: 1.0625rem;
       color: var(--text-body);
       line-height: 1.6;
-      max-width: 680px;
-      margin-bottom: 2.25rem;
+      max-width: 34rem;
+      margin: 0 0 2rem 0;
+      font-weight: 400;
     }
-
     .hero-cta {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 2.5rem;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
     }
-
     .btn-hero-primary {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
+      height: 44px;
+      padding: 0 1.25rem;
       background: var(--color-primary-600);
       color: #ffffff !important;
-      font-size: 1.05rem;
-      font-weight: 700;
-      padding: 0.85rem 2rem;
-      border-radius: 9999px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      border-radius: 8px;
       text-decoration: none;
-      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.26);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      &:hover {
-        background: var(--color-primary-700);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.32);
-      }
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+      &:hover { background: var(--color-primary-700); }
+      &:active { transform: scale(0.985); }
     }
-
     .btn-hero-secondary {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
+      height: 44px;
+      padding: 0 1.25rem;
       background: var(--bg-surface);
       color: var(--text-heading) !important;
-      font-size: 1rem;
-      font-weight: 600;
-      padding: 0.85rem 1.85rem;
-      border-radius: 9999px;
       border: 1px solid var(--border-strong);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      border-radius: 8px;
       text-decoration: none;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s ease;
-      &:hover {
-        background: var(--bg-hover);
-        transform: translateY(-1px);
-      }
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+      &:hover { background: var(--bg-hover); }
+      &:active { transform: scale(0.985); }
     }
-
-    .trust-row {
+    .hero-spec-strip {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
       flex-wrap: wrap;
-    }
-    .trust-item {
-      display: flex;
       align-items: center;
-      gap: 0.4rem;
-      font-size: 0.825rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    /* Product Mockup */
-    .hero-visual {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      max-width: 820px;
-      margin-top: 3rem;
-    }
-
-    .glass-mockup {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      box-shadow: 0 20px 44px -14px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(37, 99, 235, 0.06);
-      text-align: left;
-    }
-
-    .mockup-header {
-      background: var(--bg-hover);
-      padding: 0.65rem 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border-hairline);
-    }
-    .window-controls {
-      display: flex;
-      gap: 0.4rem;
-    }
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-    .dot.red { background: #ef4444; }
-    .dot.yellow { background: #f59e0b; }
-    .dot.green { background: #10b981; }
-
-    .mockup-url {
-      font-family: monospace;
+      gap: 0.4rem 0.6rem;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: var(--text-muted);
-    }
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #10b981;
-      background: rgba(16, 185, 129, 0.12);
-      padding: 0.2rem 0.5rem;
-      border-radius: 9999px;
-    }
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      background: #10b981;
-      border-radius: 50%;
-    }
-
-    .mockup-body {
-      padding: 1.5rem;
-    }
-
-    .quiz-top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.25rem;
-      gap: 1rem;
-    }
-    .quiz-topic-badge {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--color-primary-600);
-      background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
-      padding: 0.15rem 0.55rem;
-      border-radius: 9999px;
-      margin-bottom: 0.35rem;
-      text-transform: uppercase;
-    }
-    .quiz-preview-title {
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: var(--text-heading) !important;
       margin: 0;
     }
-    .quiz-timer {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--color-warning-bg);
-      color: var(--color-warning-text);
-      border: 1px solid var(--color-warning-border);
-      padding: 0.35rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
+    .spec-sep { opacity: 0.5; }
 
-    .progress-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      margin-bottom: 1.25rem;
+    /* Signature Hero Visual: Live Assessment Folio Sheet */
+    .hero-visual {
+      width: 100%;
     }
-    .progress-bar {
-      height: 6px;
-      background: var(--bg-hover);
-      border-radius: 9999px;
+    .exam-folio {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
       overflow: hidden;
     }
-    .progress-fill {
-      height: 100%;
-      width: 25%;
-      background: linear-gradient(90deg, var(--color-primary-600), var(--color-ai-purple));
-      border-radius: 9999px;
-    }
-    .progress-text {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .question-box {
-      background: var(--bg-hover);
-      border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-md);
-      padding: 1rem 1.2rem;
-      margin-bottom: 1.2rem;
+    .folio-header {
+      height: 40px;
+      padding: 0 1rem;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-hairline);
       display: flex;
-      gap: 0.6rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
     }
-    .q-label {
-      font-size: 0.95rem;
-      font-weight: 800;
+    .folio-url, .folio-meta {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .folio-url {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .folio-progress-track {
+      height: 2px;
+      background: var(--border-hairline);
+    }
+    .folio-progress-fill {
+      width: 25%;
+      height: 100%;
+      background: var(--color-primary-600);
+    }
+    .folio-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .folio-question-block {
+      border-left: 2px solid var(--color-primary-600);
+      padding-left: 1rem;
+    }
+    .folio-q-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      margin-bottom: 0.375rem;
+    }
+    .folio-q-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
       color: var(--color-primary-600);
     }
-    .q-content {
-      font-size: 0.9rem;
-      font-weight: 600;
+    .folio-q-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .folio-q-text {
+      font-size: 0.9375rem;
+      font-weight: 500;
       color: var(--text-heading);
       line-height: 1.45;
       margin: 0;
     }
-
-    .options-container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      margin-bottom: 1.25rem;
-    }
-    .option-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.7rem 0.9rem;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-hairline);
-      background: var(--bg-surface);
-      font-size: 0.85rem;
-      color: var(--text-body);
-      transition: all 0.15s ease;
-    }
-    .opt-key {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 1.5px solid var(--border-strong);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-    .opt-label {
-      font-weight: 500;
-      line-height: 1.35;
-    }
-    .selected-correct {
-      border-color: #10b981;
-      background: rgba(16, 185, 129, 0.08);
-      color: var(--text-heading);
-    }
-    .correct-key {
-      background: #10b981;
-      border-color: #10b981;
-      color: #ffffff;
-    }
-    .check-icon {
-      margin-left: auto;
-      stroke: #10b981;
-      flex-shrink: 0;
-    }
-
-    .mockup-footer {
+    .folio-options {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+    }
+    .folio-opt {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.625rem 0.875rem;
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      background: var(--bg-surface);
+      font-size: 0.875rem;
+      color: var(--text-body);
+    }
+    .folio-opt.selected {
+      background: var(--color-primary-50);
+      border-color: var(--color-primary-300);
+      color: var(--text-heading);
+      font-weight: 500;
+    }
+    .folio-key {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .folio-key.active-key {
+      background: var(--color-primary-600);
+      border-color: var(--color-primary-600);
+      color: #ffffff;
+    }
+    .folio-check {
+      margin-left: auto;
+      color: var(--color-primary-600);
+      flex-shrink: 0;
+    }
+    .folio-footer {
       border-top: 1px solid var(--border-hairline);
       padding-top: 1rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
     }
-    .score-chip {
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 0.4rem 0.75rem;
-      border-radius: var(--radius-sm);
+    .folio-explanation {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin: 0;
+      flex: 1;
     }
-    .score-chip.green {
-      background: rgba(16, 185, 129, 0.12);
-      color: #047857;
-      border: 1px solid rgba(16, 185, 129, 0.25);
+    .folio-score-slip {
+      flex-shrink: 0;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
     }
-    .badge-chip {
-      font-size: 0.75rem;
-      font-weight: 600;
+    .slip-label {
+      font-size: 0.7rem;
       color: var(--text-muted);
     }
+    .slip-figure {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-success-text);
+      font-variant-numeric: tabular-nums;
+    }
 
-    /* Sections Shared Styling */
+    /* Sections */
     .section {
       padding: 5rem 1.5rem;
       max-width: 1200px;
       margin: 0 auto;
       width: 100%;
     }
-    .section-header {
-      text-align: center;
-      max-width: 720px;
-      margin: 0 auto 3.5rem auto;
+    .section-border-top {
+      border-top: 1px solid var(--border-hairline);
     }
-    .section-tag {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--color-primary-600);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.5rem;
+    .section-header {
+      max-width: 40rem;
+      margin-bottom: 3rem;
+    }
+    .section-label {
       display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-primary-600);
+      margin-bottom: 0.5rem;
     }
     .section-heading {
-      font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-      font-weight: 800;
+      font-size: clamp(1.625rem, 3vw, 2.125rem);
+      font-weight: 500;
       color: var(--text-heading) !important;
-      letter-spacing: -0.025em;
-      line-height: 1.2;
-      margin-bottom: 0.85rem;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 0 0.75rem 0;
     }
     .section-description {
       font-size: 1rem;
-      color: var(--text-muted);
+      color: var(--text-body);
       line-height: 1.6;
+      margin: 0;
     }
 
     /* Features Grid */
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-      gap: 1.75rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
     }
     .feature-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-lg);
-      padding: 2rem;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-      &:hover {
-        transform: translateY(-3px);
-        border-color: var(--color-primary-300);
-        box-shadow: var(--shadow-md);
-      }
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color var(--transition-fast);
+      &:hover { border-color: var(--border-strong); }
     }
     .feat-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      display: flex;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-subtle);
+      color: var(--text-body);
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.35rem;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1rem;
     }
-    .bg-indigo { background: var(--color-primary-50); color: var(--color-primary-600); }
-    .bg-emerald { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-    .bg-blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-    .bg-purple { background: var(--color-ai-bg); color: var(--color-ai-purple); }
-    .bg-amber { background: var(--color-warning-bg); color: var(--color-warning-text); }
-    .bg-rose { background: rgba(244, 63, 94, 0.12); color: #f43f5e; }
-
     .feature-card h3 {
-      font-size: 1.15rem;
-      font-weight: 800;
+      font-size: 1rem;
+      font-weight: 500;
       color: var(--text-heading) !important;
-      margin-bottom: 0.6rem;
+      margin: 0 0 0.5rem 0;
     }
     .feature-card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.6;
+      font-size: 0.875rem;
+      color: var(--text-body);
+      line-height: 1.55;
+      margin: 0;
     }
     .code-pill {
-      font-family: monospace;
-      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
       background: var(--bg-hover);
-      padding: 0.15rem 0.4rem;
+      padding: 2px 6px;
       border-radius: 4px;
-      color: var(--color-primary-600);
+      color: var(--text-heading);
     }
 
     /* Workflow Steps */
     .steps-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-      gap: 1.75rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
     }
     .step-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-lg);
-      padding: 2.25rem 2rem;
-      position: relative;
+      border-radius: 12px;
+      padding: 1.5rem;
     }
     .step-number {
-      font-family: var(--font-heading);
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: var(--color-primary-200);
-      line-height: 1;
-      margin-bottom: 1rem;
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-primary-600);
+      margin-bottom: 0.875rem;
     }
     .step-card h3 {
-      font-size: 1.15rem;
-      font-weight: 800;
+      font-size: 1rem;
+      font-weight: 500;
       color: var(--text-heading) !important;
-      margin-bottom: 0.65rem;
+      margin: 0 0 0.5rem 0;
     }
     .step-card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.6;
+      font-size: 0.875rem;
+      color: var(--text-body);
+      line-height: 1.55;
+      margin: 0;
     }
 
-    /* Roles */
+    /* Roles Grid */
     .roles-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-      gap: 1.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
     }
     .role-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-xl);
-      padding: 2.25rem;
+      border-radius: 12px;
+      padding: 1.75rem;
       display: flex;
       flex-direction: column;
     }
-    .role-card.highlight-role {
-      border-color: var(--color-primary-500);
-      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.10);
+    .role-card-accent {
+      border-left: 2px solid var(--color-primary-600);
     }
-    .role-card.govt-role-card {
-      border-color: var(--color-primary-300);
-      box-shadow: var(--shadow-sm);
-    }
-    .role-badge {
-      font-size: 0.72rem;
-      font-weight: 800;
+    .role-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
       color: var(--color-primary-600);
-      margin-bottom: 0.75rem;
-      letter-spacing: 0.05em;
-    }
-    .role-badge.badge-amber {
-      color: var(--color-warning-text) !important;
+      margin-bottom: 0.5rem;
     }
     .role-card h3 {
-      font-size: 1.25rem;
-      font-weight: 800;
+      font-size: 1.125rem;
+      font-weight: 500;
       color: var(--text-heading) !important;
-      margin-bottom: 0.75rem;
+      margin: 0 0 0.625rem 0;
     }
     .role-card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 1.25rem;
+      font-size: 0.875rem;
+      color: var(--text-body);
+      line-height: 1.55;
+      margin: 0 0 1.25rem 0;
     }
     .role-bullets {
       list-style: none;
@@ -1130,28 +967,31 @@ interface FaqItem {
       gap: 0.5rem;
     }
     .role-bullets li {
-      font-size: 0.85rem;
-      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
       color: var(--text-body);
+      svg { color: var(--text-muted); flex-shrink: 0; }
     }
 
     /* FAQ */
     .faq-list {
-      max-width: 800px;
-      margin: 0 auto;
+      max-width: 780px;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.75rem;
     }
     .faq-item {
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
-      border-radius: var(--radius-md);
-      padding: 1.25rem 1.5rem;
-      transition: border-color 0.2s ease, background-color 0.2s ease;
-      &:hover { border-color: var(--color-primary-300); }
-      &.open { border-color: var(--color-primary-500); background: var(--bg-hover); }
+      border-radius: 12px;
+      padding: 1.125rem 1.25rem;
+      transition: border-color var(--transition-fast), background-color var(--transition-fast);
+      &:hover { border-color: var(--border-strong); }
+      &.open { border-color: var(--border-strong); }
     }
+    .faq-question-heading { margin: 0; font-size: inherit; }
     .faq-question-row {
       width: 100%;
       display: flex;
@@ -1165,145 +1005,147 @@ interface FaqItem {
       text-align: left;
       cursor: pointer;
     }
-    .faq-question-heading { margin: 0; font-size: inherit; }
     .faq-question-title {
-      font-size: 1rem;
-      font-weight: 700;
+      font-size: 0.9375rem;
+      font-weight: 500;
       color: var(--text-heading) !important;
       line-height: 1.45;
     }
     .faq-chevron {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--color-primary-600);
+      font-family: var(--font-mono);
+      font-size: 1.125rem;
+      color: var(--text-muted);
       line-height: 1;
+      flex-shrink: 0;
     }
     .faq-answer-body {
-      margin-top: 0.85rem;
-      padding-top: 0.85rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
       border-top: 1px solid var(--border-hairline);
-    }
-    .faq-answer-body p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin: 0;
+      p {
+        font-size: 0.875rem;
+        color: var(--text-body);
+        line-height: 1.6;
+        margin: 0;
+      }
     }
 
     /* Bottom CTA */
     .bottom-cta {
-      padding: 3rem 1.5rem 6rem 1.5rem;
-      max-width: 1000px;
+      padding: 0 1.5rem 5rem;
+      max-width: 1200px;
       margin: 0 auto;
       width: 100%;
     }
     .cta-inner {
-      background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-hover) 100%);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-2xl);
-      padding: 4rem 2rem;
-      text-align: center;
-      box-shadow: var(--shadow-md);
-    }
-    .cta-pill {
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: var(--color-primary-600);
-      letter-spacing: 0.08em;
-      margin-bottom: 0.75rem;
-      display: inline-block;
-    }
-    .cta-inner h2 {
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
-      font-weight: 800;
-      color: var(--text-heading) !important;
-      margin-bottom: 0.85rem;
-      letter-spacing: -0.025em;
-    }
-    .cta-inner p {
-      font-size: 1.05rem;
-      color: var(--text-muted);
-      margin-bottom: 2rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      h2 {
+        font-family: var(--font-display);
+        font-size: clamp(1.75rem, 3.2vw, 2.25rem);
+        font-weight: 500;
+        color: var(--text-heading) !important;
+        margin: 0;
+      }
+      p {
+        font-size: 1rem;
+        color: var(--text-body);
+        max-width: 36rem;
+        margin: 0 0 0.75rem 0;
+      }
     }
     .cta-buttons {
       display: flex;
-      justify-content: center;
-      gap: 1rem;
       flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
     /* Footer */
     .landing-footer {
-      background: var(--bg-surface);
       border-top: 1px solid var(--border-hairline);
-      padding: 3.5rem 0 2rem 0;
+      background: var(--footer-bg);
+      padding: 2.5rem 0 2rem;
       margin-top: auto;
     }
-    .footer-container {
+    .footer-top-row {
       display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-    .footer-brand {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--footer-bottom-border);
     }
     .footer-tagline {
+      margin-top: 0.5rem;
       font-size: 0.875rem;
       color: var(--text-muted);
     }
     .footer-links-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-    .footer-links-group a {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-body);
-      text-decoration: none;
-      transition: color 0.2s ease;
-      &:hover { color: var(--color-primary-600); }
+      gap: 0.75rem 1.5rem;
+      a {
+        color: var(--text-body) !important;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        &:hover { color: var(--text-heading) !important; }
+      }
     }
     .footer-bottom-line {
+      padding-top: 1.25rem;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
-      border-top: 1px solid var(--border-hairline);
-      padding-top: 1.5rem;
-      font-size: 0.8rem;
+      gap: 0.75rem;
+      font-size: 0.8125rem;
       color: var(--text-muted);
+    }
+    .mono-meta {
+      font-family: var(--font-mono);
+      margin: 0;
     }
     .privacy-note {
-      color: var(--text-muted);
+      margin: 0;
     }
 
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      .hero-section { padding: 3rem 1.25rem 2.5rem 1.25rem; }
-      .hero-cta { flex-direction: column; width: 100%; }
-      .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
-      .trust-row { gap: 1rem; }
-      .btn-ghost { padding: 0.45rem 0.65rem; font-size: 0.82rem; }
-      .quiz-top-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-      .mockup-url { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .footer-bottom-line { flex-direction: column; text-align: center; }
+    /* Responsive */
+    @media (max-width: 960px) {
+      .hero-section {
+        min-height: auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+      .hero-split {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      .features-grid, .steps-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
-    @media (max-width: 480px) {
-      .landing-navbar { padding: 0.6rem 0; }
-      .landing-navbar .nav-container { padding-inline: 0.75rem; gap: 0.45rem; }
-      .brand-name-group { gap: 0.25rem; }
-      .brand-title { font-size: 1rem; }
-      .nav-actions { gap: 0.4rem; }
-      .nav-actions .btn-primary, .nav-actions .btn-dashboard { padding: 0.5rem 0.7rem; font-size: 0.78rem; }
-      .nav-actions .btn-ghost { padding: 0.45rem 0.5rem; font-size: 0.78rem; }
-      .hero-title { font-size: clamp(1.9rem, 9vw, 2.5rem); }
+
+    @media (max-width: 640px) {
+      .hide-xs { display: none; }
+      .landing-navbar .nav-container { padding-inline: 1rem; }
+      .hero-section { padding: 2.5rem 1rem 3rem; }
+      .hero-title { font-size: clamp(2rem, 8.5vw, 2.5rem); }
+      .hero-cta { width: 100%; }
+      .hero-cta a { flex: 1; min-width: 140px; justify-content: center; }
+      .folio-footer { flex-direction: column; align-items: stretch; }
+      .folio-score-slip { align-items: flex-start; }
       .section { padding: 3.25rem 1rem; }
-      .feature-card, .role-card, .step-card { padding: 1.25rem; }
-      .mockup-body { padding: 1rem; }
+      .features-grid, .steps-grid, .roles-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .bottom-cta { padding: 0 1rem 3.5rem; }
+      .cta-inner { padding: 2rem 1.25rem; }
+      .footer-container { padding-inline: 1rem; }
     }
   `]
 })
@@ -1320,45 +1162,38 @@ export class LandingComponent {
 
   readonly faqs = signal<FaqItem[]>([
     {
-      question: 'How does Quizzy AI generate quizzes?',
-      answer: 'Enter a topic and the AI drafts multiple-choice questions, answer options, and explanations. Review the generated content and make edits before you publish the quiz.',
+      question: 'How does Quizzy AI draft questions?',
+      answer: 'Enter any topic or exam stream and Groq LLMs generate multiple-choice and true-false questions, answer keys, and explanations. You can edit any question before saving.',
       open: true
     },
     {
-      question: 'How many students can take a quiz at the same time?',
-      answer: 'Each quiz supports up to 50 students and closes automatically once all seats are filled. Quiz and attempt data automatically clean up after 24 hours to keep free-tier storage fast.',
+      question: 'How do student practice quizzes differ from teacher quizzes?',
+      answer: 'Educators can publish quizzes with a share link (/q/id) for up to 50 learners and view a class leaderboard. Student-created quizzes stay private to that student with unlimited retests and per-quiz attempt marks.',
       open: false
     },
     {
-      question: 'Can I choose the number of questions and difficulty level?',
-      answer: 'Yes. Choose 10, 15, 20, or 30 presets or enter a custom count from 1 to 30. Select Easy, Medium, Hard, or Mixed difficulty and edit any question before publishing.',
+      question: 'What limits keep the platform responsive on free-tier hosting?',
+      answer: 'AI generation supports 1 to 30 questions per quiz (10, 15, 20, 30 presets or custom), classes cap at 50 participants, and quizzes and attempt data clean up automatically after 24 hours.',
       open: false
     },
     {
-      question: 'Do students need to create an account to take a test?',
-      answer: 'No! When an educator creates a quiz and shares the link (e.g. /q/yourQuizId), students can click and start taking the quiz immediately on phone, tablet, or laptop without needing to register.',
+      question: 'Do students need an account to take a class test?',
+      answer: 'No. When a teacher shares a public quiz link, students can enter their details and begin directly on phone, tablet, or desktop.',
       open: false
     },
     {
-      question: 'How do students get their certificates?',
-      answer: 'If certificates are enabled and a learner meets the pass mark, the quiz can issue a certificate with a unique ID and a verification link.',
-      open: false
-    },
-    {
-      question: 'Is student assessment data private and secure?',
-      answer: 'Quiz creators can review submitted attempts and any learner details collected by the quiz. Only request information you need, and avoid entering sensitive personal data into quiz content.',
-      open: false
-    },
-    {
-      question: 'Can I prepare for government and competitive exams (UPSC, SSC, Banking, Railways, Defence) on Quizzy AI?',
-      answer: 'Yes! Quizzy AI features a dedicated Government & Competitive Exam Hub covering UPSC Civil Services, SSC CGL/CHSL, Banking (IBPS/SBI PO), Railways RRB, Defence (NDA/CDS), CTET, and NEET/JEE. It includes official negative marking penalty configurations (-0.25, -0.33, -0.50, -1.0) and generates standard PYQ-style multi-statement and assertion-reasoning questions with comprehensive explanations.',
+      question: 'How does certificate verification work?',
+      answer: 'When certificates are enabled and a learner meets the pass threshold, a unique certificate number is generated that can be checked anytime on Verify Certificate.',
       open: false
     }
   ]);
 
-  toggleFaq(faq: FaqItem): void {
-    this.faqs.update(items => items.map(item =>
-      item.question === faq.question ? { ...item, open: !item.open } : item
-    ));
+  toggleFaq(item: FaqItem): void {
+    this.faqs.update(list =>
+      list.map(f => ({
+        ...f,
+        open: f === item ? !f.open : false
+      }))
+    );
   }
 }

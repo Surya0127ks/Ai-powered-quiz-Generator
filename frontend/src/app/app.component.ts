@@ -145,19 +145,23 @@ import { UserRole } from './core/models/auth.model';
         @if (mobileMenuOpen()) {
           <nav id="mobile-primary-navigation" class="mobile-drawer-menu" aria-label="Mobile navigation">
             <a routerLink="/dashboard" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
-              <span>🏠 Dashboard</span>
+              <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>Dashboard</span>
             </a>
             @if (authService.isAuthenticated()) {
               @if (canManageQuizzes()) {
-              <a routerLink="/quizzes/new" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item highlight-ai">
-                <span>✨ Create Quiz with AI</span>
+              <a routerLink="/quizzes/new" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
+                <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+                <span>Create Quiz</span>
               </a>
               }
               <a routerLink="/student/progress" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
-                <span>📊 Attempt History & Score Reports</span>
+                <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                <span>My Progress</span>
               </a>
               <a routerLink="/certificate/generator" (click)="mobileMenuOpen.set(false)" class="mobile-nav-item">
-                <span>📜 Certificate Studio</span>
+                <svg class="drawer-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M8.5 13.5 7 22l5-2.5L17 22l-1.5-8.5"></path></svg>
+                <span>Certificates</span>
               </a>
               <div class="mobile-user-profile">
                 <div class="avatar-circle">
@@ -251,20 +255,19 @@ import { UserRole } from './core/models/auth.model';
       position: sticky;
       top: 0;
       z-index: 1000;
-      height: 64px;
+      height: 60px;
       background: var(--nav-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--nav-border);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
       justify-content: center;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
+      transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .nav-container {
       width: 100%;
-      max-width: 1240px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 0 1.5rem;
       display: flex;
@@ -277,27 +280,26 @@ import { UserRole } from './core/models/auth.model';
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.625rem;
       text-decoration: none;
       flex-shrink: 0;
     }
     .logo-box {
-      width: 34px;
-      height: 34px;
-      border-radius: var(--radius-md);
-      background: var(--color-primary-600);
-      color: #ffffff;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      background: var(--text-heading);
+      color: var(--bg-surface);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.24);
     }
     .brand-title {
       font-family: var(--font-heading);
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--text-primary) !important;
-      letter-spacing: -0.02em;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-heading) !important;
+      letter-spacing: -0.015em;
     }
 
     /* Desktop Nav Links */
@@ -309,28 +311,31 @@ import { UserRole } from './core/models/auth.model';
     .nav-link {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      padding: 0.45rem 0.75rem;
-      border-radius: var(--radius-md);
+      gap: 0.5rem;
+      height: 34px;
+      padding: 0 0.75rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
       text-decoration: none;
-      color: var(--text-secondary) !important;
+      color: var(--text-body) !important;
       font-size: 0.875rem;
-      font-weight: 600;
+      font-weight: 500;
       white-space: nowrap;
-      transition: all 0.15s ease;
+      transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1), color 150ms cubic-bezier(0.22, 1, 0.36, 1), border-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
       span { color: inherit !important; }
-      .nav-svg { width: 18px; height: 18px; stroke: var(--text-muted); transition: stroke 0.15s ease; }
+      .nav-svg { width: 16px; height: 16px; stroke: var(--text-muted); stroke-width: 1.5; transition: stroke 150ms cubic-bezier(0.22, 1, 0.36, 1); }
 
       &:hover {
         background-color: var(--bg-hover);
-        color: var(--text-primary) !important;
-        .nav-svg { stroke: var(--color-primary-600); }
+        color: var(--text-heading) !important;
+        .nav-svg { stroke: var(--text-heading); }
       }
 
       &.active {
-        background-color: var(--color-primary-50);
-        color: var(--color-primary-600) !important;
-        font-weight: 700;
+        background-color: var(--bg-surface);
+        border-color: var(--border-hairline);
+        color: var(--text-heading) !important;
+        font-weight: 500;
         .nav-svg { stroke: var(--color-primary-600); }
       }
     }
@@ -338,27 +343,27 @@ import { UserRole } from './core/models/auth.model';
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.625rem;
     }
 
     /* Theme Toggle Switcher Button */
     .theme-toggle-btn {
-      width: 44px;
-      height: 44px;
-      flex: 0 0 44px;
-      border-radius: var(--radius-md);
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      border-radius: 8px;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
       cursor: pointer;
+      color: var(--text-body);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.05rem;
-      transition: all 0.15s ease;
+      transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1), border-color 150ms cubic-bezier(0.22, 1, 0.36, 1), color 150ms cubic-bezier(0.22, 1, 0.36, 1);
       &:hover {
-        transform: scale(1.05);
-        background: var(--color-primary-50);
-        border-color: var(--color-primary-200);
+        background: var(--bg-hover);
+        border-color: var(--border-strong);
+        color: var(--text-heading);
       }
     }
 
@@ -366,20 +371,20 @@ import { UserRole } from './core/models/auth.model';
     .user-chip {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      padding: 0.35rem 0.75rem 0.35rem 0.35rem;
-      border-radius: var(--radius-md);
+      gap: 0.5rem;
+      padding: 0.25rem 0.65rem 0.25rem 0.25rem;
+      border-radius: 8px;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
     }
     .avatar-circle {
-      width: 28px;
-      height: 28px;
-      border-radius: var(--radius-sm);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
       background: var(--color-primary-600);
       color: #ffffff;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.75rem;
+      font-weight: 500;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -387,9 +392,9 @@ import { UserRole } from './core/models/auth.model';
     .user-meta {
       display: flex;
       flex-direction: column;
-      line-height: 1.1;
-      .user-name { font-size: 0.825rem; font-weight: 700; color: var(--text-primary) !important; }
-      .user-role { font-size: 0.7rem; color: var(--text-muted) !important; font-weight: 500; }
+      line-height: 1.15;
+      .user-name { font-size: 0.8125rem; font-weight: 500; color: var(--text-heading) !important; }
+      .user-role { font-size: 0.7rem; color: var(--text-muted) !important; font-weight: 400; }
     }
 
     /* Mobile Hamburger & Drawer Menu */
@@ -409,21 +414,21 @@ import { UserRole } from './core/models/auth.model';
 
     .mobile-drawer-menu {
       position: absolute;
-      top: 64px;
+      top: 60px;
       left: 0;
       right: 0;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-hairline);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      padding: 0.75rem 0;
+      box-shadow: var(--shadow-lg);
+      padding: 0.5rem 0 1rem;
       max-height: min(72dvh, 560px);
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 2px;
       z-index: 1000;
-      border-radius: 0 0 1.25rem 1.25rem;
-      animation: mobile-drawer-enter 160ms ease-out both;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      animation: mobile-drawer-enter 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     @keyframes mobile-drawer-enter {
       from { opacity: 0; transform: translateY(-6px); }
@@ -432,29 +437,31 @@ import { UserRole } from './core/models/auth.model';
     .mobile-nav-item {
       display: flex;
       align-items: center;
-      padding: 0.85rem 1.5rem;
+      gap: 0.625rem;
+      min-height: 40px;
+      padding: 0.5rem 1.5rem;
       text-decoration: none;
-      color: var(--text-primary) !important;
-      font-weight: 600;
-      font-size: 0.95rem;
+      color: var(--text-body) !important;
+      font-weight: 500;
+      font-size: 0.9375rem;
       background: transparent;
-      border-left: 3px solid transparent;
-      transition: all 0.15s ease;
-      &:hover { background: var(--bg-hover); border-left-color: var(--color-primary-600); color: var(--color-primary-600) !important; }
-    }
-    .mobile-nav-item.highlight-ai {
-      color: var(--color-ai-purple) !important;
-      background: var(--color-ai-bg);
-      border-left-color: var(--color-ai-purple);
-      font-weight: 700;
+      border-left: 2px solid transparent;
+      transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+      .drawer-svg { stroke: var(--text-muted); flex-shrink: 0; }
+      &:hover {
+        background: var(--bg-hover);
+        border-left-color: var(--color-primary-600);
+        color: var(--text-heading) !important;
+        .drawer-svg { stroke: var(--text-heading); }
+      }
     }
     .mobile-user-profile {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 1.25rem 1.5rem 0.5rem 1.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      padding: 1rem 1.5rem 0.5rem 1.5rem;
       margin-top: 0.5rem;
       border-top: 1px solid var(--border-hairline);
     }
@@ -462,20 +469,19 @@ import { UserRole } from './core/models/auth.model';
     .margin-top-xs { margin-top: 0.5rem; }
 
     .app-main-layout {
-      min-height: calc(100dvh - 64px - 74px);
+      min-height: calc(100dvh - 60px - 72px);
     }
 
     /* COMPACT WORKSPACE FOOTER */
     .qp-footer {
-      background: var(--bg-surface);
+      background: var(--bg-app);
       border-top: 1px solid var(--border-hairline);
       padding: 1.25rem 0;
       margin-top: auto;
-      color: var(--text-secondary);
-      transition: background-color 0.2s ease, border-color 0.2s ease;
+      color: var(--text-body);
     }
     .footer-container {
-      max-width: 1240px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 0 1.5rem;
     }
@@ -494,25 +500,25 @@ import { UserRole } from './core/models/auth.model';
     }
     .brand-title-footer {
       color: var(--text-heading) !important;
-      font-size: 0.95rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
     }
     .footer-dot { color: var(--text-muted); }
-    .footer-tagline-inline { font-size: 0.85rem; color: var(--text-muted); }
-    .footer-copy { font-size: 0.82rem; color: var(--text-muted); }
+    .footer-tagline-inline { font-size: 0.875rem; color: var(--text-muted); }
+    .footer-copy { font-size: 0.8125rem; color: var(--text-muted); font-family: var(--font-mono); }
     .footer-bottom-links {
       display: flex;
       flex-wrap: wrap;
-      gap: 1.15rem;
+      gap: 1.25rem;
       align-items: center;
-      font-size: 0.85rem;
-      a { 
-        color: var(--text-secondary) !important; 
-        text-decoration: none; 
-        font-weight: 600;
-        transition: color 0.15s ease;
-        &:hover { color: var(--color-primary-600) !important; } 
+      font-size: 0.875rem;
+      a {
+        color: var(--text-body) !important;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color var(--transition-fast);
+        &:hover { color: var(--text-heading) !important; }
       }
     }
 
