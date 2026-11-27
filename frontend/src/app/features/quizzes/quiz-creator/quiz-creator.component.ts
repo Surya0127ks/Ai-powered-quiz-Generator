@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -44,6 +44,53 @@ export interface GovtExamCategory {
           </div>
         </div>
       </header>
+
+      <!-- Sticky Top Publish Action Bar -->
+      @if (!isGenerating() && hasReadyQuestions()) {
+        <div
+          #topPublishBar
+          id="top-publish-bar"
+          class="quick-publish-bar quick-publish-sticky"
+          [class.is-focused-highlight]="justGeneratedFocus()"
+          role="region"
+          aria-label="Quiz publish actions"
+        >
+          <div class="qpb-left">
+            <div>
+              <span class="qpb-title">{{ authService.userRole() === 3 ? 'Ready to practice' : 'Ready to publish' }}</span>
+              <span class="qpb-desc">
+                <strong class="mono-num">{{ questionsArray.length }}</strong> questions loaded —
+                {{ authService.userRole() === 3 ? 'start your private practice test or review below.' : 'publish now or review questions below.' }}
+              </span>
+            </div>
+          </div>
+          <div class="qpb-actions">
+            @if (authService.userRole() !== 3) {
+              <button type="button" (click)="onSubmit(false)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-outline btn-sm">
+                @if (isSavingDraft()) {
+                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Saving</span></span>
+                } @else {
+                  <span>Save draft</span>
+                }
+              </button>
+            }
+            <button
+              #topPublishPrimaryBtn
+              id="top-publish-primary-btn"
+              type="button"
+              (click)="onSubmit(true)"
+              [disabled]="quizForm.invalid || isLoading()"
+              class="btn btn-primary btn-sm qpb-primary-btn"
+            >
+              @if (isPublishing()) {
+                <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>{{ authService.userRole() === 3 ? 'Starting' : 'Publishing' }}</span></span>
+              } @else {
+                <span>{{ authService.userRole() === 3 ? 'Save & start quiz' : 'Publish & get link' }}</span>
+              }
+            </button>
+          </div>
+        </div>
+      }
 
       <!-- Mode Switcher -->
       <div class="tab-switch-bar">
@@ -812,39 +859,6 @@ export interface GovtExamCategory {
           </details>
         </div>
 
-        <!-- Quick Publish Action Bar (Top) -->
-        @if (questionsArray.length > 0) {
-          <div class="quick-publish-bar margin-top">
-            <div class="qpb-left">
-              <div>
-                <span class="qpb-title">{{ authService.userRole() === 3 ? 'Ready to practice' : 'Ready to publish' }}</span>
-                <span class="qpb-desc">
-                  {{ questionsArray.length }} questions loaded —
-                  {{ authService.userRole() === 3 ? 'start your private practice test now or edit below first.' : 'publish now or review below first.' }}
-                </span>
-              </div>
-            </div>
-            <div class="qpb-actions">
-              @if (authService.userRole() !== 3) {
-                <button type="button" (click)="onSubmit(false)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-outline btn-sm">
-                  @if (isSavingDraft()) {
-                    <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>Saving</span></span>
-                  } @else {
-                    <span>Save draft</span>
-                  }
-                </button>
-              }
-              <button type="button" (click)="onSubmit(true)" [disabled]="quizForm.invalid || isLoading()" class="btn btn-primary btn-sm">
-                @if (isPublishing()) {
-                  <span class="ai-spinner-row"><svg class="ai-spinner-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round"></circle></svg><span>{{ authService.userRole() === 3 ? 'Starting' : 'Publishing' }}</span></span>
-                } @else {
-                  <span>{{ authService.userRole() === 3 ? 'Save & start quiz' : 'Publish & get link' }}</span>
-                }
-              </button>
-            </div>
-          </div>
-        }
-
         <!-- Section 2: Questions Editor -->
         <div class="saas-card form-section margin-top">
           <div class="section-header-row">
@@ -864,9 +878,9 @@ export interface GovtExamCategory {
             }
           </datalist>
 
-          <div formArrayName="questions" class="questions-list">
-            @for (qGroup of questionsArray.controls; track $index; let qIdx = $index) {
-              <div [formGroupName]="qIdx" class="question-card">
+          <div class="questions-list">
+            @for (qGroup of questionGroups; track qGroup; let qIdx = $index) {
+              <div [formGroup]="qGroup" class="question-card">
                 <div class="q-header">
                   <div class="q-header-left">
                     <span class="q-badge">Q{{ qIdx + 1 }}</span>
@@ -938,9 +952,9 @@ export interface GovtExamCategory {
                     }
                   </div>
 
-                  <div formArrayName="options">
-                    @for (optGroup of getOptionsArray(qIdx).controls; track $index; let oIdx = $index) {
-                      <div [formGroupName]="oIdx" class="option-row">
+                  <div>
+                    @for (optGroup of getOptionGroups(qGroup); track optGroup; let oIdx = $index) {
+                      <div [formGroup]="optGroup" class="option-row">
                         <input
                           type="checkbox"
                           formControlName="isCorrect"
@@ -953,7 +967,7 @@ export interface GovtExamCategory {
                           placeholder="Option {{ oIdx + 1 }} text..."
                           class="input-control option-input"
                         />
-                        @if (getOptionsArray(qIdx).length > 2 && qGroup.get('type')?.value === QuestionType.SingleChoice) {
+                        @if (getOptionGroups(qGroup).length > 2 && qGroup.get('type')?.value === QuestionType.SingleChoice) {
                           <button type="button" (click)="removeOption(qIdx, oIdx)" class="btn-opt-delete">✕</button>
                         }
                       </div>
@@ -1348,12 +1362,28 @@ export interface GovtExamCategory {
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 1rem 1.25rem;
+      padding: 0.9rem 1.25rem;
       background: var(--surface-tint-emerald);
       border: 1px solid var(--color-success-border);
       border-left: 3px solid var(--color-success-text);
       border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       animation: fadein 180ms var(--ease-out);
+      transition: box-shadow 220ms var(--ease-out), border-color 220ms var(--ease-out);
+    }
+    .quick-publish-sticky {
+      position: sticky;
+      top: 68px;
+      z-index: 45;
+      margin-bottom: 1.25rem;
+    }
+    .quick-publish-bar.is-focused-highlight {
+      border-color: var(--color-success-text);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success-text) 20%, transparent), var(--shadow-md);
+    }
+    .qpb-primary-btn:focus-visible {
+      outline: 2px solid var(--color-primary-700);
+      outline-offset: 2px;
     }
     @keyframes fadein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .qpb-left {
@@ -1610,17 +1640,20 @@ export interface GovtExamCategory {
       .count-control-row { grid-template-columns: 1fr; align-items: start; }
       .quick-publish-bar {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
+        align-items: stretch;
+        gap: 0.65rem;
+        padding: 0.85rem 1rem;
+      }
+      .quick-publish-sticky {
+        top: 64px;
       }
       .qpb-actions {
         width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
         gap: 0.5rem;
       }
       .qpb-actions .btn {
-        width: 100%;
+        flex: 1;
         justify-content: center;
       }
     }
@@ -1629,9 +1662,9 @@ export interface GovtExamCategory {
       .tab-switch-bar { display: grid; grid-template-columns: 1fr; gap: 0.25rem; }
       .tab-btn { justify-content: flex-start; min-height: 44px; }
       .custom-count-field { justify-content: space-between; width: 100%; }
-      .qpb-actions {
-        grid-template-columns: 1fr;
-      }
+      .qpb-desc { display: none; }
+      .quick-publish-sticky { padding: 0.7rem 0.85rem; margin-bottom: 1rem; }
+      .qpb-actions .btn { padding-inline: 0.65rem; font-size: 0.82rem; white-space: nowrap; }
       .creator-container { padding: 1rem 0.75rem 2.5rem; }
       .generator-panel, .govt-panel, .form-section { padding: 1rem; }
       .question-card { padding: 1rem; }
@@ -1664,12 +1697,17 @@ export class QuizCreatorComponent implements OnInit {
   readonly creationMode = signal<'smart' | 'govt' | 'manual'>('smart');
   readonly isLoading = signal(false);
   readonly isGenerating = signal(false);
+  readonly hasGeneratedQuestions = signal(false);
+  readonly justGeneratedFocus = signal(false);
   readonly isPublishing = signal(false);
   readonly isSavingDraft = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly showSuccessToast = signal(false);
   readonly successToastMessage = signal('');
   readonly showApiKeyInput = signal(false);
+
+  @ViewChild('topPublishBar') topPublishBarRef?: ElementRef<HTMLElement>;
+  @ViewChild('topPublishPrimaryBtn') topPublishBtnRef?: ElementRef<HTMLButtonElement>;
 
   readonly domainTopics = signal<DomainTopicItem[]>([]);
   readonly availableSubTopics = signal<SubTopicItem[]>([]);
@@ -1971,6 +2009,7 @@ export class QuizCreatorComponent implements OnInit {
     const questionCount = Math.min(30, Math.max(1, Math.floor(Number(this.requestedQuestionCount) || 10)));
 
     this.isGenerating.set(true);
+    this.justGeneratedFocus.set(false);
     this.errorMessage.set(null);
 
     this.questionBankService.generateQuestions({
@@ -1982,7 +2021,6 @@ export class QuizCreatorComponent implements OnInit {
       apiKey: this.customApiKey ? this.customApiKey.trim() : undefined
     }).subscribe({
       next: (generatedQuestions) => {
-        this.isGenerating.set(false);
         if (generatedQuestions && generatedQuestions.length > 0) {
           if (!this.quizForm.value.title) {
             this.quizForm.patchValue({
@@ -1991,10 +2029,22 @@ export class QuizCreatorComponent implements OnInit {
             });
           }
           this.populateQuestionsArray(generatedQuestions);
-          this.successToastMessage.set(`✨ Generated ${generatedQuestions.length} live questions via Groq AI!`);
+          this.hasGeneratedQuestions.set(true);
+          this.isGenerating.set(false);
+          this.justGeneratedFocus.set(true);
+          this.successToastMessage.set(`Generated ${generatedQuestions.length} live questions via Groq AI.`);
           this.showSuccessToast.set(true);
           setTimeout(() => this.showSuccessToast.set(false), 3500);
+          setTimeout(() => {
+            if (typeof window !== 'undefined') {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            this.topPublishBarRef?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            this.topPublishBtnRef?.nativeElement?.focus({ preventScroll: true });
+          }, 80);
+          setTimeout(() => this.justGeneratedFocus.set(false), 2200);
         } else {
+          this.isGenerating.set(false);
           this.errorMessage.set('The AI provider returned no questions. Check the topic and retry.');
         }
       },
@@ -2029,33 +2079,44 @@ export class QuizCreatorComponent implements OnInit {
   }
 
   populateQuestionsArray(questions: CreateQuizQuestionItem[]): void {
-    const qArray = this.questionsArray;
-    qArray.clear();
+    const groups = questions.map(q => {
+      const optsArray = this.fb.array(
+        (q.options || []).map(opt => this.fb.group({
+          optionText: [opt.optionText, Validators.required],
+          isCorrect: [opt.isCorrect || false]
+        }))
+      );
 
-    questions.forEach(q => {
-      const qGroup = this.fb.group({
+      return this.fb.group({
         questionText: [q.questionText, Validators.required],
         type: [q.type || QuestionType.SingleChoice, Validators.required],
         points: [q.points || 1, [Validators.required, Validators.min(1)]],
         tag: [q.tag || ''],
         explanation: [q.explanation || ''],
-        options: this.fb.array([])
+        options: optsArray
       });
-
-      const optsArray = qGroup.get('options') as FormArray;
-      (q.options || []).forEach(opt => {
-        optsArray.push(this.fb.group({
-          optionText: [opt.optionText, Validators.required],
-          isCorrect: [opt.isCorrect || false]
-        }));
-      });
-
-      qArray.push(qGroup);
     });
+
+    this.quizForm.setControl('questions', this.fb.array(groups));
+    this.quizForm.updateValueAndValidity();
+  }
+
+  hasReadyQuestions(): boolean {
+    return this.hasGeneratedQuestions()
+      || this.questionsArray.length > 1
+      || !!String(this.questionsArray.at(0)?.get('questionText')?.value ?? '').trim();
   }
 
   get questionsArray(): FormArray {
     return this.quizForm.get('questions') as FormArray;
+  }
+
+  get questionGroups(): FormGroup[] {
+    return this.questionsArray.controls as FormGroup[];
+  }
+
+  getOptionGroups(qGroup: FormGroup): FormGroup[] {
+    return (qGroup.get('options') as FormArray).controls as FormGroup[];
   }
 
   getOptionsArray(qIndex: number): FormArray {

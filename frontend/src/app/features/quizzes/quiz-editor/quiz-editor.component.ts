@@ -206,9 +206,9 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             }
           </datalist>
 
-          <div formArrayName="questions" class="questions-list">
-            @for (qGroup of questionsArray.controls; track $index; let qIdx = $index) {
-              <div [formGroupName]="qIdx" class="question-card">
+          <div class="questions-list">
+            @for (qGroup of questionGroups; track qGroup; let qIdx = $index) {
+              <div [formGroup]="qGroup" class="question-card">
                 <div class="q-header">
                   <div class="q-header-left">
                     <span class="q-badge">Question #{{ qIdx + 1 }}</span>
@@ -280,9 +280,9 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                     }
                   </div>
 
-                  <div formArrayName="options">
-                    @for (optGroup of getOptionsArray(qIdx).controls; track $index; let oIdx = $index) {
-                      <div [formGroupName]="oIdx" class="option-row">
+                  <div>
+                    @for (optGroup of getOptionGroups(qGroup); track optGroup; let oIdx = $index) {
+                      <div [formGroup]="optGroup" class="option-row">
                         <input
                           type="checkbox"
                           formControlName="isCorrect"
@@ -295,7 +295,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                           placeholder="Option {{ oIdx + 1 }} text..."
                           class="input-control option-input"
                         />
-                        @if (getOptionsArray(qIdx).length > 2 && qGroup.get('type')?.value === QuestionType.SingleChoice) {
+                        @if (getOptionGroups(qGroup).length > 2 && qGroup.get('type')?.value === QuestionType.SingleChoice) {
                           <button type="button" (click)="removeOption(qIdx, oIdx)" class="btn-opt-delete">✕</button>
                         }
                       </div>
@@ -656,29 +656,28 @@ export class QuizEditorComponent implements OnInit {
           maxStudents: quiz.maxStudents ?? 15
         });
 
-        const qArray = this.questionsArray;
-        qArray.clear();
-        quiz.questions.forEach(q => {
-          const qGroup = this.fb.group({
+        const groups = (quiz.questions || []).map(q => {
+          const optsArray = this.fb.array(
+            (q.options || []).map(opt => this.fb.group({
+              id: [opt.id],
+              optionText: [opt.optionText, Validators.required],
+              isCorrect: [opt.isCorrect || false]
+            }))
+          );
+
+          return this.fb.group({
             id: [q.id],
             questionText: [q.questionText, Validators.required],
             type: [q.type || this.QuestionType.SingleChoice, Validators.required],
             points: [q.points || 1, [Validators.required, Validators.min(1)]],
             tag: [q.tag || ''],
             explanation: [q.explanation || ''],
-            options: this.fb.array([])
+            options: optsArray
           });
-
-          const optsArray = qGroup.get('options') as FormArray;
-          (q.options || []).forEach(opt => {
-            optsArray.push(this.fb.group({
-              id: [opt.id],
-              optionText: [opt.optionText, Validators.required],
-              isCorrect: [opt.isCorrect || false]
-            }));
-          });
-          qArray.push(qGroup);
         });
+
+        this.quizForm.setControl('questions', this.fb.array(groups));
+        this.quizForm.updateValueAndValidity();
       },
       error: () => {
         this.isLoading.set(false);
@@ -756,33 +755,38 @@ export class QuizEditorComponent implements OnInit {
   }
 
   populateQuestionsArray(questions: CreateQuizQuestionItem[]): void {
-    const qArray = this.questionsArray;
-    qArray.clear();
+    const groups = questions.map(q => {
+      const optsArray = this.fb.array(
+        (q.options || []).map(opt => this.fb.group({
+          optionText: [opt.optionText, Validators.required],
+          isCorrect: [opt.isCorrect || false]
+        }))
+      );
 
-    questions.forEach(q => {
-      const qGroup = this.fb.group({
+      return this.fb.group({
         questionText: [q.questionText, Validators.required],
         type: [q.type || QuestionType.SingleChoice, Validators.required],
         points: [q.points || 1, [Validators.required, Validators.min(1)]],
         tag: [q.tag || ''],
         explanation: [q.explanation || ''],
-        options: this.fb.array([])
+        options: optsArray
       });
-
-      const optsArray = qGroup.get('options') as FormArray;
-      (q.options || []).forEach(opt => {
-        optsArray.push(this.fb.group({
-          optionText: [opt.optionText, Validators.required],
-          isCorrect: [opt.isCorrect || false]
-        }));
-      });
-
-      qArray.push(qGroup);
     });
+
+    this.quizForm.setControl('questions', this.fb.array(groups));
+    this.quizForm.updateValueAndValidity();
   }
 
   get questionsArray(): FormArray {
     return this.quizForm.get('questions') as FormArray;
+  }
+
+  get questionGroups(): FormGroup[] {
+    return this.questionsArray.controls as FormGroup[];
+  }
+
+  getOptionGroups(qGroup: FormGroup): FormGroup[] {
+    return (qGroup.get('options') as FormArray).controls as FormGroup[];
   }
 
   getOptionsArray(qIndex: number): FormArray {
