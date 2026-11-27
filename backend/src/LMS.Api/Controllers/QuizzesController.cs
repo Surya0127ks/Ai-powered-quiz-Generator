@@ -301,7 +301,8 @@ public class QuizzesController : ApiControllerBase
             dto.ShowCorrectAnswers,
             dto.WelcomeMessage,
             dto.Instructions,
-            dto.Questions
+            dto.Questions,
+            dto.MaxStudents
         );
 
         var result = await Mediator.Send(command, cancellationToken);

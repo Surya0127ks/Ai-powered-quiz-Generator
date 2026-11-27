@@ -173,15 +173,21 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
           }
         </div>
       } @else if (isError()) {
-        <!-- Error / Retry State -->
+        <!-- Error / Closed / Retry State -->
         <div class="error-card saas-card">
-          <div class="error-icon">⚠️</div>
-          <h2 class="error-title">Could not load the quiz</h2>
+          <div class="error-icon">{{ isQuizClosedError() ? '🔒' : '⚠️' }}</div>
+          <h2 class="error-title">{{ isQuizClosedError() ? 'Quiz Closed or Unavailable' : 'Could not load the quiz' }}</h2>
           <p class="error-desc">
-            The server may be starting up (this happens after a period of inactivity on free hosting).
-            Please wait a moment and try again.
+            @if (loadErrorMessage()) {
+              {{ loadErrorMessage() }}
+            } @else {
+              The server may be starting up (this happens after a period of inactivity on free hosting).
+              Please wait a moment and try again.
+            }
           </p>
-          @if (retryCountdown() > 0) {
+          @if (isQuizClosedError()) {
+            <a routerLink="/" class="btn btn-primary retry-btn">Go to Homepage →</a>
+          } @else if (retryCountdown() > 0) {
             <div class="retry-countdown">
               <div class="countdown-ring">
                 <span class="countdown-num">{{ retryCountdown() }}</span>
@@ -193,7 +199,9 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
               🔄 Retry Now
             </button>
           }
-          <p class="error-attempts">Attempt {{ retryAttempt() }} of 4</p>
+          @if (!isQuizClosedError()) {
+            <p class="error-attempts">Attempt {{ retryAttempt() }} of 4</p>
+          }
         </div>
       } @else if (result()) {
         <!-- Score Result View -->
@@ -339,6 +347,7 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
               <span class="badge badge-ai">📝 {{ quiz()?.category || 'General Assessment' }}</span>
               <span class="badge badge-slate">⚡ {{ quiz()?.difficulty || 'Intermediate' }}</span>
               <span class="badge badge-primary">⏱️ {{ quiz()?.timeLimitMinutes ? quiz()?.timeLimitMinutes + ' Mins' : '15 Mins' }}</span>
+              <span class="badge badge-slate">👥 Max {{ quiz()?.maxStudents || 15 }} Seats</span>
             </div>
             <h1 class="overview-title">{{ quiz()?.title }}</h1>
             <p class="overview-desc">{{ quiz()?.description || 'Test your knowledge with this interactive assessment. Complete all questions to earn your score and verified certificate.' }}</p>
@@ -460,6 +469,11 @@ import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerI
       } @else if (quiz() && isStarted()) {
         <!-- Interactive Quiz Taking Form -->
         <div class="quiz-card saas-card">
+          @if (submitErrorMessage()) {
+            <div class="email-error-msg mb-3" role="alert">
+              🚫 {{ submitErrorMessage() }}
+            </div>
+          }
           <!-- Quiz Top Progress Bar, Timer & Header -->
           <div class="quiz-progress-header">
             <div class="quiz-title-badge-row">
@@ -966,6 +980,9 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   readonly currentQuestionIndex = signal(0);
   readonly isLoading = signal(true);
   readonly isError = signal(false);
+  readonly isQuizClosedError = signal(false);
+  readonly loadErrorMessage = signal<string | null>(null);
+  readonly submitErrorMessage = signal<string | null>(null);
   readonly isSlowLoad = signal(false);
   readonly retryCountdown = signal(0);
   readonly retryAttempt = signal(0);
@@ -1051,6 +1068,8 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   loadQuiz(id: string): void {
     this.isLoading.set(true);
     this.isError.set(false);
+    this.isQuizClosedError.set(false);
+    this.loadErrorMessage.set(null);
     this.isSlowLoad.set(false);
 
     // Show "waking up" hint after 5 seconds
@@ -1113,13 +1132,24 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
           }
         }
       },
-      error: () => {
+      error: (err) => {
         if (this.slowLoadTimer) clearTimeout(this.slowLoadTimer);
         this.isSlowLoad.set(false);
         this.isLoading.set(false);
+
+        if (err?.status === 404 || err?.status === 400) {
+          this.isQuizClosedError.set(true);
+          this.loadErrorMessage.set(
+            err?.error?.message || 'This quiz is closed because all student seats are filled, it has expired, or it was removed.'
+          );
+          this.retryCountdown.set(0);
+          this.isError.set(true);
+          return;
+        }
+
         this.retryAttempt.update(n => n + 1);
 
-        // Auto-retry up to 3 times with a countdown
+        // Auto-retry up to 3 times with a countdown for transient/cold-start errors
         if (this.retryAttempt() < 4) {
           this.isError.set(true);
           this.startRetryCountdown();
@@ -1287,6 +1317,7 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.submitErrorMessage.set(null);
     this.isSubmitting.set(true);
 
     const q = this.quiz();
@@ -1331,8 +1362,9 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
         this.result.set(res);
         this.isSubmitting.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting.set(false);
+        this.submitErrorMessage.set(err?.error?.message || 'Could not submit your quiz right now. Please try again.');
       }
     });
   }

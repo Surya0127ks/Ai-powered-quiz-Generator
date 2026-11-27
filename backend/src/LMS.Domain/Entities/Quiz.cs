@@ -7,6 +7,8 @@ namespace LMS.Domain.Entities;
 /// </summary>
 public class Quiz : AuditableEntity
 {
+    public const int MaxAllowedStudentsPerQuiz = 50;
+
     public Guid TenantId { get; set; }
     public Guid? LessonId { get; set; }
     public Guid? CreatedByUserId { get; set; }

@@ -40,6 +40,9 @@ public class CreateQuizCommandValidator : AbstractValidator<CreateQuizCommand>
     {
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
         RuleFor(x => x.PassingScorePercentage).InclusiveBetween(1, 100);
+        RuleFor(x => x.MaxStudents)
+            .InclusiveBetween(1, Quiz.MaxAllowedStudentsPerQuiz)
+            .WithMessage($"Max students per quiz must be between 1 and {Quiz.MaxAllowedStudentsPerQuiz}.");
         RuleFor(x => x.Questions).NotEmpty();
     }
 }
@@ -110,7 +113,7 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
             TotalMarks = request.TotalMarks,
             WelcomeMessage = request.WelcomeMessage,
             Instructions = request.Instructions,
-            MaxStudents = request.MaxStudents > 0 ? request.MaxStudents : 15,
+            MaxStudents = Math.Clamp(request.MaxStudents > 0 ? request.MaxStudents : 15, 1, Quiz.MaxAllowedStudentsPerQuiz),
             IsDeleted = false
         };
 

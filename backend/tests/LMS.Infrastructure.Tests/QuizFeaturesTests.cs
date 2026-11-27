@@ -3,9 +3,11 @@ using System.Text;
 using System.Text.Json;
 using LMS.Application.Common.Interfaces;
 using LMS.Application.Features.Quizzes.Commands.CreateQuiz;
+using LMS.Application.Features.Quizzes.Commands.ExtendQuizLimit;
 using LMS.Application.Features.Quizzes.Commands.SubmitQuizAttempt;
 using LMS.Application.Features.Quizzes.Commands.UpdateQuiz;
 using LMS.Application.Features.Quizzes.DTOs;
+using LMS.Application.Features.Quizzes.Queries.GetQuizByPublicId;
 using LMS.Application.Features.Quizzes.Queries.GetUserQuizDashboardSummary;
 using LMS.Domain.Entities;
 using LMS.Domain.Enums;
@@ -224,6 +226,161 @@ public class QuizFeaturesTests
         item.AvgScorePercentage.Should().Be(50.0);
         item.AvgTimeTakenSeconds.Should().Be(120);
         item.MaxStudents.Should().Be(25);
+    }
+
+    [Fact]
+    public async Task MaxStudentsCap_ShouldEnforce50Limit_AndCloseQuizWhenSeatsFill()
+    {
+        await using var db = CreateInMemoryDbContext();
+        var tenantId = Guid.NewGuid();
+        var instructorId = Guid.NewGuid();
+
+        var validator = new CreateQuizCommandValidator();
+        var over50Command = new CreateQuizCommand(
+            null, "Over Limit Quiz", null, "Programming", "Easy", true, 60, 10,
+            null, null, false, false, null, false, false, true, true, true, 1, null, null,
+            new List<CreateQuizQuestionDto>
+            {
+                new("Q1", QuestionType.SingleChoice, 1, null, new List<CreateQuizOptionDto> { new("A", true), new("B", false) })
+            },
+            MaxStudents: 51
+        );
+        var validation = await validator.ValidateAsync(over50Command);
+        validation.IsValid.Should().BeFalse();
+
+        // Create quiz with MaxStudents = 40, extend once -> capped at 50, extend again -> fails at 50
+        var creator = new Mock<ICurrentUserService>();
+        creator.Setup(u => u.UserId).Returns(instructorId);
+        var tenant = new Mock<ITenantContext>();
+        tenant.Setup(t => t.TenantId).Returns(tenantId);
+
+        var createHandler = new CreateQuizCommandHandler(db, tenant.Object, creator.Object);
+        var created = await createHandler.Handle(over50Command with { MaxStudents = 40 }, CancellationToken.None);
+        created.IsSuccess.Should().BeTrue();
+        var quizId = created.Value!.Id;
+
+        var extendHandler = new ExtendQuizLimitCommandHandler(db, creator.Object);
+        var ext1 = await extendHandler.Handle(new ExtendQuizLimitCommand(quizId), CancellationToken.None);
+        ext1.IsSuccess.Should().BeTrue();
+        ext1.Value!.NewMaxStudents.Should().Be(50);
+
+        var ext2 = await extendHandler.Handle(new ExtendQuizLimitCommand(quizId), CancellationToken.None);
+        ext2.IsSuccess.Should().BeFalse();
+
+        // Now test seat fill closure on a 1-seat quiz
+        var oneSeatQuiz = await createHandler.Handle(over50Command with { Title = "One Seat Quiz", MaxStudents = 1 }, CancellationToken.None);
+        oneSeatQuiz.IsSuccess.Should().BeTrue();
+        var q = oneSeatQuiz.Value!.Questions[0];
+        var correctId = q.Options.First(o => o.IsCorrect == true).Id;
+
+        var student1 = new Mock<ICurrentUserService>();
+        student1.Setup(u => u.UserId).Returns(Guid.NewGuid());
+        var submit1 = await new SubmitQuizAttemptCommandHandler(db, tenant.Object, student1.Object)
+            .Handle(new SubmitQuizAttemptCommand(oneSeatQuiz.Value.Id, new List<StudentAnswerItemDto> { new(q.Id, correctId, new List<Guid> { correctId }) }), CancellationToken.None);
+        submit1.IsSuccess.Should().BeTrue();
+        submit1.Value!.IsCapReached.Should().BeTrue();
+
+        // Public quiz lookup reports closed message; second student submission is blocked
+        var publicQuery = await new GetQuizByPublicIdQueryHandler(db)
+            .Handle(new GetQuizByPublicIdQuery(oneSeatQuiz.Value.ShortId), CancellationToken.None);
+        publicQuery.IsSuccess.Should().BeFalse();
+        publicQuery.Error.Should().Contain("seats");
+
+        var student2 = new Mock<ICurrentUserService>();
+        student2.Setup(u => u.UserId).Returns(Guid.NewGuid());
+        var submit2 = await new SubmitQuizAttemptCommandHandler(db, tenant.Object, student2.Object)
+            .Handle(new SubmitQuizAttemptCommand(oneSeatQuiz.Value.Id, new List<StudentAnswerItemDto> { new(q.Id, correctId, new List<Guid> { correctId }) }), CancellationToken.None);
+        submit2.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task PurgeExpiredQuizzesAsync_ShouldPermanentlyDeleteQuizAndAllRelatedDataAfter1Day()
+    {
+        await using var db = CreateInMemoryDbContext();
+        var tenantId = Guid.NewGuid();
+
+        var oldQuiz = new Quiz
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            Title = "Yesterday Quiz",
+            IsPublished = true,
+            PassingScorePercentage = 60,
+            MaxStudents = 50,
+            CreatedAt = DateTimeOffset.UtcNow.AddHours(-25)
+        };
+        var oldQuestion = new QuizQuestion
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            QuizId = oldQuiz.Id,
+            QuestionText = "Old Question",
+            OrderIndex = 1,
+            Options = new List<QuizOption>
+            {
+                new() { Id = Guid.NewGuid(), TenantId = tenantId, OptionText = "True", IsCorrect = true, OrderIndex = 1 }
+            }
+        };
+        oldQuiz.Questions.Add(oldQuestion);
+
+        var oldAttempt = new QuizAttempt
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            QuizId = oldQuiz.Id,
+            ScorePercentage = 100,
+            IsPassed = true,
+            Answers = new List<QuizAttemptAnswer>
+            {
+                new() { Id = Guid.NewGuid(), TenantId = tenantId, QuestionId = oldQuestion.Id, IsCorrect = true, PointsEarned = 1 }
+            }
+        };
+        var oldCert = new Certificate
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            QuizId = oldQuiz.Id,
+            QuizAttemptId = oldAttempt.Id,
+            CertificateNumber = "CERT-OLD-1"
+        };
+
+        var freshQuiz = new Quiz
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            Title = "Fresh Quiz",
+            IsPublished = true,
+            PassingScorePercentage = 60,
+            MaxStudents = 50,
+            CreatedAt = DateTimeOffset.UtcNow.AddHours(-2)
+        };
+        freshQuiz.Questions.Add(new QuizQuestion
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            QuizId = freshQuiz.Id,
+            QuestionText = "Fresh Question",
+            OrderIndex = 1
+        });
+
+        db.Quizzes.AddRange(oldQuiz, freshQuiz);
+        db.QuizAttempts.Add(oldAttempt);
+        db.Certificates.Add(oldCert);
+        await db.SaveChangesAsync();
+
+        // Force CreatedAt back to > 24h because SaveChangesAsync stamps CreatedAt on Added entities
+        oldQuiz.CreatedAt = DateTimeOffset.UtcNow.AddHours(-25);
+        freshQuiz.CreatedAt = DateTimeOffset.UtcNow.AddHours(-2);
+        await db.SaveChangesAsync();
+
+        var purgedCount = await QuizDataCleanupHelper.PurgeExpiredQuizzesAsync(db, TimeSpan.FromHours(24));
+
+        purgedCount.Should().Be(1);
+        db.Quizzes.IgnoreQueryFilters().Should().ContainSingle(q => q.Id == freshQuiz.Id);
+        db.QuizQuestions.Should().ContainSingle(q => q.QuizId == freshQuiz.Id);
+        db.QuizAttempts.Should().BeEmpty();
+        db.QuizAttemptAnswers.Should().BeEmpty();
+        db.Certificates.IgnoreQueryFilters().Should().BeEmpty();
     }
 
     private static ApplicationDbContext CreateInMemoryDbContext()

@@ -26,12 +26,21 @@ public class GetQuizByPublicIdQueryHandler : IRequestHandler<GetQuizByPublicIdQu
                 .ThenInclude(ques => ques.Options)
             .Include(q => q.CreatedByUser)
             .FirstOrDefaultAsync(q => q.ShortId == request.ShortId && !q.IsDeleted && q.IsPublished &&
-                !q.IsCapReached && (!q.ExpiryDateUtc.HasValue || q.ExpiryDateUtc > now) &&
                 (q.CreatedByUser == null || q.CreatedByUser.Role != UserRole.Student), cancellationToken);
 
         if (quiz == null)
         {
             return Result.Failure<QuizDto>("Public quiz not found or not published.");
+        }
+
+        if (quiz.IsCapReached)
+        {
+            return Result.Failure<QuizDto>("This quiz is closed because all student seats have been filled.");
+        }
+
+        if (quiz.ExpiryDateUtc.HasValue && quiz.ExpiryDateUtc <= now)
+        {
+            return Result.Failure<QuizDto>("This quiz has expired and is no longer accepting responses.");
         }
 
         var dto = new QuizDto(
@@ -70,7 +79,10 @@ public class GetQuizByPublicIdQueryHandler : IRequestHandler<GetQuizByPublicIdQu
                 ques.Explanation,
                 ques.Options.OrderBy(o => o.OrderIndex).Select(o => new QuizOptionDto(o.Id, o.OptionText, o.OrderIndex)).ToList(),
                 ques.Tag
-            )).ToList()
+            )).ToList(),
+            quiz.MaxStudents,
+            quiz.LimitExtensionCount,
+            quiz.IsCapReached
         );
 
         return Result.Success(dto);

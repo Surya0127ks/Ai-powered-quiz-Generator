@@ -28,17 +28,31 @@ public class GetQuizByIdQueryHandler : IRequestHandler<GetQuizByIdQuery, Result<
             .Include(q => q.Questions)
                 .ThenInclude(ques => ques.Options)
             .Include(q => q.CreatedByUser)
-            .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted &&
-                ((q.IsPublished && !q.IsCapReached && (!q.ExpiryDateUtc.HasValue || q.ExpiryDateUtc > now) &&
-                  (q.CreatedByUser == null || q.CreatedByUser.Role != UserRole.Student)) ||
-                 (currentUserId.HasValue && q.CreatedByUserId == currentUserId)), cancellationToken);
+            .FirstOrDefaultAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken);
 
         if (quiz == null)
         {
             return Result.Failure<QuizDto>("Quiz assessment not found.");
         }
 
-        bool isCreator = _currentUserService.UserId != null && quiz.CreatedByUserId != null && _currentUserService.UserId.ToString() == quiz.CreatedByUserId.ToString();
+        bool isCreator = currentUserId.HasValue && quiz.CreatedByUserId == currentUserId.Value;
+        if (!isCreator)
+        {
+            if (!quiz.IsPublished || quiz.CreatedByUser?.Role == UserRole.Student)
+            {
+                return Result.Failure<QuizDto>("Quiz assessment not found.");
+            }
+
+            if (quiz.IsCapReached)
+            {
+                return Result.Failure<QuizDto>("This quiz is closed because all student seats have been filled.");
+            }
+
+            if (quiz.ExpiryDateUtc.HasValue && quiz.ExpiryDateUtc <= now)
+            {
+                return Result.Failure<QuizDto>("This quiz has expired and is no longer accepting responses.");
+            }
+        }
 
         var dto = new QuizDto(
             quiz.Id,
@@ -81,7 +95,10 @@ public class GetQuizByIdQueryHandler : IRequestHandler<GetQuizByIdQuery, Result<
                     isCreator ? o.IsCorrect : null
                 )).ToList(),
                 ques.Tag
-            )).ToList()
+            )).ToList(),
+            quiz.MaxStudents,
+            quiz.LimitExtensionCount,
+            quiz.IsCapReached
         );
 
         return Result.Success(dto);

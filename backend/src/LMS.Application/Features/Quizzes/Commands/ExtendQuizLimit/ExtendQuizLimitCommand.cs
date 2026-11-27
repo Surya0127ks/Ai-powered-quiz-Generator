@@ -44,8 +44,11 @@ public class ExtendQuizLimitCommandHandler : IRequestHandler<ExtendQuizLimitComm
         if (quiz.LimitExtensionCount >= 2)
             return Result.Failure<ExtendQuizLimitResult>("Maximum extensions (2) already used. This quiz cannot be extended further.");
 
-        // Extend: add 15 more slots, increment extension count, clear cap flag, un-soft-delete
-        quiz.MaxStudents += 15;
+        if (quiz.MaxStudents >= LMS.Domain.Entities.Quiz.MaxAllowedStudentsPerQuiz)
+            return Result.Failure<ExtendQuizLimitResult>($"Maximum limit of {LMS.Domain.Entities.Quiz.MaxAllowedStudentsPerQuiz} students per quiz has already been reached.");
+
+        // Extend by up to 15 slots, capped at 50 max students per quiz
+        quiz.MaxStudents = Math.Min(LMS.Domain.Entities.Quiz.MaxAllowedStudentsPerQuiz, quiz.MaxStudents + 15);
         quiz.LimitExtensionCount += 1;
         quiz.IsCapReached = false;
         quiz.IsDeleted = false;

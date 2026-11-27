@@ -1,7 +1,7 @@
-using LMS.Application.Common.Interfaces;
+using LMS.Infrastructure.Persistence;
+using LMS.Infrastructure.Services;
 #pragma warning disable CA1848
 #pragma warning disable CA1860
-using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Api.BackgroundServices;
 
@@ -10,7 +10,7 @@ public class QuizCleanupService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<QuizCleanupService> _logger;
     private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(15);
-    private readonly TimeSpan _cleanupThreshold = TimeSpan.FromHours(1);
+    private readonly TimeSpan _cleanupThreshold = QuizDataCleanupHelper.DefaultQuizRetentionPeriod;
 
     public QuizCleanupService(IServiceProvider serviceProvider, ILogger<QuizCleanupService> logger)
     {
@@ -64,29 +64,16 @@ public class QuizCleanupService : BackgroundService
     private async Task CleanupOldUnattemptedQuizzesAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var thresholdDate = DateTimeOffset.UtcNow.Subtract(_cleanupThreshold);
+        var deletedCount = await QuizDataCleanupHelper.PurgeExpiredQuizzesAsync(
+            context,
+            _cleanupThreshold,
+            cancellationToken);
 
-        // Find quizzes created before the threshold that are not yet deleted
-        // and have 0 attempts.
-        var abandonedQuizzes = await context.Quizzes
-            .Where(q => !q.IsDeleted && q.CreatedAt <= thresholdDate)
-            .Where(q => !context.QuizAttempts.Any(a => a.QuizId == q.Id))
-            .ToListAsync(cancellationToken);
-
-        if (abandonedQuizzes.Any())
+        if (deletedCount > 0)
         {
-            foreach (var quiz in abandonedQuizzes)
-            {
-                quiz.IsDeleted = true;
-                quiz.DeletedAt = DateTimeOffset.UtcNow;
-                _logger.LogInformation("Auto-deleting abandoned quiz {QuizId} '{Title}'", quiz.Id, quiz.Title);
-            }
-
-            context.Quizzes.UpdateRange(abandonedQuizzes);
-            await context.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Successfully cleaned up {Count} abandoned quizzes.", abandonedQuizzes.Count);
+            _logger.LogInformation("Permanently purged {Count} expired or deleted quizzes and all associated data.", deletedCount);
         }
     }
 }

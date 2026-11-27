@@ -112,13 +112,14 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             </div>
 
             <div class="form-group">
-              <label for="maxStudents">👥 Max Students Allowed</label>
+              <label for="maxStudents">👥 Max Students Allowed <span class="optional-text">(1–50)</span></label>
               <input
                 id="maxStudents"
                 type="number"
                 formControlName="maxStudents"
-                placeholder="Default: 15"
+                placeholder="1 to 50 (Default: 15)"
                 min="1"
+                max="50"
                 class="input-control"
               />
             </div>
@@ -612,7 +613,7 @@ export class QuizEditorComponent implements OnInit {
     totalMarks: [null as number | null],
     welcomeMessage: [''],
     instructions: [''],
-    maxStudents: [15, [Validators.min(1)]],
+    maxStudents: [15, [Validators.required, Validators.min(1), Validators.max(50)]],
     questions: this.fb.array([this.createQuestionGroup()])
   });
 
@@ -884,7 +885,7 @@ export class QuizEditorComponent implements OnInit {
       totalMarks: values.totalMarks || undefined,
       welcomeMessage: values.welcomeMessage || undefined,
       instructions: values.instructions || undefined,
-      maxStudents: values.maxStudents ?? 15,
+      maxStudents: Math.min(50, Math.max(1, Math.floor(Number(values.maxStudents) || 15))),
       questions: values.questions as any[]
     };
 

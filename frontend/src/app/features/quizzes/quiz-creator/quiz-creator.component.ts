@@ -724,7 +724,7 @@ export interface GovtExamCategory {
             <div class="form-group">
               <label>
                 👥 Max Students Allowed
-                <span class="label-hint">Quiz closes after this many attempts. Admin can extend up to 2 times.</span>
+                <span class="label-hint">Max 50 students per quiz. Closes automatically when seats fill up. Quizzes &amp; data auto-clean after 24 hours.</span>
               </label>
               <!-- Preset Chips -->
               <div class="student-preset-row">
@@ -749,8 +749,10 @@ export interface GovtExamCategory {
                   id="maxStudents"
                   type="number"
                   formControlName="maxStudents"
-                  placeholder="Enter any number (e.g. 200)"
+                  placeholder="Enter 1 to 50 students"
                   min="1"
+                  max="50"
+                  (blur)="clampMaxStudents()"
                   class="input-control margin-top-xs"
                 />
               }
@@ -1801,14 +1803,21 @@ export class QuizCreatorComponent implements OnInit {
     this.quizForm.patchValue({ negativeMarkingPoints: val });
   }
 
-  // Max students preset chips
-  readonly studentPresets = [15, 20, 30, 50, 100];
+  // Max students preset chips (capped at 50 per quiz for smooth free-tier operation)
+  readonly studentPresets = [15, 20, 30, 50];
   readonly selectedStudentPreset = signal<number>(15);
 
   selectStudentPreset(value: number): void {
     this.selectedStudentPreset.set(value);
     if (value > 0) {
-      this.quizForm.patchValue({ maxStudents: value });
+      this.quizForm.patchValue({ maxStudents: Math.min(50, value) });
+    }
+  }
+
+  clampMaxStudents(): void {
+    const raw = Number(this.quizForm.get('maxStudents')?.value);
+    if (!Number.isNaN(raw)) {
+      this.quizForm.patchValue({ maxStudents: Math.min(50, Math.max(1, Math.floor(raw))) });
     }
   }
 
@@ -1831,7 +1840,7 @@ export class QuizCreatorComponent implements OnInit {
     totalMarks: [null as number | null],
     welcomeMessage: [''],
     instructions: [''],
-    maxStudents: [15, [Validators.min(1)]],
+    maxStudents: [15, [Validators.required, Validators.min(1), Validators.max(50)]],
     questions: this.fb.array([this.createQuestionGroup()])
   });
 
@@ -2109,7 +2118,7 @@ export class QuizCreatorComponent implements OnInit {
       totalMarks: values.totalMarks || undefined,
       welcomeMessage: values.welcomeMessage || undefined,
       instructions: values.instructions || undefined,
-      maxStudents: values.maxStudents ?? 15,
+      maxStudents: Math.min(50, Math.max(1, Math.floor(Number(values.maxStudents) || 15))),
       questions: values.questions as any[]
     };
 

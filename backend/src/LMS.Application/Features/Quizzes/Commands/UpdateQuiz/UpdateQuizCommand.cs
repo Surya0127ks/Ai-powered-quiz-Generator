@@ -40,6 +40,9 @@ public class UpdateQuizCommandValidator : AbstractValidator<UpdateQuizCommand>
         RuleFor(x => x.QuizId).NotEmpty();
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
         RuleFor(x => x.PassingScorePercentage).InclusiveBetween(0, 100);
+        RuleFor(x => x.MaxStudents)
+            .InclusiveBetween(1, Quiz.MaxAllowedStudentsPerQuiz)
+            .WithMessage($"Max students per quiz must be between 1 and {Quiz.MaxAllowedStudentsPerQuiz}.");
         RuleFor(x => x.Questions).NotEmpty();
     }
 }
@@ -97,7 +100,12 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
         quiz.ShowCorrectAnswers = request.ShowCorrectAnswers;
         quiz.WelcomeMessage = request.WelcomeMessage;
         quiz.Instructions = request.Instructions;
-        quiz.MaxStudents = request.MaxStudents;
+        quiz.MaxStudents = Math.Clamp(request.MaxStudents > 0 ? request.MaxStudents : 15, 1, Quiz.MaxAllowedStudentsPerQuiz);
+
+        var participantAttemptCount = await _context.QuizAttempts
+            .CountAsync(a => a.QuizId == quiz.Id &&
+                (!quiz.CreatedByUserId.HasValue || a.UserId != quiz.CreatedByUserId.Value), cancellationToken);
+        quiz.IsCapReached = participantAttemptCount >= quiz.MaxStudents;
 
         int totalMarks = 0;
 
@@ -247,7 +255,10 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
                     o.IsCorrect
                 )).ToList(),
                 q.Tag
-            )).ToList()
+            )).ToList(),
+            quiz.MaxStudents,
+            quiz.LimitExtensionCount,
+            quiz.IsCapReached
         );
 
         return Result.Success(mappedDto);

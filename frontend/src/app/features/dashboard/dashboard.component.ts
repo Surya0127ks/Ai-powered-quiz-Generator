@@ -494,7 +494,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           <div class="title-with-live-dot">
             <span class="live-status-pill"><span class="pulsing-dot"></span> LIVE ASSESSMENTS</span>
             <h3>🔥 Active Running Quizzes</h3>
-            <p class="section-subtitle">Currently active assessments available for instant student participation</p>
+            <p class="section-subtitle">Live assessments (max 50 students per quiz · quiz &amp; attempt data auto-cleans after 24 hours)</p>
           </div>
           <a routerLink="/quizzes/new" class="link-action">+ Launch New Assessment</a>
         </div>
@@ -554,6 +554,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                 <div class="rq-meta-row">
                   <span class="rq-meta-chip">📝 {{ q.questionCount }} Questions</span>
                   <span class="rq-meta-chip">⏱️ {{ q.timeLimitMinutes || 15 }} Mins</span>
+                  <span class="rq-meta-chip">👥 {{ q.totalAttemptsCount }}/{{ q.maxStudents ?? 15 }} Seats</span>
                 </div>
 
                 <!-- Joined Students & Quiz Analytics -->
@@ -592,13 +593,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                         <span class="cap-count">{{ q.totalAttemptsCount }}/{{ q.maxStudents }} students completed</span>
                       </div>
                     </div>
-                    @if ((q.limitExtensionCount || 0) < 2) {
+                    @if ((q.maxStudents ?? 15) < 50 && (q.limitExtensionCount || 0) < 2) {
                       <button (click)="extendQuizLimit(q)" class="btn btn-primary btn-sm cap-extend-btn">
                         ➕ Extend (+15) 
                         <span class="ext-count">{{ 2 - (q.limitExtensionCount || 0) }} left</span>
                       </button>
                     } @else {
-                      <span class="cap-final-badge">🚫 Max extensions used</span>
+                      <span class="cap-final-badge">
+                        {{ (q.maxStudents ?? 15) >= 50 ? '🚫 Max 50 seats reached' : '🚫 Max extensions used' }}
+                      </span>
                     }
                   </div>
                 }

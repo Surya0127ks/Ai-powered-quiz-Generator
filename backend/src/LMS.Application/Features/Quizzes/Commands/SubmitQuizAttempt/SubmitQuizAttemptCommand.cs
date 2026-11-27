@@ -94,7 +94,12 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
                     (!quiz.CreatedByUserId.HasValue || attempt.UserId != quiz.CreatedByUserId.Value), cancellationToken);
             if (participantAttemptCount >= quiz.MaxStudents)
             {
-                return Result.Failure<QuizAttemptResultDto>("This quiz has reached its participant limit.");
+                if (!quiz.IsCapReached)
+                {
+                    quiz.IsCapReached = true;
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+                return Result.Failure<QuizAttemptResultDto>("This quiz is closed because all student seats have been filled.");
             }
 
             if (quiz.MaxAttempts is > 0)
@@ -253,15 +258,6 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
         {
             isCapReached = true;
             quiz.IsCapReached = true;
-
-            if (quiz.LimitExtensionCount >= 2)
-            {
-                // Admin used all 2 extensions — permanently soft-delete the quiz
-                quiz.IsDeleted = true;
-                quiz.DeletedAt = DateTimeOffset.UtcNow;
-            }
-            // If extensions remain, mark cap reached but don't delete yet (admin can extend)
-
             await _context.SaveChangesAsync(cancellationToken);
         }
 
