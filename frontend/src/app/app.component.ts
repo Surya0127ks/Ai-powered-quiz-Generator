@@ -285,11 +285,11 @@ import { UserRole } from './core/models/auth.model';
       flex-shrink: 0;
     }
     .logo-box {
-      width: 30px;
-      height: 30px;
-      border-radius: 6px;
-      background: var(--text-heading);
-      color: var(--bg-surface);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--color-primary-600);
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -332,9 +332,9 @@ import { UserRole } from './core/models/auth.model';
       }
 
       &.active {
-        background-color: var(--bg-surface);
-        border-color: var(--border-hairline);
-        color: var(--text-heading) !important;
+        background-color: var(--color-primary-50);
+        border-color: var(--color-primary-200);
+        color: var(--color-primary-700) !important;
         font-weight: 500;
         .nav-svg { stroke: var(--color-primary-600); }
       }
@@ -374,7 +374,7 @@ import { UserRole } from './core/models/auth.model';
       gap: 0.5rem;
       padding: 0.25rem 0.65rem 0.25rem 0.25rem;
       border-radius: 8px;
-      background: var(--bg-surface);
+      background: var(--bg-subtle);
       border: 1px solid var(--border-hairline);
     }
     .avatar-circle {

@@ -1043,11 +1043,19 @@ export interface GovtExamCategory {
     }
 
     /* Generator Panel & Govt Exam Hub */
-    .generator-panel,
-    .govt-panel {
+    .generator-panel {
       padding: 1.5rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
+      border-top: 2px solid var(--color-primary-600);
+      border-radius: var(--radius-lg);
+      .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
+    }
+    .govt-panel {
+      padding: 1.5rem;
+      background: var(--surface-tint-amber);
+      border: 1px solid var(--color-warning-border);
+      border-top: 2px solid var(--color-warning-text);
       border-radius: var(--radius-lg);
       .panel-desc { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0.25rem 0 1.25rem 0; }
     }
@@ -1055,13 +1063,22 @@ export interface GovtExamCategory {
       font-size: 1.125rem;
       font-weight: 500;
       color: var(--text-primary) !important;
-      margin: 0.25rem 0 0 0;
+      margin: 0.35rem 0 0 0;
     }
     .panel-eyebrow {
       display: inline-block;
       font-size: 0.75rem;
       font-weight: 500;
-      color: var(--color-primary-600);
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-primary-200);
+      color: var(--color-primary-700);
+    }
+    .govt-panel .panel-eyebrow {
+      background: var(--color-warning-bg);
+      border-color: var(--color-warning-border);
+      color: var(--color-warning-text);
     }
 
     /* Compact question-count controls */
@@ -1156,17 +1173,30 @@ export interface GovtExamCategory {
       align-items: center;
       padding: 0.35rem 0.75rem;
       border-radius: var(--radius-md);
-      border: 1px solid var(--border-hairline);
-      background: var(--bg-app);
-      color: var(--text-body);
+      border: 1px solid var(--color-primary-200);
+      background: var(--color-primary-50);
+      color: var(--color-primary-700);
       font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+      &:nth-child(4n+2) {
+        background: var(--color-indigo-bg);
+        border-color: var(--color-indigo-border);
+        color: var(--color-indigo-text);
+      }
+      &:nth-child(4n+3) {
+        background: var(--color-success-bg);
+        border-color: var(--color-success-border);
+        color: var(--color-success-text);
+      }
+      &:nth-child(4n) {
+        background: var(--color-teal-bg);
+        border-color: var(--color-teal-border);
+        color: var(--color-teal-text);
+      }
       &:hover {
-        background: var(--color-primary-50);
-        border-color: var(--color-primary-400);
-        color: var(--color-primary-700);
+        filter: brightness(0.97);
       }
     }
 
@@ -1314,9 +1344,9 @@ export interface GovtExamCategory {
       justify-content: space-between;
       gap: 1rem;
       padding: 1rem 1.25rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
-      border-left: 2px solid var(--color-primary-600);
+      background: var(--surface-tint-emerald);
+      border: 1px solid var(--color-success-border);
+      border-left: 3px solid var(--color-success-text);
       border-radius: var(--radius-md);
       animation: fadein 180ms var(--ease-out);
     }

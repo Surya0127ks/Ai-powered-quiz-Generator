@@ -25,12 +25,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
               <span class="role-chip">Student</span>
             }
           </div>
-          <h1>{{ authService.currentUser()?.firstName || 'Workspace' }}</h1>
+          <h1>{{ isStudent() ? 'Hello, ' : 'Welcome back, ' }}{{ authService.currentUser()?.firstName || 'Learner' }}</h1>
           <p class="hero-desc">
             @if (canManageQuizzes()) {
               Create assessments, share class links, and review submitted scorecards.
             } @else {
-              Build private AI or exam-pattern practice tests, retake anytime, and track your attempt marks.
+              Ready to practice? Draft an AI quiz, run an exam mock, or compare scores across attempts.
             }
           </p>
         </div>
@@ -422,19 +422,19 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
           </div>
         </div>
         <div class="topic-pills-row">
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM', auto: 'true'}" class="topic-pill">
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Artificial Intelligence & Groq LLM', auto: 'true'}" class="topic-pill pill-cobalt">
             Artificial Intelligence & LLMs
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development', auto: 'true'}" class="topic-pill">
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Full-Stack Web Development', auto: 'true'}" class="topic-pill pill-indigo">
             Web Development
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Python & Data Science', auto: 'true'}" class="topic-pill">
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Python & Data Science', auto: 'true'}" class="topic-pill pill-emerald">
             Python & Data Science
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud', auto: 'true'}" class="topic-pill">
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'Cyber Security & Cloud', auto: 'true'}" class="topic-pill pill-teal">
             Cyber Security
           </a>
-          <a routerLink="/quizzes/new" [queryParams]="{topic: 'General Science & Tech', auto: 'true'}" class="topic-pill">
+          <a routerLink="/quizzes/new" [queryParams]="{topic: 'General Science & Tech', auto: 'true'}" class="topic-pill pill-amber">
             General Science
           </a>
         </div>
@@ -491,8 +491,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       <!-- Key Performance Metrics Cards -->
       <div class="metrics-grid mb-4 print-hide">
         @if (canCreateQuizzes()) {
-        <div class="stat-card saas-card">
+        <div class="stat-card tone-cobalt saas-card">
           <div class="stat-card-top">
+            <span class="stat-dot dot-cobalt" aria-hidden="true"></span>
             <span class="stat-title">{{ isStudent() ? 'Practice quizzes' : 'Quizzes created' }}</span>
           </div>
           <div class="stat-value mono-num">{{ summary()?.quizzesCreatedCount ?? 0 }}</div>
@@ -502,24 +503,27 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         </div>
         }
 
-        <div class="stat-card saas-card">
+        <div class="stat-card tone-teal saas-card">
           <div class="stat-card-top">
+            <span class="stat-dot dot-teal" aria-hidden="true"></span>
             <span class="stat-title">Total attempts</span>
           </div>
           <div class="stat-value mono-num">{{ getTotalAttempts() }}</div>
           <span class="stat-subtext">Across your assessments</span>
         </div>
 
-        <div class="stat-card saas-card">
+        <div class="stat-card tone-emerald saas-card">
           <div class="stat-card-top">
+            <span class="stat-dot dot-emerald" aria-hidden="true"></span>
             <span class="stat-title">Average score</span>
           </div>
           <div class="stat-value mono-num">{{ getAvgScore() }}%</div>
           <span class="stat-subtext">Overall performance average</span>
         </div>
 
-        <div class="stat-card saas-card">
+        <div class="stat-card tone-amber saas-card">
           <div class="stat-card-top">
+            <span class="stat-dot dot-amber" aria-hidden="true"></span>
             <span class="stat-title">Certificates</span>
           </div>
           <div class="stat-value mono-num">{{ summary()?.certificatesEarnedCount ?? 0 }}</div>
@@ -942,8 +946,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     /* Overview Header */
     .dashboard-hero {
       padding: 1.5rem 1.75rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
+      background: var(--surface-tint-blue);
+      border: 1px solid var(--color-primary-200);
+      border-left: 3px solid var(--color-primary-600);
       border-radius: var(--radius-lg);
       display: flex;
       justify-content: space-between;
@@ -1024,11 +1029,19 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
 
     /* Quick Topic & Exam Hub */
-    .suggestion-toolbar,
-    .govt-dashboard-hub {
+    .suggestion-toolbar {
       padding: 1.25rem 1.5rem;
       background: var(--bg-surface);
       border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+    }
+    .govt-dashboard-hub {
+      padding: 1.25rem 1.5rem;
+      background: var(--surface-tint-amber);
+      border: 1px solid var(--color-warning-border);
+      border-left: 3px solid var(--color-warning-text);
       border-radius: var(--radius-lg);
       display: flex;
       flex-direction: column;
@@ -1071,17 +1084,23 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       border-radius: var(--radius-md);
       text-decoration: none !important;
       border: 1px solid var(--border-hairline);
-      background: var(--bg-app);
+      background: var(--bg-surface);
       color: var(--text-primary) !important;
-      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+      transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out), filter 150ms var(--ease-out);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      &:hover {
-        background: var(--color-primary-50);
-        border-color: var(--color-primary-300);
-        color: var(--color-primary-700) !important;
-      }
+    }
+    .topic-pill.pill-cobalt { background: var(--color-primary-50); border-color: var(--color-primary-200); color: var(--color-primary-700) !important; }
+    .topic-pill.pill-indigo { background: var(--color-indigo-bg); border-color: var(--color-indigo-border); color: var(--color-indigo-text) !important; }
+    .topic-pill.pill-emerald { background: var(--color-success-bg); border-color: var(--color-success-border); color: var(--color-success-text) !important; }
+    .topic-pill.pill-teal { background: var(--color-teal-bg); border-color: var(--color-teal-border); color: var(--color-teal-text) !important; }
+    .topic-pill.pill-amber { background: var(--color-warning-bg); border-color: var(--color-warning-border); color: var(--color-warning-text) !important; }
+    .topic-pill:hover { filter: brightness(0.96); }
+    .stream-pill:hover {
+      background: var(--color-warning-bg);
+      border-color: var(--color-warning-border);
+      color: var(--color-warning-text) !important;
     }
 
     .govt-hub-header {
@@ -1104,27 +1123,26 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .govt-badge-cbt {
       font-size: 0.75rem;
       font-weight: 500;
-      background: var(--bg-muted);
-      color: var(--text-secondary) !important;
-      border: 1px solid var(--border-hairline);
+      background: var(--color-warning-bg);
+      color: var(--color-warning-text) !important;
+      border: 1px solid var(--color-warning-border);
       padding: 0.15rem 0.5rem;
       border-radius: 6px;
     }
     .btn-govt-explore {
       font-size: 0.8125rem;
       font-weight: 500;
-      color: var(--color-primary-700) !important;
+      color: var(--color-warning-text) !important;
       font-family: inherit;
       cursor: pointer;
       padding: 0.45rem 0.875rem;
       border-radius: var(--radius-md);
-      background: var(--color-primary-50);
-      border: 1px solid var(--color-primary-200);
+      background: var(--bg-surface);
+      border: 1px solid var(--color-warning-border);
       transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
       white-space: nowrap;
       &:hover {
-        background: var(--color-primary-100);
-        border-color: var(--color-primary-300);
+        background: var(--color-warning-bg);
       }
     }
 
@@ -1146,11 +1164,26 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         border-color: var(--border-strong);
       }
     }
+    .stat-card.tone-cobalt  { border-top: 2px solid var(--color-primary-600); }
+    .stat-card.tone-teal    { border-top: 2px solid var(--color-teal-text); }
+    .stat-card.tone-emerald { border-top: 2px solid var(--color-success-text); }
+    .stat-card.tone-amber   { border-top: 2px solid var(--color-warning-text); }
     .stat-card-top {
       display: flex;
       align-items: center;
+      gap: 0.5rem;
       margin-bottom: 0.65rem;
     }
+    .stat-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-cobalt  { background: var(--color-primary-600); }
+    .dot-teal    { background: var(--color-teal-text); }
+    .dot-emerald { background: var(--color-success-text); }
+    .dot-amber   { background: var(--color-warning-text); }
     .stat-title {
       font-size: 0.8125rem;
       font-weight: 500;
@@ -1164,6 +1197,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       line-height: 1.1;
       letter-spacing: -0.02em;
     }
+    .stat-card.tone-cobalt .stat-value  { color: var(--color-primary-700) !important; }
+    .stat-card.tone-teal .stat-value    { color: var(--color-teal-text) !important; }
+    .stat-card.tone-emerald .stat-value { color: var(--color-success-text) !important; }
+    .stat-card.tone-amber .stat-value   { color: var(--color-warning-text) !important; }
     .stat-subtext {
       font-size: 0.75rem;
       color: var(--text-muted) !important;
@@ -1174,6 +1211,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     /* Active Quizzes Grid Section */
     .running-quizzes-card {
       background: var(--bg-surface);
+      border-top: 2px solid var(--color-success-text) !important;
     }
     .title-with-live-dot {
       display: flex;
@@ -1490,12 +1528,12 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
       justify-content: space-between;
       align-items: center;
       padding: 1.25rem 1.5rem;
-      background: var(--bg-app);
-      border: 1px solid var(--border-hairline);
+      background: var(--surface-tint-emerald);
+      border: 1px solid var(--color-success-border);
       border-radius: var(--radius-md);
       gap: 1.0rem;
-      h4 { font-size: 0.95rem; font-weight: 500; color: var(--text-primary) !important; margin-bottom: 0.2rem; }
-      p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+      h4 { font-size: 0.95rem; font-weight: 500; color: var(--color-success-text) !important; margin-bottom: 0.2rem; }
+      p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
     }
     .running-quizzes-grid {
       display: grid;

@@ -235,7 +235,8 @@ interface FaqItem {
       </section>
 
       <!-- Workflow -->
-      <section class="section section-border-top">
+      <div class="band-surface section-border-top">
+      <section class="section">
         <div class="section-header">
           <span class="section-label">Workflow</span>
           <h2 class="section-heading">How Quizzy AI works</h2>
@@ -262,6 +263,7 @@ interface FaqItem {
           </div>
         </div>
       </section>
+      </div>
 
       <!-- Built For Roles -->
       <section class="section section-border-top">
@@ -271,7 +273,7 @@ interface FaqItem {
         </div>
 
         <div class="roles-grid">
-          <div class="role-card">
+          <div class="role-card role-cobalt">
             <span class="role-label">Teachers and tutors</span>
             <h3>Run class assessments without manual formatting</h3>
             <p>Create chapter quizzes and timed tests, enforce student caps up to 50 learners, and inspect every answer sheet.</p>
@@ -291,8 +293,8 @@ interface FaqItem {
             </ul>
           </div>
 
-          <div class="role-card role-card-accent">
-            <span class="role-label">Students and self-learners</span>
+          <div class="role-card role-emerald">
+            <span class="role-label role-label-emerald">Students and self-learners</span>
             <h3>Build private drills and retest until sharp</h3>
             <p>Generate unlimited private practice quizzes or open a teacher's link. Review explanations after each submission and retest anytime.</p>
             <ul class="role-bullets">
@@ -311,8 +313,8 @@ interface FaqItem {
             </ul>
           </div>
 
-          <div class="role-card">
-            <span class="role-label">Competitive exam aspirants</span>
+          <div class="role-card role-amber">
+            <span class="role-label role-label-amber">Competitive exam aspirants</span>
             <h3>Simulate CBT negative marking and timing</h3>
             <p>Prepare for UPSC, SSC CGL/CHSL, IBPS/SBI Banking, RRB NTPC, NDA/CDS, CTET, and NEET/JEE with official deduction rules.</p>
             <ul class="role-bullets">
@@ -331,8 +333,8 @@ interface FaqItem {
             </ul>
           </div>
 
-          <div class="role-card">
-            <span class="role-label">Academies and cohorts</span>
+          <div class="role-card role-teal">
+            <span class="role-label role-label-teal">Academies and cohorts</span>
             <h3>Issue verifiable completion credentials</h3>
             <p>Customize organization certificates and let employers or institutions verify every issued credential online.</p>
             <ul class="role-bullets">
@@ -485,11 +487,11 @@ interface FaqItem {
       text-decoration: none;
     }
     .logo-box {
-      width: 30px;
-      height: 30px;
-      background: var(--text-heading);
-      color: var(--bg-surface);
-      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      background: var(--color-primary-600);
+      color: #ffffff;
+      border-radius: 8px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -547,14 +549,14 @@ interface FaqItem {
       align-items: center;
       height: 36px;
       padding: 0 1rem;
-      background: var(--text-heading);
-      color: var(--bg-surface) !important;
+      background: var(--color-primary-600);
+      color: #ffffff !important;
       font-size: 0.875rem;
       font-weight: 500;
       border-radius: 8px;
       text-decoration: none;
-      transition: opacity var(--transition-fast), transform var(--transition-fast);
-      &:hover { opacity: 0.9; }
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+      &:hover { background: var(--color-primary-700); }
       &:active { transform: scale(0.985); }
     }
 
@@ -663,7 +665,7 @@ interface FaqItem {
     .folio-header {
       height: 40px;
       padding: 0 1rem;
-      background: var(--bg-subtle);
+      background: var(--surface-tint-blue);
       border-bottom: 1px solid var(--border-hairline);
       display: flex;
       align-items: center;
@@ -787,8 +789,8 @@ interface FaqItem {
     .folio-score-slip {
       flex-shrink: 0;
       padding: 0.5rem 0.75rem;
-      background: var(--bg-subtle);
-      border: 1px solid var(--border-hairline);
+      background: var(--color-success-bg);
+      border: 1px solid var(--color-success-border);
       border-radius: 8px;
       display: flex;
       flex-direction: column;
@@ -807,7 +809,11 @@ interface FaqItem {
       font-variant-numeric: tabular-nums;
     }
 
-    /* Sections */
+    /* Sections & Alternating Surface Rhythm */
+    .band-surface {
+      background: var(--bg-surface);
+      width: 100%;
+    }
     .section {
       padding: 5rem 1.5rem;
       max-width: 1200px;
@@ -822,11 +828,15 @@ interface FaqItem {
       margin-bottom: 3rem;
     }
     .section-label {
-      display: block;
-      font-size: 0.8125rem;
+      display: inline-block;
+      font-size: 0.75rem;
       font-weight: 500;
-      color: var(--color-primary-600);
-      margin-bottom: 0.5rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-primary-200);
+      color: var(--color-primary-700);
+      margin-bottom: 0.65rem;
     }
     .section-heading {
       font-size: clamp(1.625rem, 3vw, 2.125rem);
@@ -858,16 +868,26 @@ interface FaqItem {
       &:hover { border-color: var(--border-strong); }
     }
     .feat-icon {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
-      border: 1px solid var(--border-hairline);
-      background: var(--bg-subtle);
-      color: var(--text-body);
+      border: 1px solid var(--color-primary-200);
+      background: var(--color-primary-50);
+      color: var(--color-primary-600);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 1rem;
+    }
+    .feature-card:nth-child(3n+2) .feat-icon {
+      border-color: var(--color-teal-border);
+      background: var(--color-teal-bg);
+      color: var(--color-teal-text);
+    }
+    .feature-card:nth-child(3n) .feat-icon {
+      border-color: var(--color-success-border);
+      background: var(--color-success-bg);
+      color: var(--color-success-text);
     }
     .feature-card h3 {
       font-size: 1rem;
@@ -884,10 +904,10 @@ interface FaqItem {
     .code-pill {
       font-family: var(--font-mono);
       font-size: 0.78rem;
-      background: var(--bg-hover);
+      background: var(--color-primary-50);
       padding: 2px 6px;
       border-radius: 4px;
-      color: var(--text-heading);
+      color: var(--color-primary-700);
     }
 
     /* Workflow Steps */
@@ -897,7 +917,7 @@ interface FaqItem {
       gap: 1.5rem;
     }
     .step-card {
-      background: var(--bg-surface);
+      background: var(--bg-subtle);
       border: 1px solid var(--border-hairline);
       border-radius: 12px;
       padding: 1.5rem;
@@ -905,9 +925,13 @@ interface FaqItem {
     .step-number {
       display: inline-block;
       font-family: var(--font-mono);
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       font-weight: 500;
-      color: var(--color-primary-600);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-primary-200);
+      color: var(--color-primary-700);
       margin-bottom: 0.875rem;
     }
     .step-card h3 {
@@ -937,15 +961,19 @@ interface FaqItem {
       display: flex;
       flex-direction: column;
     }
-    .role-card-accent {
-      border-left: 2px solid var(--color-primary-600);
-    }
+    .role-cobalt  { border-top: 2px solid var(--color-primary-600); }
+    .role-emerald { border-top: 2px solid var(--color-success-text); }
+    .role-amber   { border-top: 2px solid var(--color-warning-text); }
+    .role-teal    { border-top: 2px solid var(--color-teal-text); }
     .role-label {
       font-size: 0.8125rem;
       font-weight: 500;
       color: var(--color-primary-600);
       margin-bottom: 0.5rem;
     }
+    .role-label-emerald { color: var(--color-success-text); }
+    .role-label-amber   { color: var(--color-warning-text); }
+    .role-label-teal    { color: var(--color-teal-text); }
     .role-card h3 {
       font-size: 1.125rem;
       font-weight: 500;
@@ -972,8 +1000,11 @@ interface FaqItem {
       gap: 0.5rem;
       font-size: 0.875rem;
       color: var(--text-body);
-      svg { color: var(--text-muted); flex-shrink: 0; }
+      svg { color: var(--color-primary-600); flex-shrink: 0; }
     }
+    .role-emerald .role-bullets li svg { color: var(--color-success-text); }
+    .role-amber .role-bullets li svg { color: var(--color-warning-text); }
+    .role-teal .role-bullets li svg { color: var(--color-teal-text); }
 
     /* FAQ */
     .faq-list {
@@ -1038,8 +1069,8 @@ interface FaqItem {
       width: 100%;
     }
     .cta-inner {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-hairline);
+      background: var(--surface-tint-blue);
+      border: 1px solid var(--color-primary-200);
       border-radius: 16px;
       padding: 3rem 2rem;
       display: flex;
