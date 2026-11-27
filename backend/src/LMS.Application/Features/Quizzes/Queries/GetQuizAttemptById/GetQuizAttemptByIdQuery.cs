@@ -90,7 +90,8 @@ public class GetQuizAttemptByIdQueryHandler : IRequestHandler<GetQuizAttemptById
                 answer?.IsCorrect ?? false,
                 optionDtos,
                 selectedOptionIds,
-                question.Explanation
+                question.Explanation,
+                question.Tag
             ));
         }
 
@@ -109,7 +110,8 @@ public class GetQuizAttemptByIdQueryHandler : IRequestHandler<GetQuizAttemptById
             attempt.IsPassed,
             attempt.SubmittedAtUtc,
             attempt.FocusLostCount,
-            questionDtos
+            questionDtos,
+            attempt.TimeTakenSeconds
         );
 
         return Result<AdminAttemptDetailsDto>.Success(dto);

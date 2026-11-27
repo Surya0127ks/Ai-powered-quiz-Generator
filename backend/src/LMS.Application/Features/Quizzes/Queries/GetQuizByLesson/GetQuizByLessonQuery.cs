@@ -77,7 +77,8 @@ public class GetQuizByLessonQueryHandler : IRequestHandler<GetQuizByLessonQuery,
                     ques.Options
                         .OrderBy(o => o.OrderIndex)
                         .Select(o => new QuizOptionDto(o.Id, o.OptionText, o.OrderIndex))
-                        .ToList()
+                        .ToList(),
+                    ques.Tag
                 )).ToList()
         );
 

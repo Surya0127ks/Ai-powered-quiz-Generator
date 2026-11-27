@@ -127,6 +127,17 @@ export interface GovtExamCategory {
               class="input-control"
               [disabled]="isGenerating()"
             />
+            <!-- Quick Topic Suggestion Chips -->
+            @if (!customTopic.trim() && !isGenerating()) {
+              <div class="topic-suggestion-chips margin-top-xs">
+                <span class="suggestion-label">💡 Popular picks:</span>
+                @for (s of topicSuggestions; track s.topic) {
+                  <button type="button" class="topic-suggestion-chip" (click)="applyTopicSuggestion(s)">
+                    {{ s.icon }} {{ s.label }}
+                  </button>
+                }
+              </div>
+            }
           </div>
 
           <div class="form-grid-2 margin-top-sm">
@@ -830,11 +841,22 @@ export interface GovtExamCategory {
             </div>
           </div>
 
+          <datalist id="question-tag-suggestions">
+            @for (tag of commonQuestionTags; track tag) {
+              <option [value]="tag"></option>
+            }
+          </datalist>
+
           <div formArrayName="questions" class="questions-list">
             @for (qGroup of questionsArray.controls; track $index; let qIdx = $index) {
               <div [formGroupName]="qIdx" class="question-card">
                 <div class="q-header">
-                  <span class="q-badge">Question #{{ qIdx + 1 }}</span>
+                  <div class="q-header-left">
+                    <span class="q-badge">Question #{{ qIdx + 1 }}</span>
+                    @if (qGroup.get('tag')?.value) {
+                      <span class="q-tag-pill">🏷️ {{ qGroup.get('tag')?.value }}</span>
+                    }
+                  </div>
                   @if (questionsArray.length > 1) {
                     <button type="button" (click)="removeQuestion(qIdx)" class="btn-remove">Delete</button>
                   }
@@ -849,7 +871,7 @@ export interface GovtExamCategory {
                   />
                 </div>
 
-                <div class="form-grid-2 margin-top-sm">
+                <div class="form-grid-3 margin-top-sm">
                   <div class="form-group">
                     <label>Question Type</label>
                     <select
@@ -865,6 +887,18 @@ export interface GovtExamCategory {
                   <div class="form-group">
                     <label>Points</label>
                     <input type="number" formControlName="points" min="1" class="input-control" />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Topic Tag <span class="optional-text">(Optional)</span></label>
+                    <input
+                      type="text"
+                      formControlName="tag"
+                      list="question-tag-suggestions"
+                      placeholder="e.g. OOP, Arrays, SQL"
+                      maxlength="60"
+                      class="input-control"
+                    />
                   </div>
                 </div>
 
@@ -1086,10 +1120,40 @@ export interface GovtExamCategory {
     }
     .custom-count-input { width: 96px !important; min-height: 42px; padding: 0.5rem !important; }
     .count-help { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.78rem; line-height: 1.45; }
-    .count-control-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; }
-    .custom-count-field { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; }
-    .custom-count-input { width: 96px !important; min-height: 42px; padding: 0.5rem !important; }
-    .count-help { margin-top: 0.5rem; color: var(--text-muted); font-size: 0.78rem; line-height: 1.45; }
+
+    /* AI Topic Suggestions */
+    .topic-suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.65rem;
+    }
+    .suggestion-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 0.2rem;
+    }
+    .topic-suggestion-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.38rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-app);
+      color: var(--text-body);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+      &:hover {
+        background: var(--color-primary-50);
+        border-color: var(--color-primary-400);
+        color: var(--color-primary-700);
+      }
+    }
 
     /* Govt Exam Streams & Topic Cards */
     .govt-streams-label {
@@ -1457,7 +1521,9 @@ export interface GovtExamCategory {
     .questions-list { display: flex; flex-direction: column; gap: 1.25rem; }
     .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
     .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+    .q-header-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .q-badge { font-size: 0.75rem; font-weight: 700; background: var(--color-primary-50); color: var(--color-primary) !important; padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid var(--color-primary-200); }
+    .q-tag-pill { font-size: 0.72rem; font-weight: 700; background: var(--color-ai-bg); color: var(--color-ai-purple) !important; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid var(--color-ai-border); }
     .btn-remove { background: none; border: none; color: var(--color-danger) !important; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 
     .options-wrapper { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--border-input); }
@@ -1519,8 +1585,6 @@ export interface GovtExamCategory {
       .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
       .count-control-row { grid-template-columns: 1fr; align-items: start; }
       .custom-count-field { justify-content: space-between; }
-      .count-control-row { grid-template-columns: 1fr; align-items: start; }
-      .custom-count-field { justify-content: space-between; }
       .qpb-actions {
         grid-template-columns: 1fr;
       }
@@ -1573,6 +1637,31 @@ export class QuizCreatorComponent implements OnInit {
   // A short preset list keeps the count control easy to scan.
   // Max 30 — optimised for Groq free-tier token limits.
   readonly questionPresets = [10, 15, 20, 30];
+
+  readonly topicSuggestions = [
+    { icon: '🐍', label: 'Python & DSA', topic: 'Python Programming & Data Structures' },
+    { icon: '⚛️', label: 'JavaScript & React', topic: 'JavaScript ES6+ & React Fundamentals' },
+    { icon: '🗄️', label: 'SQL & Databases', topic: 'SQL Queries, Joins & Relational Databases' },
+    { icon: '🧩', label: 'OOP & Design', topic: 'Object-Oriented Programming & SOLID Principles' },
+    { icon: '🅰️', label: 'Angular & TypeScript', topic: 'Angular Signals & TypeScript Architecture' },
+    { icon: '🐳', label: 'Git & Docker', topic: 'Git Workflows, Docker & DevOps Basics' }
+  ];
+
+  readonly commonQuestionTags = [
+    'OOP', 'Arrays', 'Strings', 'Algorithms', 'Recursion',
+    'SQL', 'Joins', 'Async/Await', 'REST API', 'React',
+    'Angular', 'Python', 'TypeScript', 'Git', 'Docker'
+  ];
+
+  applyTopicSuggestion(suggestion: { label: string; topic: string }): void {
+    this.customTopic = suggestion.topic;
+    if (!this.quizForm.value.title) {
+      this.quizForm.patchValue({
+        title: `${suggestion.label} Assessment`,
+        category: suggestion.label
+      });
+    }
+  }
 
   // Government & Competitive Examination Data
   readonly govtExamCategories: GovtExamCategory[] = [
@@ -1891,6 +1980,7 @@ export class QuizCreatorComponent implements OnInit {
         questionText: [q.questionText, Validators.required],
         type: [q.type || QuestionType.SingleChoice, Validators.required],
         points: [q.points || 1, [Validators.required, Validators.min(1)]],
+        tag: [q.tag || ''],
         explanation: [q.explanation || ''],
         options: this.fb.array([])
       });
@@ -1920,6 +2010,7 @@ export class QuizCreatorComponent implements OnInit {
       questionText: ['', Validators.required],
       type: [QuestionType.SingleChoice, Validators.required],
       points: [1, [Validators.required, Validators.min(1)]],
+      tag: [''],
       explanation: [''],
       options: this.fb.array([
         this.fb.group({ optionText: '', isCorrect: true }),
@@ -2014,7 +2105,10 @@ export class QuizCreatorComponent implements OnInit {
       certificateForTopperOnly: values.certificateForTopperOnly || false,
       autoSubmit: values.autoSubmit || false,
       showResultsAfterSubmission: values.showResultsAfterSubmission ?? true,
+      showCorrectAnswers: values.showCorrectAnswers ?? true,
       totalMarks: values.totalMarks || undefined,
+      welcomeMessage: values.welcomeMessage || undefined,
+      instructions: values.instructions || undefined,
       maxStudents: values.maxStudents ?? 15,
       questions: values.questions as any[]
     };

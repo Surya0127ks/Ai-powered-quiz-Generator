@@ -131,6 +131,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
                 existingQues.Type = reqQues.Type;
                 existingQues.Points = reqQues.Points;
                 existingQues.Explanation = reqQues.Explanation;
+                existingQues.Tag = QuizQuestion.NormalizeTag(reqQues.Tag);
                 existingQues.OrderIndex = i;
                 existingQues.MarkAsModified(_currentUserService.UserId.Value);
 
@@ -183,6 +184,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
                     Type = reqQues.Type,
                     Points = reqQues.Points,
                     Explanation = reqQues.Explanation,
+                    Tag = QuizQuestion.NormalizeTag(reqQues.Tag),
                     OrderIndex = i,
                     Options = reqQues.Options.Select((o, j) => new QuizOption
                     {
@@ -243,7 +245,8 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
                     o.OptionText,
                     o.OrderIndex,
                     o.IsCorrect
-                )).ToList()
+                )).ToList(),
+                q.Tag
             )).ToList()
         );
 

@@ -17,7 +17,8 @@ public record QuizQuestionDto(
     int Points,
     int OrderIndex,
     string? Explanation,
-    List<QuizOptionDto> Options
+    List<QuizOptionDto> Options,
+    string? Tag = null
 );
 
 public record QuizDto(
@@ -83,7 +84,8 @@ public record CreateQuizQuestionDto(
     QuestionType Type,
     int Points,
     string? Explanation,
-    List<CreateQuizOptionDto> Options
+    List<CreateQuizOptionDto> Options,
+    string? Tag = null
 );
 
 public record CreateQuizOptionDto(
@@ -107,7 +109,8 @@ public record SubmitQuizAttemptDto(
     string? PhoneNumber = null,
     int FocusLostCount = 0,
     bool IsDisqualified = false,
-    string? DisqualificationReason = null
+    string? DisqualificationReason = null,
+    int? TimeTakenSeconds = null
 );
 
 public record QuizAttemptResultDto(
@@ -122,7 +125,8 @@ public record QuizAttemptResultDto(
     string? CertificateNumber = null,
     bool IsCapReached = false,
     int MaxStudents = 15,
-    int LimitExtensionCount = 0
+    int LimitExtensionCount = 0,
+    int? TimeTakenSeconds = null
 );
 
 public record AnswerReviewItemDto(
@@ -133,7 +137,8 @@ public record AnswerReviewItemDto(
     bool IsCorrect,
     List<Guid> SelectedOptionIds,
     List<Guid> CorrectOptionIds,
-    string? Explanation
+    string? Explanation,
+    string? Tag = null
 );
 
 public record QuizLeaderboardItemDto(
@@ -147,7 +152,8 @@ public record QuizLeaderboardItemDto(
     bool IsPassed,
     DateTime SubmittedAtUtc,
     int Rank,
-    int FocusLostCount
+    int FocusLostCount,
+    int? TimeTakenSeconds = null
 );
 
 public record UpdateQuizDto(
@@ -180,7 +186,8 @@ public record UpdateQuizQuestionDto(
     QuestionType Type,
     int Points,
     string? Explanation,
-    List<UpdateQuizOptionDto> Options
+    List<UpdateQuizOptionDto> Options,
+    string? Tag = null
 );
 
 public record UpdateQuizOptionDto(
@@ -204,7 +211,8 @@ public record AdminAttemptDetailsDto(
     bool IsPassed,
     DateTimeOffset? SubmittedAtUtc,
     int FocusLostCount,
-    List<AdminAttemptQuestionDto> Questions
+    List<AdminAttemptQuestionDto> Questions,
+    int? TimeTakenSeconds = null
 );
 
 public record AdminAttemptQuestionDto(
@@ -215,7 +223,8 @@ public record AdminAttemptQuestionDto(
     bool IsCorrect,
     List<AdminAttemptOptionDto> Options,
     List<Guid> SelectedOptionIds,
-    string? Explanation
+    string? Explanation,
+    string? Tag = null
 );
 
 public record AdminAttemptOptionDto(

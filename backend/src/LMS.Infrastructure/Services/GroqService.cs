@@ -144,6 +144,7 @@ public class GroqService : IGroqService
       ""questionText"": ""string"",
       ""type"": ""SingleChoice"" or ""TrueFalse"",
       ""points"": 1,
+      ""tag"": ""string (concise 1-2 word topic tag, e.g. OOP, Arrays, SQL, Async, Polity)"",
       ""explanation"": ""string explaining correct answer clearly and concisely"",
       ""options"": [
         { ""optionText"": ""string"", ""isCorrect"": boolean }
@@ -155,6 +156,7 @@ STRICT REQUIREMENTS:
 - Generate ACCURATE, factually correct questions. Zero tolerance for wrong answers marked correct.
 - DIFFICULTY RULE (MANDATORY): If the user says Easy → generate ONLY easy beginner questions. If the user says Medium → generate ONLY medium intermediate questions. If the user says Hard → generate ONLY hard advanced questions. If Mixed → generate a balanced spread. DO NOT mix difficulty levels unless explicitly asked for Mixed.
 - For programming/CS topics: include code snippets, syntax questions, algorithm logic, output prediction, and best-practice scenarios.
+- Assign a short 1-2 word concept tag in ""tag"" for every question (e.g., OOP, Arrays, Recursion, SQL, React, Hooks, Networking, Polity).
 - For SingleChoice: provide EXACTLY 4 options with EXACTLY 1 option having isCorrect = true. Wrong options must be plausible but clearly incorrect.
 - For TrueFalse: provide EXACTLY 2 options (""True"" and ""False"") with exactly 1 having isCorrect = true.
 - Write questions in clear, professional English suitable for students and educators.
@@ -388,6 +390,7 @@ STRICT REQUIREMENTS:
                 QuestionType qType = typeStr.Equals("TrueFalse", StringComparison.OrdinalIgnoreCase) ? QuestionType.TrueFalse : QuestionType.SingleChoice;
                 int pts = qEl.TryGetProperty("points", out var pProp) ? pProp.GetInt32() : 1;
                 string? exp = qEl.TryGetProperty("explanation", out var eProp) ? eProp.GetString() : null;
+                string? tag = qEl.TryGetProperty("tag", out var tagProp) ? LMS.Domain.Entities.QuizQuestion.NormalizeTag(tagProp.GetString()) : null;
 
                 var options = new List<GeneratedQuestionOptionDto>();
                 if (qEl.TryGetProperty("options", out var optsEl))
@@ -400,7 +403,7 @@ STRICT REQUIREMENTS:
                     }
                 }
 
-                result.Add(new GeneratedQuestionDto(text, qType, pts, exp, options));
+                result.Add(new GeneratedQuestionDto(text, qType, pts, exp, options, tag));
             }
 
             return result;

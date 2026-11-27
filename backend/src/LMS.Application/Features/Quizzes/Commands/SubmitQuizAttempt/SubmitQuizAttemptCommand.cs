@@ -21,7 +21,8 @@ public record SubmitQuizAttemptCommand(
     string? PhoneNumber = null,
     int FocusLostCount = 0,
     bool IsDisqualified = false,
-    string? DisqualificationReason = null
+    string? DisqualificationReason = null,
+    int? TimeTakenSeconds = null
 ) : IRequest<Result<QuizAttemptResultDto>>;
 
 public class SubmitQuizAttemptCommandValidator : AbstractValidator<SubmitQuizAttemptCommand>
@@ -128,6 +129,14 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
         int totalPossiblePoints = quiz.Questions.Sum(q => q.Points);
         decimal totalEarnedPoints = 0m;
 
+        var submittedAtUtc = DateTimeOffset.UtcNow;
+        int? timeTakenSeconds = request.TimeTakenSeconds.HasValue
+            ? Math.Clamp(request.TimeTakenSeconds.Value, 0, 86400)
+            : null;
+        var startedAtUtc = timeTakenSeconds.HasValue
+            ? submittedAtUtc.AddSeconds(-timeTakenSeconds.Value)
+            : submittedAtUtc.AddMinutes(-5);
+
         var attempt = new QuizAttempt
         {
             Id = Guid.NewGuid(),
@@ -140,8 +149,9 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
             Department = request.Department,
             Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant(),
             PhoneNumber = request.PhoneNumber,
-            StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
-            SubmittedAtUtc = DateTimeOffset.UtcNow,
+            StartedAtUtc = startedAtUtc,
+            SubmittedAtUtc = submittedAtUtc,
+            TimeTakenSeconds = timeTakenSeconds,
             TotalPossiblePoints = totalPossiblePoints,
             FocusLostCount = Math.Clamp(request.FocusLostCount, 0, 100),
             // Focus/disqualification flags come from the browser and are not trustworthy.
@@ -208,7 +218,8 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
                 isCorrect,
                 selectedOptionIds,
                 quiz.ShowCorrectAnswers ? correctOptions : new List<Guid>(),
-                quiz.ShowCorrectAnswers ? ques.Explanation : null
+                quiz.ShowCorrectAnswers ? ques.Explanation : null,
+                ques.Tag
             ));
         }
 
@@ -372,7 +383,8 @@ public class SubmitQuizAttemptCommandHandler : IRequestHandler<SubmitQuizAttempt
             certificateNumber,
             isCapReached,
             quiz.MaxStudents,
-            quiz.LimitExtensionCount
+            quiz.LimitExtensionCount,
+            attempt.TimeTakenSeconds
         );
 
         return Result.Success(resultDto);

@@ -79,7 +79,8 @@ public class GetQuizByIdQueryHandler : IRequestHandler<GetQuizByIdQuery, Result<
                     o.OptionText, 
                     o.OrderIndex, 
                     isCreator ? o.IsCorrect : null
-                )).ToList()
+                )).ToList(),
+                ques.Tag
             )).ToList()
         );
 

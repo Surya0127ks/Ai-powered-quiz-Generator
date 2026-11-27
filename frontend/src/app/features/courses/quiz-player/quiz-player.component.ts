@@ -5,7 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { QuizService } from '../../../core/services/quiz.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { copyTextToClipboard } from '../../../core/utils/clipboard';
-import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../../core/models/quiz.model';
+import { formatDurationSeconds } from '../../../core/utils/format-duration';
+import { AnswerReviewItem, QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../../core/models/quiz.model';
 
 @Component({
   selector: 'app-quiz-player',
@@ -90,6 +91,79 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
         </div>
       }
 
+      <!-- Explanation Popup Modal -->
+      @if (selectedExplanationIndex() !== null && currentExplanationReview()) {
+        <div class="modal-backdrop" (click)="closeExplanationModal()">
+          <div class="modal-content modal-explanation saas-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <div class="exp-modal-title-group">
+                <h3>💡 Answer Explanation</h3>
+                <span class="exp-step-pill">Question {{ selectedExplanationIndex()! + 1 }} of {{ result()!.reviews.length }}</span>
+              </div>
+              <button type="button" (click)="closeExplanationModal()" class="close-btn" aria-label="Close explanation">✕</button>
+            </div>
+
+            <div class="exp-modal-body">
+              <div class="exp-status-row">
+                <span class="badge" [class.badge-emerald]="currentExplanationReview()!.isCorrect" [class.badge-danger]="!currentExplanationReview()!.isCorrect">
+                  {{ currentExplanationReview()!.isCorrect ? '✅ Correct' : '❌ Incorrect' }}
+                </span>
+                <span class="exp-points-pill">
+                  {{ currentExplanationReview()!.pointsEarned }} / {{ currentExplanationReview()!.maxPoints }} pts
+                </span>
+                @if (currentExplanationReview()?.tag) {
+                  <span class="badge badge-slate">🏷️ {{ currentExplanationReview()!.tag }}</span>
+                }
+              </div>
+
+              <h4 class="exp-question-text">{{ currentExplanationReview()!.questionText }}</h4>
+
+              <div class="exp-answers-grid">
+                <div class="exp-answer-box">
+                  <span class="exp-box-label">Your Answer</span>
+                  <p class="exp-box-val">{{ getOptionTexts(currentExplanationReview()!.questionId, currentExplanationReview()!.selectedOptionIds) || 'Not answered' }}</p>
+                </div>
+                @if (quiz()?.showCorrectAnswers && currentExplanationReview()!.correctOptionIds.length > 0) {
+                  <div class="exp-answer-box correct">
+                    <span class="exp-box-label">Correct Answer</span>
+                    <p class="exp-box-val">{{ getOptionTexts(currentExplanationReview()!.questionId, currentExplanationReview()!.correctOptionIds) }}</p>
+                  </div>
+                }
+              </div>
+
+              <div class="exp-detail-box">
+                <span class="exp-box-label">💡 Explanation</span>
+                <p class="exp-detail-text">
+                  {{ currentExplanationReview()?.explanation || 'No explanation was provided for this question.' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="exp-modal-footer">
+              <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                [disabled]="selectedExplanationIndex()! <= 0"
+                (click)="prevExplanation()"
+              >
+                ← Previous
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                [disabled]="selectedExplanationIndex()! >= result()!.reviews.length - 1"
+                (click)="nextExplanation()"
+              >
+                Next →
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" (click)="closeExplanationModal()">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       @if (isLoading()) {
         <div class="loading-state saas-card">
           <div class="spinner"></div>
@@ -122,14 +196,35 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
           <p class="error-attempts">Attempt {{ retryAttempt() }} of 4</p>
         </div>
       } @else if (result()) {
-        <!-- Score Result View (Clean Mode) -->
-        <div class="result-card saas-card" style="text-align: center; padding: 4rem 2rem;">
-          <div class="result-badge" [class.passed]="true" style="background: none; border: none;">
-            <span class="badge-icon" style="font-size: 4rem; display: block; margin-bottom: 1rem;">✅</span>
-            <h2 style="font-size: 2rem; color: var(--color-success);">Assessment Submitted Successfully</h2>
-            <p class="score-summary" style="font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 1rem auto;">
-              Thank you for completing the assessment. Your responses have been securely recorded.
-            </p>
+        <!-- Score Result View -->
+        <div class="result-card saas-card">
+          <div class="result-badge" [class.passed]="quiz()?.showResultsAfterSubmission === false || result()?.isPassed">
+            <span class="badge-icon">{{ quiz()?.showResultsAfterSubmission === false ? '✅' : (result()?.isPassed ? '🏆' : '📘') }}</span>
+            <h2>
+              @if (quiz()?.showResultsAfterSubmission === false) {
+                Assessment Submitted Successfully
+              } @else if (result()?.isPassed) {
+                Congratulations! You Passed
+              } @else {
+                Assessment Completed
+              }
+            </h2>
+
+            @if (quiz()?.showResultsAfterSubmission !== false) {
+              <div class="score-display">
+                <span class="score-num">{{ result()?.scorePercentage }}%</span>
+                <span class="score-sub">
+                  {{ result()?.totalPointsEarned }} / {{ result()?.totalPossiblePoints }} Points
+                  @if (result()?.timeTakenSeconds !== null && result()?.timeTakenSeconds !== undefined) {
+                    · ⏱️ Time Taken: {{ formatDuration(result()?.timeTakenSeconds) }}
+                  }
+                </span>
+              </div>
+            } @else {
+              <p class="score-summary">
+                Thank you for completing the assessment. Your responses have been securely recorded.
+              </p>
+            }
           </div>
 
           <!-- Certificate Banner -->
@@ -175,33 +270,58 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
           }
 
           <!-- Detailed Post-Quiz Results -->
-          @if (quiz()?.showResultsAfterSubmission && result()?.reviews?.length && authService.currentUser()?.id === quiz()?.createdByUserId) {
-            <div class="detailed-results margin-top" style="text-align: left; background: var(--bg-app); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-hairline);">
-              <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-primary);">Detailed Review</h3>
-              
-              @for (review of result()!.reviews; track review.questionId; let i = $index) {
-                <div class="review-item" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-hairline);">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                    <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary);">{{ i + 1 }}. {{ review.questionText }}</h4>
-                    <span class="badge" [ngClass]="review.isCorrect ? 'badge-emerald' : 'badge-danger'" style="margin-left: 1rem; white-space: nowrap;">
-                      {{ review.pointsEarned }} / {{ review.maxPoints }} pts
-                    </span>
-                  </div>
-                  
-                  <div style="margin-top: 0.75rem;">
-                    @if (review.isCorrect) {
-                      <p style="color: var(--color-success); font-weight: 600; margin: 0; font-size: 0.95rem;">✅ You answered correctly</p>
-                    } @else {
-                      <p style="color: var(--color-danger); font-weight: 600; margin: 0 0 0.25rem 0; font-size: 0.95rem;">❌ Incorrect answer</p>
-                    }
-                  </div>
+          @if (quiz()?.showResultsAfterSubmission !== false && result()?.reviews?.length) {
+            <div class="detailed-results margin-top">
+              <div class="detailed-results-header">
+                <div>
+                  <h3>Detailed Review & Explanations</h3>
+                  <p class="review-subtext">Tap "View Explanation" on any question to read the full reasoning.</p>
                 </div>
-              }
+                <button type="button" (click)="openExplanationModal(0)" class="btn btn-ai btn-sm">
+                  💡 Open Explanation Popup ({{ result()!.reviews.length }})
+                </button>
+              </div>
+
+              <div class="reviews-list">
+                @for (review of result()!.reviews; track review.questionId; let i = $index) {
+                  <div class="review-item" [class.correct]="review.isCorrect" [class.incorrect]="!review.isCorrect">
+                    <div class="review-header">
+                      <div class="review-header-left">
+                        <span>Question #{{ i + 1 }}</span>
+                        @if (review.tag) {
+                          <span class="badge badge-slate">🏷️ {{ review.tag }}</span>
+                        }
+                      </div>
+                      <span class="badge" [ngClass]="review.isCorrect ? 'badge-emerald' : 'badge-danger'">
+                        {{ review.pointsEarned }} / {{ review.maxPoints }} pts
+                      </span>
+                    </div>
+
+                    <p class="q-text">{{ review.questionText }}</p>
+
+                    <div class="review-answer-meta">
+                      <span><strong>Your Answer:</strong> {{ getOptionTexts(review.questionId, review.selectedOptionIds) || 'Not answered' }}</span>
+                      @if (quiz()?.showCorrectAnswers && review.correctOptionIds.length > 0) {
+                        <span><strong>Correct Answer:</strong> {{ getOptionTexts(review.questionId, review.correctOptionIds) }}</span>
+                      }
+                    </div>
+
+                    <div class="review-actions-row">
+                      <button type="button" (click)="openExplanationModal(i)" class="btn btn-outline btn-sm">
+                        💡 {{ review.explanation ? 'View Explanation' : 'View Question Details' }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
           }
 
           <div class="result-actions margin-top print-hide">
-            <button onclick="window.print()" class="btn btn-ai">🖨️ Download / Print Scorecard</button>
+            @if (quiz()?.showResultsAfterSubmission !== false && result()?.reviews?.length) {
+              <button type="button" (click)="openExplanationModal(0)" class="btn btn-ai">💡 View Answer Explanations</button>
+            }
+            <button onclick="window.print()" class="btn btn-outline">🖨️ Download / Print Scorecard</button>
             @if (!isPublicMode) {
               <button (click)="retakeQuiz()" class="btn btn-outline">Retake Quiz</button>
               <a routerLink="/dashboard" class="btn btn-primary">Return to Dashboard →</a>
@@ -378,6 +498,9 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
                 <span class="badge badge-primary">
                   {{ currentQuestion()?.type === QuestionType.MultipleChoice ? 'Multiple Choice' : 'Single Choice' }}
                 </span>
+                @if (currentQuestion()?.tag) {
+                  <span class="badge badge-slate">🏷️ {{ currentQuestion()?.tag }}</span>
+                }
                 <span class="q-points">{{ currentQuestion()?.points }} {{ currentQuestion()?.points === 1 ? 'Point' : 'Points' }}</span>
               </div>
 
@@ -672,13 +795,49 @@ import { QuestionType, Quiz, QuizAttemptResult, StudentAnswerItem } from '../../
       p { font-size: 0.875rem; color: var(--text-secondary) !important; margin: 0; }
     }
 
-    .reviews-list { text-align: left; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; h3 { font-size: 1.15rem; font-weight: 800; color: var(--text-primary) !important; margin-bottom: 0.5rem; } }
-    .review-item { padding: 1rem 1.25rem; border-radius: var(--radius-lg); background: var(--bg-surface); border: 1px solid var(--border-hairline); border-left: 5px solid var(--text-muted); }
+    .detailed-results {
+      text-align: left;
+      background: var(--bg-app);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-hairline);
+    }
+    .detailed-results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      h3 { margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-primary) !important; }
+    }
+    .review-subtext { font-size: 0.85rem; color: var(--text-muted) !important; margin: 0.25rem 0 0; }
+    .reviews-list { text-align: left; margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+    .review-item { padding: 1.1rem 1.25rem; border-radius: var(--radius-lg); background: var(--bg-surface); border: 1px solid var(--border-hairline); border-left: 5px solid var(--text-muted); }
     .review-item.correct { border-left-color: var(--color-success); background: var(--color-success-bg); }
     .review-item.incorrect { border-left-color: var(--color-danger); background: var(--color-danger-bg); }
-    .review-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; color: var(--text-muted) !important; margin-bottom: 0.35rem; }
-    .q-text { color: var(--text-primary) !important; font-weight: 700; }
-    .explanation-box { margin-top: 0.5rem; padding: 0.65rem 0.85rem; background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-secondary) !important; }
+    .review-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-weight: 800; color: var(--text-muted) !important; margin-bottom: 0.4rem; }
+    .review-header-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .q-text { color: var(--text-primary) !important; font-weight: 700; margin: 0.25rem 0 0.6rem; line-height: 1.45; }
+    .review-answer-meta { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: var(--text-secondary) !important; margin-bottom: 0.75rem; }
+    .review-actions-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    /* Explanation Popup Modal */
+    .modal-explanation { max-width: 640px !important; text-align: left !important; max-height: 90vh; overflow-y: auto; }
+    .exp-modal-title-group { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
+    .exp-step-pill { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px; background: var(--color-primary-50); color: var(--color-primary-700); border: 1px solid var(--color-primary-200); }
+    .exp-modal-body { display: flex; flex-direction: column; gap: 1rem; }
+    .exp-status-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .exp-points-pill { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+    .exp-question-text { font-size: 1.1rem; font-weight: 800; color: var(--text-primary) !important; line-height: 1.45; margin: 0; }
+    .exp-answers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; }
+    .exp-answer-box { padding: 0.85rem 1rem; border-radius: var(--radius-md); background: var(--bg-app); border: 1px solid var(--border-hairline); }
+    .exp-answer-box.correct { background: var(--color-success-bg); border-color: var(--color-success-border); }
+    .exp-box-label { display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .exp-box-val { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text-primary) !important; line-height: 1.4; }
+    .exp-detail-box { padding: 1rem 1.15rem; border-radius: var(--radius-md); background: var(--color-primary-50); border: 1px solid var(--color-primary-200); border-left: 4px solid var(--color-primary-600); }
+    .exp-detail-text { margin: 0; font-size: 0.93rem; color: var(--text-body) !important; line-height: 1.6; }
+    .exp-modal-footer { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-hairline); }
 
     .result-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
     .margin-top { margin-top: 1.75rem; }
@@ -817,10 +976,13 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   readonly isStarted = signal(false);
   readonly remainingSeconds = signal<number>(15 * 60);
   readonly showMissingDetailsModal = signal(false);
+  readonly selectedExplanationIndex = signal<number | null>(null);
+  readonly formatDuration = formatDurationSeconds;
 
   private slowLoadTimer: any = null;
   private retryTimer: any = null;
   private countdownInterval: any = null;
+  private quizStartedAtMs: number | null = null;
   
   studentDetails = {
     studentName: '',
@@ -938,6 +1100,7 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
               const remaining = (timeMins * 60) - elapsedSeconds;
 
               if (remaining > 0) {
+                this.quizStartedAtMs = ongoing.startTime;
                 this.isStarted.set(true);
                 this.remainingSeconds.set(remaining);
                 this.startTimerInterval();
@@ -1017,12 +1180,14 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
 
   startQuiz(): void {
     const timeMins = this.quiz()?.timeLimitMinutes || 15;
+    const startTime = Date.now();
+    this.quizStartedAtMs = startTime;
     const ongoingPayload = {
       quizId: this.quizId,
       quizTitle: this.quiz()?.title || 'Knowledge Assessment',
       category: this.quiz()?.category || 'General',
       timeLimitMinutes: timeMins,
-      startTime: Date.now()
+      startTime
     };
     localStorage.setItem('qp_active_ongoing_attempt', JSON.stringify(ongoingPayload));
 
@@ -1140,10 +1305,15 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
       });
     });
 
+    const elapsedSeconds = this.quizStartedAtMs
+      ? Math.max(0, Math.round((Date.now() - this.quizStartedAtMs) / 1000))
+      : Math.max(0, ((q.timeLimitMinutes || 15) * 60) - this.remainingSeconds());
+
     const payload = { 
       answers: answersList, 
       ...this.studentDetails,
-      focusLostCount: this.focusLostCount
+      focusLostCount: this.focusLostCount,
+      timeTakenSeconds: elapsedSeconds
     };
 
     const submitObs = this.isPublicMode 
@@ -1191,9 +1361,56 @@ export class QuizPlayerComponent implements OnInit, OnDestroy {
   retakeQuiz(): void {
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.result.set(null);
+    this.selectedExplanationIndex.set(null);
+    this.quizStartedAtMs = null;
     this.isStarted.set(false);
     this.selectedAnswersMap.clear();
     this.currentQuestionIndex.set(0);
+  }
+
+  currentExplanationReview(): AnswerReviewItem | null {
+    const idx = this.selectedExplanationIndex();
+    const reviews = this.result()?.reviews;
+    if (idx === null || !reviews || idx < 0 || idx >= reviews.length) {
+      return null;
+    }
+    return reviews[idx];
+  }
+
+  openExplanationModal(index: number): void {
+    const reviews = this.result()?.reviews;
+    if (!reviews || reviews.length === 0) return;
+    const bounded = Math.max(0, Math.min(index, reviews.length - 1));
+    this.selectedExplanationIndex.set(bounded);
+  }
+
+  closeExplanationModal(): void {
+    this.selectedExplanationIndex.set(null);
+  }
+
+  prevExplanation(): void {
+    const idx = this.selectedExplanationIndex();
+    if (idx !== null && idx > 0) {
+      this.selectedExplanationIndex.set(idx - 1);
+    }
+  }
+
+  nextExplanation(): void {
+    const idx = this.selectedExplanationIndex();
+    const len = this.result()?.reviews?.length ?? 0;
+    if (idx !== null && idx < len - 1) {
+      this.selectedExplanationIndex.set(idx + 1);
+    }
+  }
+
+  getOptionTexts(questionId: string, optionIds?: string[]): string {
+    if (!optionIds || optionIds.length === 0) return '';
+    const question = this.quiz()?.questions?.find(q => q.id === questionId);
+    if (!question) return '';
+    return optionIds
+      .map(id => question.options.find(o => o.id === id)?.optionText)
+      .filter((text): text is string => !!text)
+      .join(', ');
   }
 
   getShareableUrl(): string {

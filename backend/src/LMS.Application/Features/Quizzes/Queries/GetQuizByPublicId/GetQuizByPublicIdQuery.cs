@@ -68,7 +68,8 @@ public class GetQuizByPublicIdQueryHandler : IRequestHandler<GetQuizByPublicIdQu
                 ques.Points,
                 ques.OrderIndex,
                 ques.Explanation,
-                ques.Options.OrderBy(o => o.OrderIndex).Select(o => new QuizOptionDto(o.Id, o.OptionText, o.OrderIndex)).ToList()
+                ques.Options.OrderBy(o => o.OrderIndex).Select(o => new QuizOptionDto(o.Id, o.OptionText, o.OrderIndex)).ToList(),
+                ques.Tag
             )).ToList()
         );
 

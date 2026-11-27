@@ -24,6 +24,7 @@ public class QuizAttempt : AuditableEntity
     public bool IsPassed { get; set; }
     public int FocusLostCount { get; set; }
     public bool IsDisqualified { get; set; }
+    public int? TimeTakenSeconds { get; set; }
 
     public DateTimeOffset StartedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? SubmittedAtUtc { get; set; }

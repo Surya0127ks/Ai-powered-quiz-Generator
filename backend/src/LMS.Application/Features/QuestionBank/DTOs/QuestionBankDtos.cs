@@ -33,5 +33,6 @@ public record GeneratedQuestionDto(
     QuestionType Type,
     int Points,
     string? Explanation,
-    List<GeneratedQuestionOptionDto> Options
+    List<GeneratedQuestionOptionDto> Options,
+    string? Tag = null
 );

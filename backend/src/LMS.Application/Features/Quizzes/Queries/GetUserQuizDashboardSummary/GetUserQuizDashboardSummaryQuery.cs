@@ -43,6 +43,12 @@ public class GetUserQuizDashboardSummaryQueryHandler : IRequestHandler<GetUserQu
             var qAttempts = attemptsOnUserQuizzes.Where(a => a.QuizId == q.Id).ToList();
             int qAttemptCount = qAttempts.Count;
             double qAvgScore = qAttemptCount > 0 ? Math.Round(qAttempts.Average(a => a.ScorePercentage), 1) : 0;
+            int qPassedCount = qAttempts.Count(a => a.IsPassed);
+            double qPassRate = qAttemptCount > 0 ? Math.Round(qPassedCount * 100.0 / qAttemptCount, 1) : 0;
+            var timedAttempts = qAttempts.Where(a => a.TimeTakenSeconds.HasValue).ToList();
+            int? qAvgTimeSeconds = timedAttempts.Count > 0
+                ? (int)Math.Round(timedAttempts.Average(a => a.TimeTakenSeconds!.Value))
+                : null;
 
             myQuizzesList.Add(new UserQuizItemDto(
                 q.Id,
@@ -55,7 +61,13 @@ public class GetUserQuizDashboardSummaryQueryHandler : IRequestHandler<GetUserQu
                 qAttemptCount,
                 qAvgScore,
                 q.CreatedAt.UtcDateTime,
-                q.ShortId
+                q.ShortId,
+                q.MaxStudents,
+                q.LimitExtensionCount,
+                q.IsCapReached,
+                qPassedCount,
+                qPassRate,
+                qAvgTimeSeconds
             ));
         }
 
@@ -76,7 +88,8 @@ public class GetUserQuizDashboardSummaryQueryHandler : IRequestHandler<GetUserQu
             a.Quiz?.Title ?? "Quiz Assessment",
             a.ScorePercentage,
             a.IsPassed,
-            (a.SubmittedAtUtc ?? a.StartedAtUtc).UtcDateTime
+            (a.SubmittedAtUtc ?? a.StartedAtUtc).UtcDateTime,
+            a.TimeTakenSeconds
         )).ToList();
 
         var summary = new UserQuizDashboardSummaryDto(

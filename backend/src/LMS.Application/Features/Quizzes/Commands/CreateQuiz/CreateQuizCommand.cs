@@ -128,7 +128,8 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
                 Type = qDto.Type,
                 Points = qDto.Points > 0 ? qDto.Points : 1,
                 OrderIndex = qIndex++,
-                Explanation = qDto.Explanation
+                Explanation = qDto.Explanation,
+                Tag = QuizQuestion.NormalizeTag(qDto.Tag)
             };
             question.MarkAsCreated(_currentUserService.UserId);
 
@@ -186,7 +187,8 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
                 ques.Points,
                 ques.OrderIndex,
                 ques.Explanation,
-                ques.Options.Select(o => new QuizOptionDto(o.Id, o.OptionText, o.OrderIndex, o.IsCorrect)).ToList()
+                ques.Options.Select(o => new QuizOptionDto(o.Id, o.OptionText, o.OrderIndex, o.IsCorrect)).ToList(),
+                ques.Tag
             )).ToList(),
             quiz.MaxStudents,
             quiz.LimitExtensionCount,

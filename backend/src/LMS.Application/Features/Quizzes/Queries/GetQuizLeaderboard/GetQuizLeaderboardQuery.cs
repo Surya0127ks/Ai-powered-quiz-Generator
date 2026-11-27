@@ -69,7 +69,8 @@ public class GetQuizLeaderboardQueryHandler : IRequestHandler<GetQuizLeaderboard
                 attempt.IsPassed,
                 attempt.SubmittedAtUtc?.UtcDateTime ?? attempt.CreatedAt.UtcDateTime,
                 rank++,
-                attempt.FocusLostCount
+                attempt.FocusLostCount,
+                attempt.TimeTakenSeconds
             ));
         }
 

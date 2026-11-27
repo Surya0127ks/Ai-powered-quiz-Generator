@@ -199,11 +199,22 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
             <button type="button" (click)="addQuestion()" class="btn btn-outline btn-sm">➕ Add Blank Question</button>
           </div>
 
+          <datalist id="editor-question-tag-suggestions">
+            @for (tag of commonQuestionTags; track tag) {
+              <option [value]="tag"></option>
+            }
+          </datalist>
+
           <div formArrayName="questions" class="questions-list">
             @for (qGroup of questionsArray.controls; track $index; let qIdx = $index) {
               <div [formGroupName]="qIdx" class="question-card">
                 <div class="q-header">
-                  <span class="q-badge">Question #{{ qIdx + 1 }}</span>
+                  <div class="q-header-left">
+                    <span class="q-badge">Question #{{ qIdx + 1 }}</span>
+                    @if (qGroup.get('tag')?.value) {
+                      <span class="q-tag-pill">🏷️ {{ qGroup.get('tag')?.value }}</span>
+                    }
+                  </div>
                   @if (questionsArray.length > 1) {
                     <button type="button" (click)="removeQuestion(qIdx)" class="btn-remove">Delete</button>
                   }
@@ -218,7 +229,7 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                   />
                 </div>
 
-                <div class="form-grid-2 margin-top-sm">
+                <div class="form-grid-3 margin-top-sm">
                   <div class="form-group">
                     <label>Question Type</label>
                     <select
@@ -234,6 +245,18 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
                   <div class="form-group">
                     <label>Points</label>
                     <input type="number" formControlName="points" min="1" class="input-control" />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Topic Tag <span class="optional-text">(Optional)</span></label>
+                    <input
+                      type="text"
+                      formControlName="tag"
+                      list="editor-question-tag-suggestions"
+                      placeholder="e.g. OOP, Arrays, SQL"
+                      maxlength="60"
+                      class="input-control"
+                    />
                   </div>
                 </div>
 
@@ -479,7 +502,9 @@ import { QuestionType, CreateQuizQuestionItem } from '../../../core/models/quiz.
     .questions-list { display: flex; flex-direction: column; gap: 1.25rem; }
     .question-card { background: var(--bg-app); border: 1px solid var(--border-hairline); padding: 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
     .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+    .q-header-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .q-badge { font-size: 0.75rem; font-weight: 700; background: var(--color-primary-50); color: var(--color-primary) !important; padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid var(--color-primary-200); }
+    .q-tag-pill { font-size: 0.72rem; font-weight: 700; background: var(--color-ai-bg); color: var(--color-ai-purple) !important; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid var(--color-ai-border); }
     .btn-remove { background: none; border: none; color: var(--color-danger) !important; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 
     .options-wrapper { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed var(--border-input); }
@@ -562,6 +587,12 @@ export class QuizEditorComponent implements OnInit {
   requestedQuestionCount = 10;
   selectedDifficulty = 'Mixed';
 
+  readonly commonQuestionTags = [
+    'OOP', 'Arrays', 'Strings', 'Algorithms', 'Recursion',
+    'SQL', 'Joins', 'Async/Await', 'REST API', 'React',
+    'Angular', 'Python', 'TypeScript', 'Git', 'Docker'
+  ];
+
   readonly quizForm = this.fb.group({
     title: ['', [Validators.required]],
     description: [''],
@@ -632,6 +663,7 @@ export class QuizEditorComponent implements OnInit {
             questionText: [q.questionText, Validators.required],
             type: [q.type || this.QuestionType.SingleChoice, Validators.required],
             points: [q.points || 1, [Validators.required, Validators.min(1)]],
+            tag: [q.tag || ''],
             explanation: [q.explanation || ''],
             options: this.fb.array([])
           });
@@ -731,6 +763,7 @@ export class QuizEditorComponent implements OnInit {
         questionText: [q.questionText, Validators.required],
         type: [q.type || QuestionType.SingleChoice, Validators.required],
         points: [q.points || 1, [Validators.required, Validators.min(1)]],
+        tag: [q.tag || ''],
         explanation: [q.explanation || ''],
         options: this.fb.array([])
       });
@@ -761,6 +794,7 @@ export class QuizEditorComponent implements OnInit {
       questionText: ['', Validators.required],
       type: [QuestionType.SingleChoice, Validators.required],
       points: [1, [Validators.required, Validators.min(1)]],
+      tag: [''],
       explanation: [''],
       options: this.fb.array([
         this.fb.group({ id: [null], optionText: '', isCorrect: true }),

@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { QuizService } from '../../core/services/quiz.service';
 import { copyTextToClipboard } from '../../core/utils/clipboard';
+import { formatDurationSeconds } from '../../core/utils/format-duration';
 import { UserRole } from '../../core/models/auth.model';
 import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboardItem, AdminAttemptDetails } from '../../core/models/quiz.model';
 
@@ -98,6 +99,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                       <strong>Result Overview</strong>
                       <div>Submitted: {{ selectedAttemptDetails()?.submittedAtUtc | date:'medium' }}</div>
                       <div>Status: <span [style.color]="selectedAttemptDetails()?.isPassed ? 'green' : 'red'">{{ selectedAttemptDetails()?.isPassed ? 'PASSED' : 'NEEDS REVIEW' }}</span></div>
+                      <div>Time Taken: <strong>{{ formatDuration(selectedAttemptDetails()?.timeTakenSeconds) }}</strong></div>
                       <div>Focus Lost Flags: <strong style="color: red;">{{ selectedAttemptDetails()?.focusLostCount }}</strong></div>
                     </div>
                     <div class="sc-score-box">
@@ -115,6 +117,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     <div class="sc-question-item" [class.correct]="q.isCorrect" [class.incorrect]="!q.isCorrect">
                       <div class="sc-q-header">
                         <span class="sc-q-num">Q{{ i + 1 }}</span>
+                        @if (q.tag) {
+                          <span class="sc-q-tag">🏷️ {{ q.tag }}</span>
+                        }
                         <span class="sc-q-text">{{ q.questionText }}</span>
                         <span class="sc-q-points">{{ q.pointsEarned }} / {{ q.points }} pts</span>
                       </div>
@@ -186,6 +191,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                     {{ selectedReportAttempt()?.isPassed ? 'Passed' : 'Not passed' }}
                   </span>
                 </div>
+                <div class="report-stat-box">
+                  <span class="stat-label">Time Taken</span>
+                  <span class="stat-num">{{ formatDuration(selectedReportAttempt()?.timeTakenSeconds) }}</span>
+                </div>
               </div>
 
               <div class="report-actions margin-top">
@@ -226,12 +235,16 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <strong class="meta-val">{{ leaderboardItems().length }} Students</strong>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Category</span>
-                  <strong class="meta-val">{{ selectedLeaderboardQuiz()?.category }}</strong>
+                  <span class="meta-label">Passed</span>
+                  <strong class="meta-val text-success">{{ getLeaderboardPassedCount() }} ({{ getLeaderboardPassRate() }}%)</strong>
                 </div>
                 <div class="meta-item">
                   <span class="meta-label">Overall Avg Score</span>
                   <strong class="meta-val text-primary">{{ selectedLeaderboardQuiz()?.avgScorePercentage }}%</strong>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Avg. Time Taken</span>
+                  <strong class="meta-val">{{ formatDuration(getLeaderboardAvgTimeSeconds()) }}</strong>
                 </div>
               </div>
 
@@ -259,6 +272,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                         <th>Student Full Name</th>
                         <th>Contact / Email</th>
                         <th>Score</th>
+                        <th>Time Taken</th>
                         <th>Outcome</th>
                         <th>Submitted At</th>
                         <th>Admin Action</th>
@@ -283,6 +297,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                             <strong class="score-num-text">{{ item.scorePercentage }}%</strong>
                             <small class="text-muted d-block">({{ item.totalPointsEarned }}/{{ item.totalPossiblePoints }} pts)</small>
                           </td>
+                          <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
                           <td>
                             @if (item.isDisqualified) {
                               <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border);">🚫 Cheating</span>
@@ -541,7 +556,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <span class="rq-meta-chip">⏱️ {{ q.timeLimitMinutes || 15 }} Mins</span>
                 </div>
 
-                <!-- Joined Students Count -->
+                <!-- Joined Students & Quiz Analytics -->
                 <div class="rq-join-status" [class.has-joins]="q.totalAttemptsCount > 0">
                   <div class="join-count-row">
                     <svg class="join-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -556,11 +571,15 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                       <span class="join-text joined">
                         <strong>{{ q.totalAttemptsCount }}</strong> student{{ q.totalAttemptsCount > 1 ? 's' : '' }} attempted
                       </span>
-                      @if (q.avgScorePercentage != null) {
-                        <span class="join-avg">Avg: {{ q.avgScorePercentage }}%</span>
-                      }
+                      <span class="join-avg">Avg: {{ q.avgScorePercentage }}%</span>
                     }
                   </div>
+                  @if (q.totalAttemptsCount > 0) {
+                    <div class="rq-analytics-pills">
+                      <span class="rq-analytics-pill">✅ {{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }} passed ({{ q.passRatePercentage ?? 0 }}%)</span>
+                      <span class="rq-analytics-pill">⏱️ Avg time: {{ formatDuration(q.avgTimeTakenSeconds) }}</span>
+                    </div>
+                  }
                 </div>
 
                 <!-- Cap Reached Banner -->
@@ -653,7 +672,9 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <th>Questions</th>
                   @if (authService.userRole() !== 3) {
                     <th>Submissions</th>
+                    <th>Passed</th>
                     <th>Avg. Score</th>
+                    <th>Avg. Time</th>
                     <th>Status</th>
                   }
                   <th>Actions</th>
@@ -678,8 +699,13 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                         <strong class="text-dark">{{ q.totalAttemptsCount }} Submissions</strong>
                       </td>
                       <td>
+                        <strong class="text-dark">{{ q.passedCount ?? 0 }}/{{ q.totalAttemptsCount }}</strong>
+                        <small class="text-muted d-block">{{ q.passRatePercentage ?? 0 }}% pass rate</small>
+                      </td>
+                      <td>
                         <strong class="text-dark">{{ q.avgScorePercentage }}%</strong>
                       </td>
+                      <td>{{ formatDuration(q.avgTimeTakenSeconds) }}</td>
                       <td>
                         @if (q.isPublished) {
                           <span class="badge badge-emerald">Published</span>
@@ -761,6 +787,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                   <th>Quiz Title</th>
                   <th>Submitted Date</th>
                   <th>Score</th>
+                  <th>Time Taken</th>
                   <th>Outcome</th>
                   <th>Action</th>
                 </tr>
@@ -775,6 +802,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
                         {{ a.scorePercentage }}%
                       </span>
                     </td>
+                    <td>{{ formatDuration(a.timeTakenSeconds) }}</td>
                     <td>
                       @if (a.isPassed) {
                         <span class="badge badge-emerald">Passed</span>
@@ -1553,12 +1581,27 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     /* Join Status Section */
     .rq-join-status {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      gap: 0.45rem;
       padding: 0.65rem 0.85rem;
       background: var(--bg-hover);
       border: 1px solid var(--border-hairline);
       border-radius: 0.5rem;
       transition: all 0.2s ease;
+    }
+    .rq-analytics-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .rq-analytics-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-body) !important;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
     }
     .rq-join-status.has-joins {
       background: var(--color-success-bg);
@@ -1824,7 +1867,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     }
     .report-stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 0.75rem;
       margin: 1.25rem 0;
     }
@@ -1868,6 +1911,7 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
     .sc-question-item.incorrect { border-color: var(--color-danger-border); border-left: 4px solid var(--color-danger-text); }
     .sc-q-header { display: flex; gap: 1.0rem; align-items: flex-start; margin-bottom: 1.25rem; }
     .sc-q-num { font-size: 0.85rem; font-weight: 800; color: var(--color-primary-600); background: var(--color-primary-50); padding: 0.2rem 0.5rem; }
+    .sc-q-tag { font-size: 0.75rem; font-weight: 700; color: var(--color-ai-purple); background: var(--color-ai-bg); border: 1px solid var(--color-ai-border); border-radius: 9999px; padding: 0.15rem 0.5rem; white-space: nowrap; }
     .sc-q-text { font-size: 1.05rem; font-weight: 700; color: var(--text-heading); flex: 1; line-height: 1.4; margin: 0; }
     .sc-q-points { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
     
@@ -2017,6 +2061,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly showScorecardModal = signal(false);
   readonly isScorecardLoading = signal(false);
   readonly selectedAttemptDetails = signal<AdminAttemptDetails | null>(null);
+  readonly formatDuration = formatDurationSeconds;
 
   private ongoingInterval: any = null;
 
@@ -2144,6 +2189,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const totalWeighted = quizzes.reduce((acc, q) => acc + (q.avgScorePercentage || 0) * q.totalAttemptsCount, 0);
     const totalAttempts = quizzes.reduce((acc, q) => acc + q.totalAttemptsCount, 0);
     return totalAttempts > 0 ? Math.round(totalWeighted / totalAttempts) : 0;
+  }
+
+  getLeaderboardPassedCount(): number {
+    return this.leaderboardItems().filter(item => item.isPassed && !item.isDisqualified).length;
+  }
+
+  getLeaderboardPassRate(): number {
+    const total = this.leaderboardItems().length;
+    if (total === 0) return 0;
+    return Math.round((this.getLeaderboardPassedCount() / total) * 100);
+  }
+
+  getLeaderboardAvgTimeSeconds(): number | null {
+    const timed = this.leaderboardItems().filter(
+      item => item.timeTakenSeconds !== null && item.timeTakenSeconds !== undefined
+    );
+    if (timed.length === 0) return null;
+    const sum = timed.reduce((acc, item) => acc + (item.timeTakenSeconds ?? 0), 0);
+    return Math.round(sum / timed.length);
   }
 
   isWithinOneHour(dateString: string): boolean {

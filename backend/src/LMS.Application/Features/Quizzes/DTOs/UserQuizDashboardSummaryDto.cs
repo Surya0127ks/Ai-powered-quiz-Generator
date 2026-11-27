@@ -11,7 +11,13 @@ public record UserQuizItemDto(
     int TotalAttemptsCount,
     double AvgScorePercentage,
     DateTime CreatedAtUtc,
-    string ShortId
+    string ShortId,
+    int MaxStudents = 15,
+    int LimitExtensionCount = 0,
+    bool IsCapReached = false,
+    int PassedCount = 0,
+    double PassRatePercentage = 0,
+    int? AvgTimeTakenSeconds = null
 );
 
 public record UserAttemptItemDto(
@@ -20,7 +26,8 @@ public record UserAttemptItemDto(
     string QuizTitle,
     double ScorePercentage,
     bool IsPassed,
-    DateTime SubmittedAtUtc
+    DateTime SubmittedAtUtc,
+    int? TimeTakenSeconds = null
 );
 
 public record UserQuizDashboardSummaryDto(

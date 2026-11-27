@@ -42,6 +42,9 @@ public class QuizQuestionConfiguration : IEntityTypeConfiguration<QuizQuestion>
         builder.Property(q => q.Explanation)
             .HasMaxLength(1000);
 
+        builder.Property(q => q.Tag)
+            .HasMaxLength(60);
+
         builder.HasOne(q => q.Quiz)
             .WithMany(qz => qz.Questions)
             .HasForeignKey(q => q.QuizId)

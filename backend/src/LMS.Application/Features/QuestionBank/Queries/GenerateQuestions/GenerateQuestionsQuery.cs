@@ -28,9 +28,9 @@ public class GenerateQuestionsQueryHandler : IRequestHandler<GenerateQuestionsQu
 
     public async Task<Result<List<GeneratedQuestionDto>>> Handle(GenerateQuestionsQuery request, CancellationToken cancellationToken)
     {
-        if (request.QuestionCount is < 1 or > 200)
+        if (request.QuestionCount is < 1 or > 30)
         {
-            return Result.Failure<List<GeneratedQuestionDto>>("Question count must be between 1 and 200.");
+            return Result.Failure<List<GeneratedQuestionDto>>("Question count must be between 1 and 30 (Groq free-tier limit).");
         }
 
         if (request.ApiKey?.Length > 256)

@@ -16,6 +16,7 @@ export interface QuizQuestion {
   points: number;
   orderIndex: number;
   explanation?: string;
+  tag?: string;
   options: QuizOption[];
 }
 
@@ -61,6 +62,7 @@ export interface CreateQuizQuestionItem {
   type: QuestionType;
   points: number;
   explanation?: string;
+  tag?: string;
   options: CreateQuizOptionItem[];
 }
 
@@ -82,7 +84,10 @@ export interface CreateQuizRequest {
   certificateForTopperOnly?: boolean;
   autoSubmit?: boolean;
   showResultsAfterSubmission?: boolean;
+  showCorrectAnswers?: boolean;
   totalMarks?: number;
+  welcomeMessage?: string;
+  instructions?: string;
   questions: CreateQuizQuestionItem[];
   maxStudents?: number;
 }
@@ -104,6 +109,7 @@ export interface SubmitQuizAttemptRequest {
   focusLostCount?: number;
   isDisqualified?: boolean;
   disqualificationReason?: string;
+  timeTakenSeconds?: number;
 }
 
 export interface AnswerReviewItem {
@@ -115,6 +121,7 @@ export interface AnswerReviewItem {
   selectedOptionIds: string[];
   correctOptionIds: string[];
   explanation?: string;
+  tag?: string;
 }
 
 export interface QuizAttemptResult {
@@ -130,6 +137,7 @@ export interface QuizAttemptResult {
   isCapReached?: boolean;
   maxStudents?: number;
   limitExtensionCount?: number;
+  timeTakenSeconds?: number;
 }
 
 export interface UserQuizItem {
@@ -147,6 +155,9 @@ export interface UserQuizItem {
   maxStudents?: number;
   limitExtensionCount?: number;
   isCapReached?: boolean;
+  passedCount?: number;
+  passRatePercentage?: number;
+  avgTimeTakenSeconds?: number;
 }
 
 export interface UserAttemptItem {
@@ -156,6 +167,7 @@ export interface UserAttemptItem {
   scorePercentage: number;
   isPassed: boolean;
   submittedAtUtc: string;
+  timeTakenSeconds?: number;
 }
 
 export interface QuizLeaderboardItem {
@@ -171,6 +183,7 @@ export interface QuizLeaderboardItem {
   rank: number;
   focusLostCount?: number;
   isDisqualified?: boolean;
+  timeTakenSeconds?: number;
 }
 
 export interface UserQuizDashboardSummary {
@@ -199,6 +212,7 @@ export interface AdminAttemptQuestion {
   options: AdminAttemptOption[];
   selectedOptionIds: string[];
   explanation?: string;
+  tag?: string;
 }
 
 export interface AdminAttemptDetails {
@@ -217,4 +231,5 @@ export interface AdminAttemptDetails {
   submittedAtUtc?: string;
   focusLostCount: number;
   questions: AdminAttemptQuestion[];
+  timeTakenSeconds?: number;
 }

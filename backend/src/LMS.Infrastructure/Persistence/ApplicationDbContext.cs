@@ -52,7 +52,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         UpdateAuditableEntities();
 
-        if (ChangeTracker.Entries<Quiz>().Any(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+        if (Database.IsRelational() && ChangeTracker.Entries<Quiz>().Any(e => e.State == EntityState.Added || e.State == EntityState.Modified))
         {
             try
             {
@@ -63,6 +63,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
                     ALTER TABLE ""Quizzes"" ADD COLUMN IF NOT EXISTS ""CoverImageUrl"" text;
                     ALTER TABLE ""Quizzes"" ADD COLUMN IF NOT EXISTS ""CreatedByUserId"" uuid;
                     ALTER TABLE ""Quizzes"" ALTER COLUMN ""LessonId"" DROP NOT NULL;
+                    ALTER TABLE ""QuizQuestions"" ADD COLUMN IF NOT EXISTS ""Tag"" character varying(60);
+                    ALTER TABLE ""QuizAttempts"" ADD COLUMN IF NOT EXISTS ""TimeTakenSeconds"" integer;
                 ", cancellationToken);
             }
             catch (Exception) { /* Ignored if columns already exist */ }

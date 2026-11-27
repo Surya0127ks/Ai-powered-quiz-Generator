@@ -368,7 +368,13 @@ public class QuizzesController : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SubmitQuizAttempt(Guid quizId, [FromBody] SubmitQuizAttemptDto dto, CancellationToken cancellationToken)
     {
-        var command = new SubmitQuizAttemptCommand(quizId, dto.Answers, dto.StudentName);
+        var command = new SubmitQuizAttemptCommand(
+            quizId,
+            dto.Answers,
+            dto.StudentName,
+            FocusLostCount: dto.FocusLostCount,
+            TimeTakenSeconds: dto.TimeTakenSeconds
+        );
         var result = await Mediator.Send(command, cancellationToken);
 
         if (!result.IsSuccess)
@@ -399,7 +405,8 @@ public class QuizzesController : ApiControllerBase
             dto.PhoneNumber,
             dto.FocusLostCount,
             dto.IsDisqualified,
-            dto.DisqualificationReason
+            dto.DisqualificationReason,
+            dto.TimeTakenSeconds
         );
         var result = await Mediator.Send(command, cancellationToken);
 

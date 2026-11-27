@@ -16,8 +16,20 @@ public class QuizQuestion : AuditableEntity
     public int Points { get; set; } = 1;
     public int OrderIndex { get; set; }
     public string? Explanation { get; set; }
+    public string? Tag { get; set; }
 
     // Navigation properties
     public Quiz Quiz { get; set; } = null!;
     public ICollection<QuizOption> Options { get; set; } = new List<QuizOption>();
+
+    public static string? NormalizeTag(string? rawTag)
+    {
+        if (string.IsNullOrWhiteSpace(rawTag))
+        {
+            return null;
+        }
+
+        var trimmed = rawTag.Trim();
+        return trimmed.Length > 60 ? trimmed[..60] : trimmed;
+    }
 }

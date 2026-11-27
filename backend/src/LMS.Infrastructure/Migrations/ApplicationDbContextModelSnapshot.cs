@@ -895,6 +895,9 @@ namespace LMS.Infrastructure.Migrations
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("TimeTakenSeconds")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("TotalPointsEarned")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -1016,6 +1019,10 @@ namespace LMS.Infrastructure.Migrations
 
                     b.Property<Guid>("QuizId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Tag")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");

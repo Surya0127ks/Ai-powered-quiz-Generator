@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { QuizService } from '../../../core/services/quiz.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboardItem } from '../../../core/models/quiz.model';
+import { formatDurationSeconds } from '../../../core/utils/format-duration';
 import { UserRole } from '../../../core/models/auth.model';
 
 @Component({
@@ -86,6 +87,10 @@ import { UserRole } from '../../../core/models/auth.model';
                   <span class="stat-num" [class.text-success]="selectedReportAttempt()?.isPassed" [class.text-danger]="!selectedReportAttempt()?.isPassed">
                     {{ selectedReportAttempt()?.isPassed ? 'Passed' : 'Not passed' }}
                   </span>
+                </div>
+                <div class="report-stat-box">
+                  <span class="stat-label">Time Taken</span>
+                  <span class="stat-num">{{ formatDuration(selectedReportAttempt()?.timeTakenSeconds) }}</span>
                 </div>
               </div>
 
@@ -199,6 +204,7 @@ import { UserRole } from '../../../core/models/auth.model';
                       <th>Quiz Title</th>
                       <th>Submitted Date</th>
                       <th>Score</th>
+                      <th>Time Taken</th>
                       <th>Outcome</th>
                       <th>Actions</th>
                     </tr>
@@ -215,6 +221,7 @@ import { UserRole } from '../../../core/models/auth.model';
                             {{ attempt.scorePercentage }}%
                           </span>
                         </td>
+                        <td>{{ formatDuration(attempt.timeTakenSeconds) }}</td>
                         <td>
                           @if (attempt.isPassed) {
                             <span class="badge badge-emerald">Passed</span>
@@ -269,6 +276,11 @@ import { UserRole } from '../../../core/models/auth.model';
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         {{ quiz.totalAttemptsCount }} Attempts
                       </span>
+                      @if (quiz.totalAttemptsCount > 0) {
+                        <span class="accordion-badge">✅ {{ quiz.passRatePercentage ?? 0 }}% Pass</span>
+                        <span class="accordion-badge">📊 {{ quiz.avgScorePercentage }}% Avg</span>
+                        <span class="accordion-badge">⏱️ {{ formatDuration(quiz.avgTimeTakenSeconds) }}</span>
+                      }
                       <span class="accordion-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                       </span>
@@ -296,6 +308,7 @@ import { UserRole } from '../../../core/models/auth.model';
                                 <th>Student Name</th>
                                 <th>Email</th>
                                 <th>Score</th>
+                                <th>Time Taken</th>
                                 <th>Outcome</th>
                                 <th>Submitted At</th>
                               </tr>
@@ -306,6 +319,7 @@ import { UserRole } from '../../../core/models/auth.model';
                                   <td><strong class="text-dark">{{ item.studentName }}</strong></td>
                                   <td>{{ item.studentEmail }}</td>
                                   <td><strong class="score-num-text">{{ item.scorePercentage }}%</strong></td>
+                                  <td>{{ formatDuration(item.timeTakenSeconds) }}</td>
                                   <td>
                                     @if (item.isPassed) {
                                       <span class="badge badge-emerald">Passed</span>
@@ -464,7 +478,7 @@ import { UserRole } from '../../../core/models/auth.model';
     }
     .report-stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 0.75rem;
       margin: 1.25rem 0;
     }
@@ -571,7 +585,7 @@ import { UserRole } from '../../../core/models/auth.model';
       color: var(--text-heading); 
       font-weight: 800;
     }
-    .accordion-stats-col { display: flex; align-items: center; gap: 1.25rem; }
+    .accordion-stats-col { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; }
     .accordion-badge {
       background: var(--bg-surface);
       border: 1px solid var(--border-strong);
@@ -663,6 +677,7 @@ export class StudentProgressComponent implements OnInit {
   readonly expandedQuizId = signal<string | null>(null);
   readonly leaderboards = signal<Record<string, QuizLeaderboardItem[]>>({});
   readonly isLoadingLeaderboard = signal<Record<string, boolean>>({});
+  readonly formatDuration = formatDurationSeconds;
 
   ngOnInit(): void {
     this.fetchDashboardSummary();
