@@ -63,7 +63,7 @@ interface FaqItem {
                 <span>Open dashboard</span>
               </a>
             } @else {
-              <a routerLink="/auth/login" class="nav-text-link">Sign in</a>
+              <a routerLink="/auth/login" class="nav-text-link hide-mobile-xs">Sign in</a>
               <a routerLink="/auth/register" class="btn-primary-nav">Get started</a>
             }
           </div>
@@ -79,10 +79,10 @@ interface FaqItem {
               <span class="kicker-dot" aria-hidden="true"></span>
               AI quiz studio · Teaching &amp; exam prep
             </span>
-            <h1 class="hero-title">Structured quizzes for focused teaching and exam prep</h1>
+            <h1 class="hero-title">Structured quizzes for teaching and exam prep</h1>
 
             <p class="hero-subtitle">
-              Draft 1 to 30 questions with Groq LLMs across programming, courses, and Indian competitive exams. Share one link for 50 seats or run timed private retests with certificates.
+              Draft 1 to 30 questions with Groq LLMs for coding, classes, and Indian competitive exams. Share one link for 50 seats or run private retests.
             </p>
 
             <div class="hero-cta">
@@ -652,13 +652,14 @@ interface FaqItem {
       height: 44px;
       padding: 0 1.25rem;
       background: var(--color-primary-600);
+      border: 1px solid var(--color-primary-600);
       color: #ffffff !important;
       font-size: 0.9375rem;
       font-weight: 500;
       border-radius: 8px;
       text-decoration: none;
       transition: background-color var(--transition-fast), transform var(--transition-fast);
-      &:hover { background: var(--color-primary-700); }
+      &:hover { background: var(--color-primary-700); border-color: var(--color-primary-700); }
       &:active { transform: scale(0.985); }
     }
     .btn-hero-secondary {
@@ -1222,46 +1223,71 @@ interface FaqItem {
     }
 
     @media (max-width: 640px) {
-      .hide-xs { display: none; }
-      .landing-navbar .nav-container { padding-inline: 0.875rem; gap: 0.5rem; }
-      .nav-text-link { padding: 0 0.5rem; font-size: 0.8125rem; }
-      .btn-primary-nav { padding: 0 0.75rem; font-size: 0.8125rem; }
-      .hero-section { padding: 1.5rem 1rem 2.25rem; min-height: auto; }
-      .hero-split { gap: 1.5rem; }
-      .hero-kicker { font-size: 0.72rem; margin-bottom: 0.7rem; }
-      .hero-title { font-size: clamp(1.85rem, 8.2vw, 2.25rem); margin-bottom: 0.75rem; }
-      .hero-subtitle { font-size: 0.925rem; line-height: 1.5; margin-bottom: 1.15rem; }
+      .hide-xs, .hide-mobile-xs { display: none; }
+      .landing-navbar .nav-container { padding-inline: 1rem; gap: 0.5rem; }
+      .btn-primary-nav { padding: 0 0.85rem; font-size: 0.8125rem; height: 34px; }
+
+      .hero-section { padding: 1.5rem 1rem 2rem; min-height: auto; }
+      .hero-split { gap: 1.35rem; }
+      .hero-copy { align-items: center; text-align: center; }
+      .hero-kicker { font-size: 0.72rem; margin-bottom: 0.65rem; }
+      .hero-title {
+        font-size: clamp(1.75rem, 7.6vw, 2.15rem);
+        line-height: 1.12;
+        text-wrap: balance;
+        margin-bottom: 0.65rem;
+      }
+      .hero-subtitle {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-wrap: balance;
+        max-width: 34ch;
+        margin-bottom: 1.1rem;
+      }
       .hero-cta {
         display: grid;
-        grid-template-columns: 1.35fr 1fr;
-        gap: 0.55rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 0.625rem;
         width: 100%;
-        margin-bottom: 1rem;
+        margin-bottom: 0.95rem;
+      }
+      .hero-cta a:only-child,
+      .cta-buttons a:only-child {
+        grid-column: 1 / -1;
       }
       .btn-hero-primary, .btn-hero-secondary {
         width: 100%;
         height: 42px;
         padding: 0 0.75rem;
         font-size: 0.875rem;
+        margin: 0;
       }
       .hero-spec-strip {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.4rem 0.65rem;
+        gap: 0.45rem;
         width: 100%;
-        padding: 0.65rem 0.75rem;
+      }
+      .spec-item {
+        justify-content: center;
+        padding: 0.42rem 0.5rem;
         background: var(--bg-surface);
         border: 1px solid var(--border-hairline);
-        border-radius: 10px;
+        border-radius: 8px;
+        font-size: 0.72rem;
       }
       .spec-sep { display: none; }
+
       .folio-header { height: auto; min-height: 36px; padding: 0.45rem 0.75rem; flex-wrap: wrap; gap: 0.25rem 0.6rem; }
-      .folio-body { padding: 0.9rem; gap: 0.85rem; }
-      .folio-q-text { font-size: 0.875rem; }
-      .folio-opt { padding: 0.52rem 0.7rem; font-size: 0.82rem; gap: 0.55rem; }
+      .folio-body { padding: 0.85rem; gap: 0.7rem; }
+      .folio-q-text { font-size: 0.85rem; line-height: 1.4; }
+      .folio-options { gap: 0.4rem; }
+      .folio-opt { padding: 0.48rem 0.65rem; font-size: 0.79rem; gap: 0.55rem; }
       .folio-key { width: 22px; height: 22px; font-size: 0.7rem; }
-      .folio-footer { flex-direction: column; align-items: stretch; gap: 0.65rem; padding-top: 0.75rem; }
-      .folio-score-slip { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+      .folio-footer { flex-direction: column; align-items: stretch; gap: 0.55rem; padding-top: 0.65rem; }
+      .folio-explanation { font-size: 0.76rem; }
+      .folio-score-slip { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; padding: 0.45rem 0.65rem; }
 
       .section { padding: 2.5rem 1rem; }
       .section-header { margin-bottom: 1.5rem; }
@@ -1285,8 +1311,8 @@ interface FaqItem {
       .roles-grid { grid-template-columns: 1fr; gap: 0.85rem; }
       .role-card { padding: 1.2rem; }
       .bottom-cta { padding: 0 1rem 2.75rem; }
-      .cta-inner { padding: 1.5rem 1.1rem; }
-      .cta-buttons { width: 100%; display: grid; grid-template-columns: 1.3fr 1fr; gap: 0.55rem; }
+      .cta-inner { padding: 1.5rem 1.1rem; align-items: center; text-align: center; }
+      .cta-buttons { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
       .cta-buttons a { width: 100%; justify-content: center; }
       .footer-container { padding-inline: 1rem; }
     }
