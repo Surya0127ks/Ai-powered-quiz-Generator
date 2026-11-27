@@ -14,13 +14,26 @@ namespace LMS.Infrastructure.Services;
 
 public class GroqService : IGroqService
 {
-    private const int MaxRateLimitRetries = 2;
+    private const int FreeTierBatchSize = 6;
+    private const int MaxRateLimitWaitRetries = 1;
+
+    private static readonly string[] DefaultModelCandidates =
+    [
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3-32b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "meta-llama/llama-4-scout-17b-16e-instruct"
+    ];
+
     private static readonly Regex RetryDelayRegex = new(
         @"(?:try again in|retry after)\s*(?<seconds>\d+(?:\.\d+)?)\s*(?:s|sec|seconds)?",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     private readonly HttpClient _httpClient;
     private readonly string? _defaultApiKey;
+    private readonly string _configuredModel;
 
     public GroqService(HttpClient httpClient, IConfiguration configuration)
     {
@@ -33,6 +46,12 @@ public class GroqService : IGroqService
         _defaultApiKey = !string.IsNullOrWhiteSpace(environmentApiKey)
             ? environmentApiKey.Trim()
             : configuredApiKey?.Trim();
+
+        var envModel = Environment.GetEnvironmentVariable("GROQ_MODEL");
+        var configuredModel = configuration["Groq:Model"];
+        _configuredModel = !string.IsNullOrWhiteSpace(envModel)
+            ? envModel.Trim()
+            : (!string.IsNullOrWhiteSpace(configuredModel) ? configuredModel.Trim() : DefaultModelCandidates[0]);
     }
 
     public async Task<Result<List<GeneratedQuestionDto>>> GenerateQuestionsAsync(
@@ -49,38 +68,58 @@ public class GroqService : IGroqService
             return Result.Failure<List<GeneratedQuestionDto>>("Question count must be between 1 and 30 (Groq free-tier limit).");
         }
 
+        string apiKey = !string.IsNullOrWhiteSpace(customApiKey) ? customApiKey.Trim() : (_defaultApiKey ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return Result.Failure<List<GeneratedQuestionDto>>(
+                "Groq API Key is not configured. Set GROQ_API_KEY in backend environment variables or enter your own Groq key (gsk_...).");
+        }
+
+        var modelPool = BuildInitialModelPool();
+        var modelIndex = 0;
+        var discoveredExtraModels = false;
+
         var questions = new List<GeneratedQuestionDto>(count);
         var seenQuestionStems = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var remaining = count;
         while (remaining > 0)
         {
-            var batchSize = Math.Min(10, remaining);
+            var batchSize = Math.Min(FreeTierBatchSize, remaining);
             var completedBatch = new List<GeneratedQuestionDto>(batchSize);
 
-            // LLMs occasionally return one or two fewer questions than requested.
-            // Ask only for the missing items so a 50-question quiz doesn't fail at 49.
             for (var attempt = 0; attempt < 3 && completedBatch.Count < batchSize; attempt++)
             {
                 var missingCount = batchSize - completedBatch.Count;
                 var previousQuestions = questions
                     .Concat(completedBatch)
-                    .Select(question => question.QuestionText)
-                    .TakeLast(16)
+                    .Select(q => TruncateStem(q.QuestionText, 85))
+                    .TakeLast(8)
                     .ToArray();
 
-                var batch = await GenerateBatchAsync(
+                var batch = await GenerateBatchWithFallbackAsync(
                     topic,
                     subTopic,
                     missingCount,
                     difficulty,
-                    customApiKey,
+                    apiKey,
                     previousQuestions,
+                    modelPool,
+                    () => modelIndex,
+                    idx => modelIndex = idx,
+                    () => discoveredExtraModels,
+                    () => discoveredExtraModels = true,
                     cancellationToken);
 
                 if (!batch.IsSuccess || batch.Value is null)
                 {
+                    if (questions.Count + completedBatch.Count > 0)
+                    {
+                        return Result.Failure<List<GeneratedQuestionDto>>(
+                            $"Generated {questions.Count + completedBatch.Count} of {count} questions before AI generation stopped. {batch.Error ?? "Retry generation after the provider limit resets."}");
+                    }
+
                     return Result.Failure<List<GeneratedQuestionDto>>(
-                        $"Generated {questions.Count + completedBatch.Count} of {count} questions before AI generation stopped. {batch.Error ?? "Retry generation after the provider limit resets."}");
+                        batch.Error ?? "Groq AI could not generate questions right now. Please retry in a moment.");
                 }
 
                 foreach (var question in batch.Value)
@@ -101,7 +140,7 @@ public class GroqService : IGroqService
             if (completedBatch.Count != batchSize)
             {
                 return Result.Failure<List<GeneratedQuestionDto>>(
-                    $"AI returned {completedBatch.Count} of {batchSize} distinct questions for this batch after 3 attempts. Retry generation or choose a smaller question count.");
+                    $"AI returned {completedBatch.Count} of {batchSize} distinct questions for this batch. Click Retry or try a smaller question count.");
             }
 
             questions.AddRange(completedBatch);
@@ -111,206 +150,425 @@ public class GroqService : IGroqService
         return Result.Success(questions);
     }
 
+    private List<string> BuildInitialModelPool()
+    {
+        var list = new List<string> { _configuredModel };
+        foreach (var candidate in DefaultModelCandidates)
+        {
+            if (!list.Contains(candidate, StringComparer.OrdinalIgnoreCase))
+            {
+                list.Add(candidate);
+            }
+        }
+        return list;
+    }
+
+    private static string TruncateStem(string text, int maxLength)
+    {
+        var cleaned = string.Join(' ', (text ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return cleaned.Length <= maxLength ? cleaned : cleaned[..maxLength];
+    }
+
     private static string NormalizeQuestionStem(string questionText) =>
         string.Join(' ', questionText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
             .Trim()
             .ToUpperInvariant();
 
-    private async Task<Result<List<GeneratedQuestionDto>>> GenerateBatchAsync(
+    private async Task<Result<List<GeneratedQuestionDto>>> GenerateBatchWithFallbackAsync(
         string topic,
         string? subTopic,
         int count,
         string? difficulty,
-        string? customApiKey = null,
-        IReadOnlyCollection<string>? previousQuestions = null,
-        CancellationToken cancellationToken = default)
+        string apiKey,
+        IReadOnlyCollection<string> previousQuestions,
+        List<string> modelPool,
+        Func<int> getModelIndex,
+        Action<int> setModelIndex,
+        Func<bool> getDiscoveredExtra,
+        Action markDiscoveredExtra,
+        CancellationToken cancellationToken)
     {
-        string apiKey = !string.IsNullOrWhiteSpace(customApiKey) ? customApiKey.Trim() : (_defaultApiKey ?? string.Empty);
+        var unavailableModels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var rateLimitHits = new Dictionary<string, TimeSpan>(StringComparer.OrdinalIgnoreCase);
+        string? lastError = null;
 
-        if (string.IsNullOrWhiteSpace(apiKey))
+        for (var rateWaitPass = 0; rateWaitPass <= MaxRateLimitWaitRetries; rateWaitPass++)
         {
-            return Result.Failure<List<GeneratedQuestionDto>>(
-                "Groq API Key is not configured. Please provide a valid Groq API key (starts with 'gsk_') to generate questions using AI.");
+            var startIdx = Math.Clamp(getModelIndex(), 0, Math.Max(0, modelPool.Count - 1));
+            for (var offset = 0; offset < modelPool.Count; offset++)
+            {
+                var idx = (startIdx + offset) % modelPool.Count;
+                var model = modelPool[idx];
+                if (unavailableModels.Contains(model))
+                {
+                    continue;
+                }
+
+                var attemptResult = await SendSingleBatchRequestAsync(
+                    model,
+                    topic,
+                    subTopic,
+                    count,
+                    difficulty,
+                    apiKey,
+                    previousQuestions,
+                    useJsonObjectFormat: true,
+                    cancellationToken);
+
+                if (attemptResult.Outcome == BatchCallOutcome.Success && attemptResult.Questions is { Count: > 0 })
+                {
+                    setModelIndex(idx);
+                    return Result.Success(attemptResult.Questions);
+                }
+
+                lastError = attemptResult.ErrorMessage;
+
+                if (attemptResult.Outcome == BatchCallOutcome.AuthFailure)
+                {
+                    return Result.Failure<List<GeneratedQuestionDto>>(attemptResult.ErrorMessage!);
+                }
+
+                if (attemptResult.Outcome == BatchCallOutcome.ModelUnavailable)
+                {
+                    unavailableModels.Add(model);
+
+                    // Try discovering live text models from Groq /openai/v1/models once if a static model is unavailable
+                    if (!getDiscoveredExtra())
+                    {
+                        markDiscoveredExtra();
+                        var liveModels = await DiscoverActiveModelsAsync(apiKey, cancellationToken);
+                        foreach (var live in liveModels)
+                        {
+                            if (!modelPool.Contains(live, StringComparer.OrdinalIgnoreCase))
+                            {
+                                modelPool.Add(live);
+                            }
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (attemptResult.Outcome == BatchCallOutcome.RateLimited)
+                {
+                    rateLimitHits[model] = attemptResult.RetryAfter ?? TimeSpan.FromSeconds(10);
+                    continue;
+                }
+
+                // Unsupported json_object / parameter issue on a non-primary model -> retry same model once without json_object wrapper
+                if (attemptResult.Outcome == BatchCallOutcome.BadRequestOrInvalidOutput)
+                {
+                    var plainRetry = await SendSingleBatchRequestAsync(
+                        model,
+                        topic,
+                        subTopic,
+                        count,
+                        difficulty,
+                        apiKey,
+                        previousQuestions,
+                        useJsonObjectFormat: false,
+                        cancellationToken);
+
+                    if (plainRetry.Outcome == BatchCallOutcome.Success && plainRetry.Questions is { Count: > 0 })
+                    {
+                        setModelIndex(idx);
+                        return Result.Success(plainRetry.Questions);
+                    }
+
+                    lastError = plainRetry.ErrorMessage ?? lastError;
+                }
+            }
+
+            // If we got rate limited on all remaining models, wait briefly on the shortest delay and retry once
+            if (rateWaitPass < MaxRateLimitWaitRetries && rateLimitHits.Count > 0)
+            {
+                var shortestWait = rateLimitHits.Values.Min();
+                if (shortestWait <= TimeSpan.FromSeconds(25))
+                {
+                    await Task.Delay(shortestWait, cancellationToken);
+                    rateLimitHits.Clear();
+                    continue;
+                }
+            }
+
+            break;
         }
 
+        return Result.Failure<List<GeneratedQuestionDto>>(
+            lastError ?? "Groq AI is currently busy on the free tier. Please wait a few seconds and retry.");
+    }
+
+    private async Task<BatchCallResult> SendSingleBatchRequestAsync(
+        string model,
+        string topic,
+        string? subTopic,
+        int count,
+        string? difficulty,
+        string apiKey,
+        IReadOnlyCollection<string> previousQuestions,
+        bool useJsonObjectFormat,
+        CancellationToken cancellationToken)
+    {
         string topicFull = string.IsNullOrWhiteSpace(subTopic) ? topic : $"{topic} - {subTopic}";
         string diff = string.IsNullOrWhiteSpace(difficulty) ? "Mixed" : difficulty;
         int targetCount = count > 0 ? count : 5;
 
-        var systemPrompt = @"You are an expert educational quiz generator specializing in programming, computer science, and software engineering. Output ONLY a valid JSON object matching this schema exactly, with NO markdown, NO code blocks, NO extra text before or after:
-{
-  ""questions"": [
-    {
-      ""questionText"": ""string"",
-      ""type"": ""SingleChoice"" or ""TrueFalse"",
-      ""points"": 1,
-      ""tag"": ""string (concise 1-2 word topic tag, e.g. OOP, Arrays, SQL, Async, Polity)"",
-      ""explanation"": ""string explaining correct answer clearly and concisely"",
-      ""options"": [
-        { ""optionText"": ""string"", ""isCorrect"": boolean }
-      ]
-    }
-  ]
-}
-STRICT REQUIREMENTS:
-- Generate ACCURATE, factually correct questions. Zero tolerance for wrong answers marked correct.
-- DIFFICULTY RULE (MANDATORY): If the user says Easy → generate ONLY easy beginner questions. If the user says Medium → generate ONLY medium intermediate questions. If the user says Hard → generate ONLY hard advanced questions. If Mixed → generate a balanced spread. DO NOT mix difficulty levels unless explicitly asked for Mixed.
-- For programming/CS topics: include code snippets, syntax questions, algorithm logic, output prediction, and best-practice scenarios.
-- Assign a short 1-2 word concept tag in ""tag"" for every question (e.g., OOP, Arrays, Recursion, SQL, React, Hooks, Networking, Polity).
-- For SingleChoice: provide EXACTLY 4 options with EXACTLY 1 option having isCorrect = true. Wrong options must be plausible but clearly incorrect.
-- For TrueFalse: provide EXACTLY 2 options (""True"" and ""False"") with exactly 1 having isCorrect = true.
-- Write questions in clear, professional English suitable for students and educators.
-- Explanation must be specific: clearly state WHY the correct answer is right and why the wrong options are wrong.
-- PRIVACY: Never generate questions containing personal data, real identifiable individuals (unless historical public figures), or sensitive information.
-- Return ONLY raw JSON — no other text whatsoever.";
+        const string systemPrompt =
+            """
+            You generate educational MCQs. Output ONLY valid JSON matching:
+            {"questions":[{"questionText":"...","type":"SingleChoice"|"TrueFalse","points":1,"tag":"1-2 word tag","explanation":"why right and why others wrong","options":[{"optionText":"...","isCorrect":boolean}]}]}
+            Rules:
+            - Strictly match requested difficulty (Easy=basic concepts/definitions, Medium=applied understanding, Hard=deep scenarios/edge cases, Mixed=30% Easy / 40% Medium / 30% Hard).
+            - SingleChoice: exactly 4 options with exactly 1 isCorrect=true. TrueFalse: "True" and "False" with 1 isCorrect=true.
+            - Programming/CS: include code snippets, output prediction, syntax, and best-practice questions.
+            - Every question and answer must be factually verified. Output raw JSON only.
+            """;
 
-        // Build a precise difficulty-aware user prompt
         string difficultyInstruction = diff switch
         {
-            "Easy" => "DIFFICULTY LEVEL: EASY (STRICTLY ENFORCE THIS)\nGenerate ONLY beginner-level questions. Focus on basic definitions, syntax, simple recall, and foundational concepts. A student who just started learning should be able to answer these. No complex scenarios or multi-step logic.",
-            "Hard" => "DIFFICULTY LEVEL: HARD (STRICTLY ENFORCE THIS)\nGenerate ONLY advanced expert-level questions. Focus on deep analysis, complex algorithms, subtle language behaviors, performance trade-offs, edge cases, and architecture decisions. These should challenge even experienced developers or domain experts.",
-            "Mixed" => "DIFFICULTY LEVEL: MIXED\nGenerate a balanced mix: roughly 30% Easy (basic recall/definitions), 40% Medium (applied understanding and problem-solving), 30% Hard (advanced analysis/edge cases/expert knowledge).",
-            _ => "DIFFICULTY LEVEL: MEDIUM (STRICTLY ENFORCE THIS)\nGenerate ONLY intermediate-level questions. Test understanding and application of concepts, not just surface recall. The student should need to think and apply knowledge — not just remember a definition."
+            "Easy" => "Difficulty: EASY ONLY (beginner recall & basic concepts).",
+            "Hard" => "Difficulty: HARD ONLY (advanced analysis, subtle edge cases & deep reasoning).",
+            "Mixed" => "Difficulty: MIXED (balanced Easy, Medium, and Hard).",
+            _ => "Difficulty: MEDIUM ONLY (applied understanding & problem solving)."
         };
 
-        string examInstruction = "";
-        if (topicFull.Contains("UPSC", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("SSC", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Banking", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("IBPS", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("SBI", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Railways", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("RRB", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Defence", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("NDA", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("CDS", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("CTET", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Govt", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Government", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Civil Services", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("NEET", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("JEE", StringComparison.OrdinalIgnoreCase))
+        string focusInstruction = string.Empty;
+        if (ContainsAny(topicFull, "UPSC", "SSC", "Banking", "IBPS", "SBI", "Railways", "RRB", "Defence", "NDA", "CDS", "CTET", "Govt", "Government", "Civil Services", "NEET", "JEE"))
         {
-            examInstruction = "\nCOMPETITIVE / GOVT EXAM FOCUS: Structure questions according to real examination standards (e.g. Previous Year Question depth, assertion-reasoning, statement evaluations like 'Which of the following is/are correct?', standard official terminology, and detailed pedagogical explanations).";
+            focusInstruction = "\nExam style: Follow real competitive exam / PYQ depth with assertion-reasoning or statement options where relevant.";
+        }
+        else if (ContainsAny(topicFull, "Python", "JavaScript", "Java ", "C#", "C++", "TypeScript", "React", "Angular", "Node", "SQL", "Database", "Algorithm", "Data Structure", "OOP", "Programming", "Software", "Computer Science", "Web Development", "Machine Learning", "Cloud", "REST API", "Git", "Docker"))
+        {
+            focusInstruction = "\nCS/Programming focus: Mix code-output prediction, syntax, algorithms, and debugging scenarios.";
         }
 
-        // Programming / CS / Software Engineering focus
-        bool isProgrammingTopic =
-            topicFull.Contains("Python", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("JavaScript", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Java ", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("C#", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("C++", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("TypeScript", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("React", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Angular", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Node", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("SQL", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Database", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Algorithm", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Data Structure", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("OOP", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Programming", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Software", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Computer Science", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Web Development", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Machine Learning", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Cloud", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("REST API", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Git", StringComparison.OrdinalIgnoreCase) ||
-            topicFull.Contains("Docker", StringComparison.OrdinalIgnoreCase);
-
-        if (isProgrammingTopic)
-        {
-            examInstruction += "\nPROGRAMMING / CS FOCUS: Include a mix of code-output prediction questions (show a code snippet and ask what it outputs), syntax questions, conceptual theory questions, and best-practice scenarios. Code snippets must be formatted as plain text. Answers must be 100% technically accurate — wrong answers about code behavior are unacceptable.";
-        }
-
-        var uniquenessInstruction = previousQuestions is { Count: > 0 }
-            ? $"\nDo not repeat or paraphrase these earlier question stems: {string.Join(" | ", previousQuestions)}."
+        var uniquenessInstruction = previousQuestions.Count > 0
+            ? $"\nAvoid repeating: {string.Join(" | ", previousQuestions)}"
             : string.Empty;
-        var userPrompt = $"Generate exactly {targetCount} quiz questions for the topic: '{topicFull}'.\n{difficultyInstruction}{examInstruction}{uniquenessInstruction}\nEnsure all questions are factually accurate and the explanation clearly justifies why the correct answer is right and why the wrong options are incorrect.";
 
+        var userPrompt = $"Generate exactly {targetCount} unique questions on: '{topicFull}'. {difficultyInstruction}{focusInstruction}{uniquenessInstruction}";
 
-        var requestBody = new
+        // Keep payload compatible with each Groq model family while avoiding hidden-reasoning token exhaustion on free tier (8k TPM)
+        bool isGptOss = model.StartsWith("openai/gpt-oss", StringComparison.OrdinalIgnoreCase);
+        bool isQwenReasoning = model.Contains("qwen3", StringComparison.OrdinalIgnoreCase);
+        int tokenBudget = isGptOss
+            ? Math.Clamp(targetCount * 420 + 400, 1400, 3200)
+            : Math.Clamp(targetCount * 320 + 250, 1000, 2600);
+
+        var payload = new Dictionary<string, object>
         {
-            model = "openai/gpt-oss-20b",
-            messages = new[]
+            ["model"] = model,
+            ["messages"] = new[]
             {
                 new { role = "system", content = systemPrompt },
                 new { role = "user", content = userPrompt }
             },
-            temperature = 0.7,
-            // Keep the reserved completion budget proportional to the batch size.
-            // The provider counts prompt and completion tokens against TPM limits.
-            max_tokens = Math.Min(4096, Math.Max(1024, targetCount * 300)),
-            response_format = new { type = "json_object" }
+            ["temperature"] = 0.65,
+            ["max_completion_tokens"] = tokenBudget
         };
 
-        var jsonContent = JsonSerializer.Serialize(requestBody);
+        if (useJsonObjectFormat)
+        {
+            payload["response_format"] = new { type = "json_object" };
+        }
+
+        if (isGptOss)
+        {
+            payload["reasoning_effort"] = "low";
+        }
+        else if (isQwenReasoning)
+        {
+            payload["reasoning_format"] = "hidden";
+        }
+
+        var jsonContent = JsonSerializer.Serialize(payload);
 
         try
         {
-            for (var rateLimitAttempt = 0; rateLimitAttempt <= MaxRateLimitRetries; rateLimitAttempt++)
+            using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            string responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
             {
-                using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-                request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                using var response = await _httpClient.SendAsync(request, cancellationToken);
-                string responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-
-                if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    var retryDelay = GetRateLimitDelay(response, responseString);
-                    if (rateLimitAttempt < MaxRateLimitRetries)
-                    {
-                        await Task.Delay(retryDelay, cancellationToken);
-                        continue;
-                    }
-
-                    return Result.Failure<List<GeneratedQuestionDto>>(
-                        $"Groq reached its temporary rate limit. Please try again in {Math.Ceiling(retryDelay.TotalSeconds)}s.");
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var safeMessage = response.StatusCode switch
-                    {
-                        HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden =>
-                            "Groq rejected the backend API key or its model access. Check GROQ_API_KEY in the backend host settings.",
-                        HttpStatusCode.BadRequest =>
-                            "Groq rejected the generation request. Try a shorter topic or a smaller question batch.",
-                        _ => $"Groq AI request failed (HTTP {(int)response.StatusCode}). Please retry in a moment."
-                    };
-
-                    return Result.Failure<List<GeneratedQuestionDto>>(safeMessage);
-                }
-
-                using var doc = JsonDocument.Parse(responseString);
-                var root = doc.RootElement;
-                if (!root.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
-                {
-                    return Result.Failure<List<GeneratedQuestionDto>>("Groq AI returned an empty response. Please retry.");
-                }
-
-                string contentText = choices[0].GetProperty("message").GetProperty("content").GetString() ?? string.Empty;
-                contentText = CleanJsonText(contentText);
-
-                var questions = ParseGroqJsonResponse(contentText);
-                if (questions == null || questions.Count == 0)
-                {
-                    return Result.Failure<List<GeneratedQuestionDto>>("Groq AI returned an invalid response. Click Retry to try again.");
-                }
-
-                return Result.Success(questions);
+                var delay = GetRateLimitDelay(response, responseString);
+                return new BatchCallResult(
+                    BatchCallOutcome.RateLimited,
+                    null,
+                    $"Groq free tier rate limit reached on {model}. Retry in {Math.Ceiling(delay.TotalSeconds)}s (or try a smaller question count).",
+                    delay);
             }
 
-            return Result.Failure<List<GeneratedQuestionDto>>("Groq AI is temporarily unavailable. Please retry in a moment.");
+            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                return new BatchCallResult(
+                    BatchCallOutcome.AuthFailure,
+                    null,
+                    "Groq rejected the API key (invalid or expired key). Check GROQ_API_KEY or enter a valid 'gsk_' key.");
+            }
+
+            var providerError = ExtractGroqErrorMessage(responseString);
+            if (!response.IsSuccessStatusCode)
+            {
+                bool isMissingModel = response.StatusCode == HttpStatusCode.NotFound ||
+                    (!string.IsNullOrEmpty(providerError) &&
+                     (providerError.Contains("decommissioned", StringComparison.OrdinalIgnoreCase) ||
+                      providerError.Contains("model_not_found", StringComparison.OrdinalIgnoreCase) ||
+                      providerError.Contains("does not exist", StringComparison.OrdinalIgnoreCase) ||
+                      providerError.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
+                      providerError.Contains("do not have access", StringComparison.OrdinalIgnoreCase)));
+
+                if (isMissingModel)
+                {
+                    return new BatchCallResult(
+                        BatchCallOutcome.ModelUnavailable,
+                        null,
+                        $"Model '{model}' is not available on this Groq tier ({providerError ?? "unavailable"}).");
+                }
+
+                return new BatchCallResult(
+                    BatchCallOutcome.BadRequestOrInvalidOutput,
+                    null,
+                    !string.IsNullOrWhiteSpace(providerError)
+                        ? $"Groq error ({model}): {providerError}"
+                        : $"Groq request failed (HTTP {(int)response.StatusCode}). Please retry.");
+            }
+
+            using var doc = JsonDocument.Parse(responseString);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
+            {
+                return new BatchCallResult(BatchCallOutcome.BadRequestOrInvalidOutput, null, "Groq returned no choices. Click Retry.");
+            }
+
+            var firstChoice = choices[0];
+            string contentText = firstChoice.TryGetProperty("message", out var msg) &&
+                                 msg.TryGetProperty("content", out var contentProp)
+                ? (contentProp.GetString() ?? string.Empty)
+                : string.Empty;
+
+            contentText = CleanJsonText(contentText);
+
+            var questions = ParseGroqJsonResponse(contentText);
+            if (questions == null || questions.Count == 0)
+            {
+                return new BatchCallResult(
+                    BatchCallOutcome.BadRequestOrInvalidOutput,
+                    null,
+                    $"Groq ({model}) returned an incomplete response. Retrying or choosing fewer questions helps on free tier.");
+            }
+
+            return new BatchCallResult(BatchCallOutcome.Success, questions, null);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return new BatchCallResult(
+                BatchCallOutcome.RateLimited,
+                null,
+                "Groq request timed out. Retrying with another free-tier model.",
+                TimeSpan.FromSeconds(2));
         }
         catch (Exception ex)
         {
-            return Result.Failure<List<GeneratedQuestionDto>>($"AI question generation failed ({ex.GetType().Name}). Click Retry to try again.");
+            return new BatchCallResult(
+                BatchCallOutcome.BadRequestOrInvalidOutput,
+                null,
+                $"AI generation failed ({ex.GetType().Name}). Click Retry to try again.");
         }
+    }
+
+    private async Task<List<string>> DiscoverActiveModelsAsync(string apiKey, CancellationToken cancellationToken)
+    {
+        var discovered = new List<string>();
+        try
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Get, "https://api.groq.com/openai/v1/models");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            using var resp = await _httpClient.SendAsync(req, cancellationToken);
+            if (!resp.IsSuccessStatusCode)
+            {
+                return discovered;
+            }
+
+            var raw = await resp.Content.ReadAsStringAsync(cancellationToken);
+            using var doc = JsonDocument.Parse(raw);
+            if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array)
+            {
+                return discovered;
+            }
+
+            foreach (var item in data.EnumerateArray())
+            {
+                if (!item.TryGetProperty("id", out var idProp))
+                {
+                    continue;
+                }
+
+                var id = idProp.GetString()?.Trim();
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    continue;
+                }
+
+                // Skip non-text / audio / speech / safety-guard models
+                if (ContainsAny(id, "whisper", "tts", "orpheus", "guard", "safeguard", "playai"))
+                {
+                    continue;
+                }
+
+                discovered.Add(id);
+            }
+        }
+        catch
+        {
+            // Ignore discovery errors cleanly
+        }
+
+        return discovered;
+    }
+
+    private static bool ContainsAny(string text, params string[] terms)
+    {
+        foreach (var term in terms)
+        {
+            if (text.Contains(term, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static string? ExtractGroqErrorMessage(string responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(responseBody);
+            if (doc.RootElement.TryGetProperty("error", out var errObj) &&
+                errObj.TryGetProperty("message", out var msgProp))
+            {
+                var msg = msgProp.GetString()?.Trim();
+                if (!string.IsNullOrWhiteSpace(msg))
+                {
+                    return msg.Length <= 220 ? msg : msg[..220];
+                }
+            }
+        }
+        catch
+        {
+            // Non-JSON response
+        }
+
+        return null;
     }
 
     private static TimeSpan GetRateLimitDelay(HttpResponseMessage response, string responseBody)
@@ -335,15 +593,15 @@ STRICT REQUIREMENTS:
             return ClampRateLimitDelay(TimeSpan.FromSeconds(seconds));
         }
 
-        return TimeSpan.FromSeconds(15);
+        return TimeSpan.FromSeconds(12);
     }
 
     private static TimeSpan ClampRateLimitDelay(TimeSpan delay) =>
-        TimeSpan.FromSeconds(Math.Clamp(Math.Ceiling(delay.TotalSeconds), 1, 90));
+        TimeSpan.FromSeconds(Math.Clamp(Math.Ceiling(delay.TotalSeconds), 1, 60));
 
     private static string CleanJsonText(string raw)
     {
-        string trimmed = raw.Trim();
+        string trimmed = (raw ?? string.Empty).Trim();
         if (trimmed.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
         {
             trimmed = trimmed[7..];
@@ -358,11 +616,38 @@ STRICT REQUIREMENTS:
             trimmed = trimmed[..^3];
         }
 
-        return trimmed.Trim();
+        trimmed = trimmed.Trim();
+
+        // Extract top-level JSON object or array if the model added surrounding notes
+        int firstBrace = trimmed.IndexOf('{');
+        int firstBracket = trimmed.IndexOf('[');
+        if (firstBrace >= 0 && (firstBracket < 0 || firstBrace < firstBracket))
+        {
+            int lastBrace = trimmed.LastIndexOf('}');
+            if (lastBrace > firstBrace)
+            {
+                return trimmed[firstBrace..(lastBrace + 1)];
+            }
+        }
+        else if (firstBracket >= 0)
+        {
+            int lastBracket = trimmed.LastIndexOf(']');
+            if (lastBracket > firstBracket)
+            {
+                return trimmed[firstBracket..(lastBracket + 1)];
+            }
+        }
+
+        return trimmed;
     }
 
     private static List<GeneratedQuestionDto>? ParseGroqJsonResponse(string jsonText)
     {
+        if (string.IsNullOrWhiteSpace(jsonText))
+        {
+            return null;
+        }
+
         try
         {
             using var doc = JsonDocument.Parse(jsonText);
@@ -373,9 +658,10 @@ STRICT REQUIREMENTS:
             {
                 questionsArray = root;
             }
-            else if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("questions", out questionsArray))
+            else if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("questions", out questionsArray) &&
+                     questionsArray.ValueKind == JsonValueKind.Array)
             {
-                // Has questions property
+                // Standard schema
             }
             else
             {
@@ -385,25 +671,84 @@ STRICT REQUIREMENTS:
             var result = new List<GeneratedQuestionDto>();
             foreach (var qEl in questionsArray.EnumerateArray())
             {
-                string text = qEl.GetProperty("questionText").GetString() ?? "Question";
+                if (qEl.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                string? text = qEl.TryGetProperty("questionText", out var qtProp) ? qtProp.GetString() : null;
+                if (string.IsNullOrWhiteSpace(text) && qEl.TryGetProperty("question", out var qAltProp))
+                {
+                    text = qAltProp.GetString();
+                }
+
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    continue;
+                }
+
                 string typeStr = qEl.TryGetProperty("type", out var tProp) ? tProp.GetString() ?? "SingleChoice" : "SingleChoice";
                 QuestionType qType = typeStr.Equals("TrueFalse", StringComparison.OrdinalIgnoreCase) ? QuestionType.TrueFalse : QuestionType.SingleChoice;
-                int pts = qEl.TryGetProperty("points", out var pProp) ? pProp.GetInt32() : 1;
+
+                int pts = 1;
+                if (qEl.TryGetProperty("points", out var pProp))
+                {
+                    if (pProp.ValueKind == JsonValueKind.Number && pProp.TryGetInt32(out var intPts) && intPts > 0)
+                    {
+                        pts = intPts;
+                    }
+                    else if (pProp.ValueKind == JsonValueKind.Number && pProp.TryGetDouble(out var dblPts) && dblPts >= 1)
+                    {
+                        pts = (int)Math.Round(dblPts);
+                    }
+                }
+
                 string? exp = qEl.TryGetProperty("explanation", out var eProp) ? eProp.GetString() : null;
                 string? tag = qEl.TryGetProperty("tag", out var tagProp) ? LMS.Domain.Entities.QuizQuestion.NormalizeTag(tagProp.GetString()) : null;
 
                 var options = new List<GeneratedQuestionOptionDto>();
-                if (qEl.TryGetProperty("options", out var optsEl))
+                if (qEl.TryGetProperty("options", out var optsEl) && optsEl.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var oEl in optsEl.EnumerateArray())
                     {
-                        string oText = oEl.GetProperty("optionText").GetString() ?? "";
-                        bool isCorr = oEl.GetProperty("isCorrect").GetBoolean();
-                        options.Add(new GeneratedQuestionOptionDto(oText, isCorr));
+                        if (oEl.ValueKind != JsonValueKind.Object)
+                        {
+                            continue;
+                        }
+
+                        string? oText = oEl.TryGetProperty("optionText", out var otProp) ? otProp.GetString() : null;
+                        if (string.IsNullOrWhiteSpace(oText) && oEl.TryGetProperty("text", out var altOptProp))
+                        {
+                            oText = altOptProp.GetString();
+                        }
+
+                        if (string.IsNullOrWhiteSpace(oText))
+                        {
+                            continue;
+                        }
+
+                        bool isCorr = false;
+                        if (oEl.TryGetProperty("isCorrect", out var cProp))
+                        {
+                            isCorr = cProp.ValueKind switch
+                            {
+                                JsonValueKind.True => true,
+                                JsonValueKind.False => false,
+                                JsonValueKind.String => bool.TryParse(cProp.GetString(), out var parsedBool) && parsedBool,
+                                _ => false
+                            };
+                        }
+
+                        options.Add(new GeneratedQuestionOptionDto(oText.Trim(), isCorr));
                     }
                 }
 
-                result.Add(new GeneratedQuestionDto(text, qType, pts, exp, options, tag));
+                if (options.Count < 2)
+                {
+                    continue;
+                }
+
+                result.Add(new GeneratedQuestionDto(text.Trim(), qType, pts, exp, options, tag));
             }
 
             return result;
@@ -413,4 +758,20 @@ STRICT REQUIREMENTS:
             return null;
         }
     }
+
+    private enum BatchCallOutcome
+    {
+        Success,
+        RateLimited,
+        ModelUnavailable,
+        AuthFailure,
+        BadRequestOrInvalidOutput
+    }
+
+    private sealed record BatchCallResult(
+        BatchCallOutcome Outcome,
+        List<GeneratedQuestionDto>? Questions,
+        string? ErrorMessage,
+        TimeSpan? RetryAfter = null
+    );
 }

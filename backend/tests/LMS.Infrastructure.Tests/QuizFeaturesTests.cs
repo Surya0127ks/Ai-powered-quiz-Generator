@@ -85,6 +85,104 @@ public class QuizFeaturesTests
     }
 
     [Fact]
+    public async Task GroqService_ShouldFallBackAcrossModels_WhenRateLimitedOrUnavailable()
+    {
+        var requestedModels = new List<string>();
+        var handler = new StubHttpMessageHandler(req =>
+        {
+            if (req.RequestUri?.AbsolutePath.EndsWith("/models", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new
+                    {
+                        data = new[]
+                        {
+                            new { id = "llama-3.1-8b-instant" },
+                            new { id = "whisper-large-v3" }
+                        }
+                    }), Encoding.UTF8, "application/json")
+                };
+            }
+
+            var body = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            using var bodyDoc = JsonDocument.Parse(body);
+            var model = bodyDoc.RootElement.GetProperty("model").GetString() ?? string.Empty;
+            requestedModels.Add(model);
+
+            if (model == "openai/gpt-oss-20b")
+            {
+                bodyDoc.RootElement.GetProperty("reasoning_effort").GetString().Should().Be("low");
+                return new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+                {
+                    Content = new StringContent("{\"error\":{\"message\":\"Rate limit reached on TPM\"}}", Encoding.UTF8, "application/json")
+                };
+            }
+
+            if (model == "openai/gpt-oss-120b")
+            {
+                return new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent("{\"error\":{\"message\":\"Model does not exist\"}}", Encoding.UTF8, "application/json")
+                };
+            }
+
+            var okPayload = new
+            {
+                choices = new[]
+                {
+                    new
+                    {
+                        message = new
+                        {
+                            content = JsonSerializer.Serialize(new
+                            {
+                                questions = new[]
+                                {
+                                    new
+                                    {
+                                        question = "What is the time complexity of binary search?",
+                                        type = "SingleChoice",
+                                        tag = "Algorithms",
+                                        explanation = "Halving the search range each step yields logarithmic time.",
+                                        options = new[]
+                                        {
+                                            new { text = "O(log n)", isCorrect = "true" },
+                                            new { text = "O(n)", isCorrect = "false" },
+                                            new { text = "O(n^2)", isCorrect = "false" },
+                                            new { text = "O(1)", isCorrect = "false" }
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    }
+                }
+            };
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(okPayload), Encoding.UTF8, "application/json")
+            };
+        });
+
+        var client = new HttpClient(handler);
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Groq:ApiKey"] = "gsk_test_key" })
+            .Build();
+        var service = new GroqService(client, config);
+
+        var result = await service.GenerateQuestionsAsync("Algorithms", null, 1, "Medium");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().ContainSingle(q =>
+            q.Tag == "Algorithms" &&
+            q.Options.Any(o => o.OptionText == "O(log n)" && o.IsCorrect));
+        requestedModels.Should().Contain("openai/gpt-oss-20b");
+        requestedModels.Should().Contain("openai/gpt-oss-120b");
+        requestedModels.Should().Contain("qwen/qwen3-32b");
+    }
+
+    [Fact]
     public async Task CreateUpdateSubmitAndSummary_ShouldPersistTagsExplanationsAndAnalytics()
     {
         await using var db = CreateInMemoryDbContext();

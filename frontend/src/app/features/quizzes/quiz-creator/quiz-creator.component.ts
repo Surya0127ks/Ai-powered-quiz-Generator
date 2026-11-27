@@ -93,14 +93,14 @@ export interface GovtExamCategory {
             </svg>
             <span>{{ errorMessage() }}</span>
           </div>
-          @if (creationMode() === 'smart') {
+          @if (creationMode() === 'smart' || creationMode() === 'govt') {
             <div class="error-actions margin-top-xs">
               @if (!showApiKeyInput() && canOfferCustomApiKey()) {
                 <button type="button" (click)="showApiKeyInput.set(true)" class="btn btn-outline btn-sm">
                   🔑 Enter Custom Groq API Key
                 </button>
               }
-              <button (click)="generateSmartQuestions()" [disabled]="isGenerating()" class="btn btn-outline btn-sm">
+              <button (click)="generateSmartQuestions(creationMode() === 'govt')" [disabled]="isGenerating()" class="btn btn-outline btn-sm">
                 🔄 Retry AI Generation
               </button>
             </div>
@@ -1966,7 +1966,10 @@ export class QuizCreatorComponent implements OnInit {
       },
       error: (err) => {
         this.isGenerating.set(false);
-        this.errorMessage.set(this.getGenerationErrorMessage(String(err.error?.message || '')));
+        const msg = err?.status === 0 || err?.status >= 502
+          ? 'Backend server is waking up (free hosting cold start). Wait 10–15 seconds and click Retry.'
+          : String(err.error?.message || '');
+        this.errorMessage.set(this.getGenerationErrorMessage(msg));
       }
     });
   }

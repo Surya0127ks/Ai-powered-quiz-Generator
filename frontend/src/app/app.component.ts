@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, Event } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationStart, NavigationEnd, NavigationCancel, NavigationError, NavigationSkipped, Event } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService } from './core/services/theme.service';
 import { UserRole } from './core/models/auth.model';
@@ -216,12 +216,12 @@ import { UserRole } from './core/models/auth.model';
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: var(--bg-app);
+      background: color-mix(in srgb, var(--bg-app) 88%, transparent);
       display: flex;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
     .spinner-brand {
       position: relative;
@@ -235,12 +235,15 @@ import { UserRole } from './core/models/auth.model';
     .spinner-circle {
       position: absolute;
       inset: 0;
-      border: 3px solid var(--color-primary-100);
+      border: 3.5px solid var(--color-primary-100);
       border-top-color: var(--color-primary-600);
+      border-right-color: var(--color-ai-purple);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      will-change: transform;
+      animation: qp-spin 0.85s linear infinite !important;
     }
-    @keyframes spin {
+    @keyframes qp-spin {
+      from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
 
@@ -536,21 +539,49 @@ export class AppComponent implements OnInit {
 
   readonly mobileMenuOpen = signal(false);
   readonly isNavigating = signal(false);
+  private navHideTimer: ReturnType<typeof setTimeout> | null = null;
+  private navSafetyTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.router.events.subscribe((event: Event) => {
       if (event instanceof NavigationStart) {
+        if (this.navHideTimer) {
+          clearTimeout(this.navHideTimer);
+          this.navHideTimer = null;
+        }
+        if (this.navSafetyTimer) {
+          clearTimeout(this.navSafetyTimer);
+        }
         this.isNavigating.set(true);
         this.mobileMenuOpen.set(false);
+        // Never trap the UI under a stuck route loader if a lazy transition stalls
+        this.navSafetyTimer = setTimeout(() => {
+          this.isNavigating.set(false);
+        }, 2500);
       } else if (
         event instanceof NavigationEnd ||
         event instanceof NavigationCancel ||
-        event instanceof NavigationError
+        event instanceof NavigationError ||
+        event instanceof NavigationSkipped
       ) {
-        // Small delay to make it smooth and not flicker on very fast loads
-        setTimeout(() => {
+        if (event instanceof NavigationError) {
+          const msg = String(event.error?.message || event.error || '');
+          if (/ChunkLoadError|dynamically imported module|Loading chunk/i.test(msg)) {
+            const reloadedKey = 'qp_chunk_reload';
+            if (!sessionStorage.getItem(reloadedKey)) {
+              sessionStorage.setItem(reloadedKey, '1');
+              window.location.reload();
+              return;
+            }
+          }
+        }
+        if (this.navSafetyTimer) {
+          clearTimeout(this.navSafetyTimer);
+          this.navSafetyTimer = null;
+        }
+        this.navHideTimer = setTimeout(() => {
           this.isNavigating.set(false);
-        }, 300);
+        }, 120);
       }
     });
   }
