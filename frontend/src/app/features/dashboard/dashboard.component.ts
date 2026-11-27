@@ -1157,8 +1157,10 @@ import { UserQuizDashboardSummary, UserAttemptItem, UserQuizItem, QuizLeaderboar
         box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
       }
     }
-    .card-indigo, .card-purple, .card-emerald, .card-amber { border-left: 3px solid var(--color-primary-600) !important; }
-    .icon-purple, .icon-emerald, .icon-amber { background: var(--color-primary-50); color: var(--color-primary-600); }
+    .card-indigo  { border-left: 3px solid var(--color-primary-600) !important; }
+    .card-purple  { border-left: 3px solid var(--color-ai-purple) !important; }
+    .card-emerald { border-left: 3px solid var(--color-success-text) !important; }
+    .card-amber   { border-left: 3px solid var(--color-warning-text) !important; }
 
     .stat-card-top {
       display: flex;

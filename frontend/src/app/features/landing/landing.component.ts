@@ -40,7 +40,23 @@ interface FaqItem {
               [attr.aria-pressed]="themeService.isDarkMode()"
               [title]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
             >
-              {{ themeService.isDarkMode() ? '☀️' : '🌙' }}
+              @if (themeService.isDarkMode()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              }
             </button>
 
             @if (authService.isAuthenticated()) {
@@ -467,7 +483,7 @@ interface FaqItem {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(54, 95, 143, 0.18);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.24);
     }
     .brand-name-group {
       display: flex;
@@ -582,9 +598,9 @@ interface FaqItem {
       top: -50px;
       left: 50%;
       transform: translateX(-50%);
-      width: 70vw;
-      height: 450px;
-      background: radial-gradient(ellipse at top, rgba(54, 95, 143, 0.08) 0%, transparent 70%);
+      width: 75vw;
+      height: 460px;
+      background: radial-gradient(ellipse at top, rgba(37, 99, 235, 0.10) 0%, rgba(79, 70, 229, 0.04) 48%, transparent 74%);
       pointer-events: none;
       z-index: 0;
     }
@@ -638,7 +654,7 @@ interface FaqItem {
 
     .hero-subtitle {
       font-size: clamp(1rem, 2vw, 1.15rem);
-      color: var(--text-muted);
+      color: var(--text-body);
       line-height: 1.6;
       max-width: 680px;
       margin-bottom: 2.25rem;
@@ -664,12 +680,12 @@ interface FaqItem {
       padding: 0.85rem 2rem;
       border-radius: 9999px;
       text-decoration: none;
-      box-shadow: 0 6px 18px rgba(54, 95, 143, 0.2);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.26);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       &:hover {
         background: var(--color-primary-700);
         transform: translateY(-2px);
-        box-shadow: 0 8px 22px rgba(54, 95, 143, 0.24);
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.32);
       }
     }
 
@@ -723,7 +739,7 @@ interface FaqItem {
       border: 1px solid var(--border-hairline);
       border-radius: var(--radius-xl);
       overflow: hidden;
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 20px 44px -14px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(37, 99, 235, 0.06);
       text-align: left;
     }
 
@@ -1075,7 +1091,7 @@ interface FaqItem {
     }
     .role-card.highlight-role {
       border-color: var(--color-primary-500);
-      box-shadow: 0 6px 20px rgba(54, 95, 143, 0.1);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.10);
     }
     .role-card.govt-role-card {
       border-color: var(--color-primary-300);

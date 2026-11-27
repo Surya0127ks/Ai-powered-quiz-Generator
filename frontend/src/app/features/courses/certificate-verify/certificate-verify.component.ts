@@ -73,7 +73,7 @@ import { VerifyCertificateResult } from '../../../core/models/certificate.model'
     .glass-panel { background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: 1rem; padding: 1.75rem; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05); }
     .search-form { display: flex; gap: 0.75rem; }
     .form-control { flex: 1; background: var(--bg-app); border: 1px solid var(--border-hairline); border-radius: 0.5rem; padding: 0.8rem 1rem; color: var(--text-body); outline: none; font-size: 0.95rem; min-width: 0; }
-    .form-control:focus { border-color: var(--color-primary-500); box-shadow: 0 0 0 3px rgba(74, 124, 179, 0.14); }
+    .form-control:focus { border-color: var(--color-primary-500); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16); }
     .margin-top { margin-top: 1.5rem; }
     .result-card.valid { border-color: var(--color-success-border); background: var(--color-success-bg); }
     .result-card.invalid { border-color: var(--color-danger-border); background: var(--color-danger-bg); }
